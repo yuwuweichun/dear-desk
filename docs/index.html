@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="description" content="Dear Desk 产品、架构、任务方案与实施记录入口">
+  <title>Dear Desk 项目文档</title>
+  <link rel="stylesheet" href="./assets/docs.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="#start" aria-label="Dear Desk 文档首页">
+        <span class="brand-mark" aria-hidden="true">DD</span>
+        <span>Dear Desk Docs</span>
+      </a>
+      <div class="search-shell">
+        <label class="sr-only" for="doc-search">搜索本文档</label>
+        <span class="search-icon" aria-hidden="true"></span>
+        <input id="doc-search" type="search" autocomplete="off" placeholder="搜索文档内容" aria-controls="search-results" aria-expanded="false">
+        <kbd aria-hidden="true">/</kbd>
+        <div id="search-results" class="search-results" role="listbox" aria-label="搜索结果" hidden></div>
+      </div>
+      <span class="top-meta">2026-08-06 · 实施验收</span>
+      <button class="toc-toggle" type="button" aria-controls="sidebar" aria-expanded="false">目录</button>
+    </div>
+  </header>
+
+  <div class="page-layout">
+    <aside id="sidebar" class="sidebar" aria-label="文档目录">
+      <p class="sidebar-label">阅读目录</p>
+      <nav>
+        <a href="#start">项目入口</a>
+        <a href="#current">当前状态</a>
+        <a href="#workflow">任务流程</a>
+        <a href="#documents">文档地图</a>
+        <a href="#consistency">一致性机制</a>
+        <a href="#product">产品规格</a>
+        <a href="#source">项目事实</a>
+      </nav>
+    </aside>
+
+    <main>
+      <header id="start" class="doc-head">
+        <div class="eyebrow">Dear Desk · 项目阅读入口</div>
+        <h1>不用阅读源码，也能审核项目正在怎样变化</h1>
+        <p class="lead">这里汇总当前产品范围、系统架构、每项任务的方案与实施结果。代码改动必须先有可审阅方案，完成后再把真实结果回写到同一份记录。</p>
+        <div class="callout">
+          <strong>当前结论</strong>
+          <p>文档驱动流程已经通过验收，MVP 产品范围已经批准。编号 002 的技术基础与首个纵向切片已实现并完成验证，当前等待用户验收；003 镜头转场与 004 贴纸仍待审批。</p>
+        </div>
+      </header>
+
+      <section id="current" data-search-title="当前状态">
+        <p class="section-index">01 · 当前状态</p>
+        <h2>现在处于哪一个阶段</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>项目面</th><th>状态</th><th>说明</th></tr></thead>
+            <tbody>
+              <tr><td>文档协作流程</td><td><span class="status status-review">已完成</span></td><td>规则、模板、决策记录和阅读入口已经建立并通过验收。</td></tr>
+              <tr><td>首版产品规格</td><td><span class="status status-review">已批准</span></td><td>文字与矩形图片贴纸、无语音、轻量翻页、可选台灯和 IndexedDB 本地数据边界已经确认。</td></tr>
+              <tr><td>技术基础与首个切片</td><td><span class="status status-pending">待验收</span></td><td>3D 本子入口、DOM 当天文字编辑和 IndexedDB 重开恢复已经实现并通过验证。</td></tr>
+              <tr><td>本子聚焦转场</td><td><span class="status status-pending">待确认</span></td><td>编号 003 建议镜头走近、转正、开本并衔接纸页 DOM UI，尚未实施。</td></tr>
+              <tr><td>基础贴纸</td><td><span class="status status-pending">待确认</span></td><td>编号 004 建议先完成文字贴纸闭环；当前源码没有贴纸模型、表或场景对象。</td></tr>
+              <tr><td>当前分支</td><td><code>docs/document-driven-workflow</code></td><td>仓库尚无初始提交；当前实现和文档均为工作区文件。</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="workflow" data-search-title="任务流程">
+        <p class="section-index">02 · 工作方式</p>
+        <h2>每项任务都经过同一条审核链路</h2>
+        <p>新的独立任务先创建日期编号记录。Codex 可以读取源码、测试和配置来建立事实，但在用户批准前只修改方案文档。</p>
+        <div class="workflow" aria-label="任务状态流转">
+          <div><span>01</span><strong>待确认</strong><small>读取事实并形成方案</small></div>
+          <div><span>02</span><strong>已批准</strong><small>锁定最终执行清单</small></div>
+          <div><span>03</span><strong>实施中</strong><small>按批准范围修改</small></div>
+          <div><span>04</span><strong>待验收</strong><small>展示结果和证据</small></div>
+          <div><span>05</span><strong>已完成</strong><small>由用户接受结果</small></div>
+        </div>
+        <p>这里的
+          <button class="term" type="button" data-term="纵向切片" data-definition="从用户操作、状态变化、持久化到界面结果都完整可用的一小段功能，而不是只完成某个技术层。">纵向切片</button>
+          意味着每次实现都应形成可运行、可验证的用户结果。实施中若出现会改变范围、主要交互、公共接口或数据结构的新问题，对应改动必须暂停并重新确认。
+        </p>
+        <div class="code-block">
+          <div class="code-head"><span>任务状态</span><button class="copy-button" type="button" data-copy-target="workflow-code">复制</button></div>
+          <pre id="workflow-code"><code>已提出 -&gt; 待确认 -&gt; 已批准 -&gt; 实施中 -&gt; 待验收 -&gt; 已完成</code></pre>
+        </div>
+      </section>
+
+      <section id="documents" data-search-title="文档地图">
+        <p class="section-index">03 · 文档地图</p>
+        <h2>不同文档分别回答什么问题</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>文档</th><th>阅读目的</th><th>当前状态</th></tr></thead>
+            <tbody>
+              <tr><td><a href="./product/mvp.md">首版产品规格</a></td><td>首版做什么、不做什么、如何验收。</td><td>已批准</td></tr>
+              <tr><td><a href="./changes/2026-08-06-001-document-driven-workflow.md">文档流程任务记录</a></td><td>查看本次方案、批准范围、实施和验证证据。</td><td>已完成</td></tr>
+              <tr><td><a href="./changes/2026-08-06-002-technical-foundation-and-first-slice.md">技术基础与首个切片</a></td><td>查看技术栈、状态所有权、实际实现、验证结果和方案偏差。</td><td>待验收</td></tr>
+              <tr><td><a href="./architecture/system-overview.html">当前系统架构</a></td><td>从零理解运行时、保存链路、失败路径、状态边界和源码地图。</td><td>当前事实</td></tr>
+              <tr><td><a href="./changes/2026-08-06-003-notebook-focus-transition.md">本子聚焦转场</a></td><td>审核镜头走近、转正、开本与二维 UI 衔接方案。</td><td>待确认</td></tr>
+              <tr><td><a href="./changes/2026-08-06-004-basic-sticker-system.md">基础文字贴纸</a></td><td>审核文字贴纸制作、放置、移动、旋转与持久化方案。</td><td>待确认</td></tr>
+              <tr><td><a href="./decisions/2026-08-06-001-documentation-as-review-interface.md">文档审核界面决策</a></td><td>理解为什么采用先审批、后实施、再回写。</td><td>已接受</td></tr>
+              <tr><td><a href="./decisions/2026-08-06-002-local-first-data-and-scene-projection.md">本地数据与场景投影决策</a></td><td>理解 IndexedDB、Zustand、DOM 和 Three.js 的长期所有权边界。</td><td>已接受</td></tr>
+              <tr><td><a href="./templates/change-record.md">任务记录模板</a></td><td>查看以后每项任务保持一致的内容框架。</td><td>当前模板</td></tr>
+              <tr><td><a href="../AGENTS.md">项目协作规则</a></td><td>查看 Codex 在本仓库必须遵守的长期规则。</td><td>当前规则</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="note">
+          <strong>Markdown 与 HTML 不重复承担同一种事实</strong>
+          <p>任务记录默认使用 Markdown，便于查看差异与历史；复杂架构使用 HTML，提供搜索、目录、术语解释和源码地图。这里是所有文档的统一入口。</p>
+        </div>
+      </section>
+
+      <section id="consistency" data-search-title="一致性机制">
+        <p class="section-index">04 · 一致性</p>
+        <h2>怎样防止文档与源码各说各话</h2>
+        <p>每份任务记录都要保存分析时的源码基线，并在实施结束后补充真实文件、测试结果和方案偏差。涉及产品行为、架构边界或长期约束时，还要同步更新对应的当前事实文档。</p>
+        <ol class="checks">
+          <li><strong>先核对事实</strong><span>从真实源码、测试和运行行为建立现状，区分事实、预计改动、推断和待确认项。</span></li>
+          <li><strong>再锁定范围</strong><span>用户批准后的执行清单是本次改动边界，实施中不能静默扩展。</span></li>
+          <li><strong>最后回写结果</strong><span>把 Git 实际差异、验证证据和当前文档逐项同步，才能进入待验收。</span></li>
+        </ol>
+        <p>
+          <button class="term" type="button" data-term="源码基线" data-definition="开始分析任务时所依据的 Git commit；用于判断后续代码是否发生变化，以及文档证据属于哪个版本。">源码基线</button>
+          让一份记录可以定位到具体版本；
+          <button class="term" type="button" data-term="当前事实文档" data-definition="描述项目此刻真实行为的产品或架构文档，会随源码变化持续更新，不等同于历史任务记录。">当前事实文档</button>
+          则负责告诉阅读者项目现在是什么样子。
+        </p>
+      </section>
+
+      <section id="product" data-search-title="首版产品规格">
+        <p class="section-index">05 · 产品</p>
+        <h2>“痕迹工作台”的首版边界已经锁定</h2>
+        <p>首版规格已于 2026-08-06 获批。它把核心循环控制在三分钟以内，并围绕桌面、本子、基础贴纸、旧痕迹入口和台灯定义验收场景。</p>
+        <div class="decision-list">
+          <div><strong>图片贴纸</strong><span>支持基础矩形图片，不做透明轮廓和高级材质。</span></div>
+          <div><strong>语音记录</strong><span>不进入首版。</span></div>
+          <div><strong>本子翻页</strong><span>采用明确但轻量的页切换。</span></div>
+          <div><strong>台灯职责</strong><span>只做可选氛围状态。</span></div>
+          <div><strong>数据位置</strong><span>使用 IndexedDB 本地持久化，不做账号与云同步。</span></div>
+        </div>
+        <p><a class="text-link" href="./product/mvp.md">阅读已批准的首版产品规格</a></p>
+      </section>
+
+      <section id="source" data-search-title="项目事实">
+        <p class="section-index">06 · 项目事实</p>
+        <h2>当前应用已经形成第一条可运行链路</h2>
+        <p>React 应用装载唯一 Three.js 画布与 DOM 日记编辑器；Zustand 协调页面状态，Dexie repository 把当天记录保存到 IndexedDB v1。3D 场景只发出打开意图，不直接访问数据库。</p>
+        <p>当前完整链路是“点击本子 -> 输入当天文字 -> 显式保存 -> IndexedDB 提交 -> 关闭或刷新页面后恢复”。贴纸、过去日期、台灯和镜头聚焦动画仍未实现，不能从已批准产品范围反推为源码事实。</p>
+        <div class="source-map">
+          <div><code>src/main.tsx</code><span>组合 repository、store 与 React 根</span></div>
+          <div><code>src/state/app-store.ts</code><span>加载、打开、关闭和保存动作</span></div>
+          <div><code>src/persistence/</code><span>IndexedDB v1 与事务仓储</span></div>
+          <div><code>src/scene/</code><span>单 Canvas、响应式相机与本子命中区</span></div>
+          <div><code>src/features/journal/</code><span>DOM 草稿、保存和错误反馈</span></div>
+        </div>
+        <p><a class="text-link" href="./architecture/system-overview.html">阅读当前系统架构与源码地图</a></p>
+      </section>
+
+      <footer>
+        Dear Desk 项目文档 · 当前内容依据仓库实际文件整理 · 更新于 2026-08-06
+      </footer>
+    </main>
+  </div>
+
+  <div id="term-popover" class="term-popover" role="tooltip" hidden>
+    <strong></strong>
+    <p></p>
+  </div>
+
+  <script src="./assets/docs-reader.js"></script>
+</body>
+</html>
