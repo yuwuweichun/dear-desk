@@ -22,7 +22,7 @@
         <kbd aria-hidden="true">/</kbd>
         <div id="search-results" class="search-results" role="listbox" aria-label="搜索结果" hidden></div>
       </div>
-      <span class="top-meta">2026-08-06 · 转场已完成</span>
+      <span class="top-meta">2026-08-06 · 006 待确认</span>
       <button class="toc-toggle" type="button" aria-controls="sidebar" aria-expanded="false">目录</button>
     </div>
   </header>
@@ -48,7 +48,7 @@
         <p class="lead">这里汇总当前产品范围、系统架构、每项任务的方案与实施结果。代码改动必须先有可审阅方案，完成后再把真实结果回写到同一份记录。</p>
         <div class="callout">
           <strong>当前结论</strong>
-          <p>文档驱动流程已经通过验收，MVP 产品范围已经批准。编号 003 的本子聚焦转场已经验收完成；编号 002 的首个纵向切片仍待验收，004 贴纸仍待审批。</p>
+          <p>文档驱动流程已经通过验收，MVP 产品范围已经批准。编号 003 的本子聚焦转场已经验收完成；编号 002 的首个纵向切片仍待验收，004 贴纸、005 本子铭牌与 006 整体场景 Minecraft 像素风仍待审批。</p>
         </div>
       </header>
 
@@ -64,7 +64,9 @@
               <tr><td>技术基础与首个切片</td><td><span class="status status-pending">待验收</span></td><td>3D 本子入口、DOM 当天文字编辑和 IndexedDB 重开恢复已经实现并通过验证。</td></tr>
               <tr><td>本子聚焦转场</td><td><span class="status status-review">已完成</span></td><td>编号 003 已实现镜头走近、转正、开本、纸页 DOM 衔接与反向返回，并通过用户验收。</td></tr>
               <tr><td>基础贴纸</td><td><span class="status status-pending">待确认</span></td><td>编号 004 建议先完成文字贴纸闭环；当前源码没有贴纸模型、表或场景对象。</td></tr>
-              <tr><td>当前分支</td><td><code>docs/document-driven-workflow</code></td><td>当前基线提交为 <code>130b62f</code>；编号 003 实现尚未提交。</td></tr>
+              <tr><td>本子封面铭牌</td><td><span class="status status-pending">待确认</span></td><td>编号 005 建议支持自定义铭牌内容与 Text3D；字符范围、默认内容与字体资源待确认。</td></tr>
+              <tr><td>Minecraft 像素场景</td><td><span class="status status-pending">待确认</span></td><td>编号 006 把工作台九宫格、火把灯、像素书与其他固定道具统一为同一体素视觉；资源边界、实现方式与灯光范围待确认。</td></tr>
+              <tr><td>当前分支</td><td><code>docs/document-driven-workflow</code></td><td>当前基线提交为 <code>e378adf</code>；004、005 与 006 方案尚未实施。</td></tr>
             </tbody>
           </table>
         </div>
@@ -104,6 +106,8 @@
               <tr><td><a href="./architecture/system-overview.html">当前系统架构</a></td><td>从零理解运行时、保存链路、失败路径、状态边界和源码地图。</td><td>当前事实</td></tr>
               <tr><td><a href="./changes/2026-08-06-003-notebook-focus-transition.md">本子聚焦转场</a></td><td>查看镜头走近、转正、开本、二维 UI 衔接与验证证据。</td><td>已完成</td></tr>
               <tr><td><a href="./changes/2026-08-06-004-basic-sticker-system.md">基础文字贴纸</a></td><td>审核文字贴纸制作、放置、移动、旋转与持久化方案。</td><td>待确认</td></tr>
+              <tr><td><a href="./changes/2026-08-06-005-custom-notebook-nameplate-text3d.md">本子封面铭牌</a></td><td>审核可编辑铭牌、Text3D、字体资源与本地持久化方案。</td><td>待确认</td></tr>
+              <tr><td><a href="./changes/2026-08-06-006-crafting-table-desk-texture.md">整体场景 Minecraft 像素风</a></td><td>审核工作台、火把灯、像素书、固定道具、公开模型资源与授权边界。</td><td>待确认</td></tr>
               <tr><td><a href="./decisions/2026-08-06-001-documentation-as-review-interface.md">文档审核界面决策</a></td><td>理解为什么采用先审批、后实施、再回写。</td><td>已接受</td></tr>
               <tr><td><a href="./decisions/2026-08-06-002-local-first-data-and-scene-projection.md">本地数据与场景投影决策</a></td><td>理解 IndexedDB、Zustand、DOM 和 Three.js 的长期所有权边界。</td><td>已接受</td></tr>
               <tr><td><a href="./templates/change-record.md">任务记录模板</a></td><td>查看以后每项任务保持一致的内容框架。</td><td>当前模板</td></tr>
