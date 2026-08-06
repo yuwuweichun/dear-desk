@@ -9,16 +9,34 @@ import type {
 type LoadStatus = 'idle' | 'loading' | 'ready' | 'error'
 type SaveStatus = 'idle' | 'saving' | 'saved' | 'error'
 
+export type NotebookPhase =
+  | 'desk'
+  | 'approaching'
+  | 'opening'
+  | 'editing'
+  | 'closing'
+  | 'retreating'
+
+const nextNotebookPhase: Partial<Record<NotebookPhase, NotebookPhase>> = {
+  approaching: 'opening',
+  opening: 'editing',
+  closing: 'retreating',
+  retreating: 'desk',
+}
+
 export interface AppState {
   selectedDate: LocalDate
   entry: DailyEntry | null
-  notebookOpen: boolean
+  notebookPhase: NotebookPhase
   loadStatus: LoadStatus
   saveStatus: SaveStatus
   errorMessage: string | null
   loadToday: () => Promise<void>
-  openNotebook: () => void
-  closeNotebook: () => void
+  requestNotebookOpen: () => void
+  advanceNotebookPhase: (from: NotebookPhase) => void
+  requestNotebookClose: () => void
+  openNotebookWithoutScene: () => void
+  settleNotebookTransition: () => void
   saveEntry: (text: string) => Promise<boolean>
   resetSaveStatus: () => void
 }
@@ -33,7 +51,7 @@ export const createAppStore = (
   createStore<AppState>()((set, get) => ({
     selectedDate,
     entry: null,
-    notebookOpen: false,
+    notebookPhase: 'desk',
     loadStatus: 'idle',
     saveStatus: 'idle',
     errorMessage: null,
@@ -51,8 +69,45 @@ export const createAppStore = (
       }
     },
 
-    openNotebook: () => set({ notebookOpen: true }),
-    closeNotebook: () => set({ notebookOpen: false }),
+    requestNotebookOpen: () =>
+      set((state) =>
+        state.notebookPhase === 'desk'
+          ? { notebookPhase: 'approaching' }
+          : state,
+      ),
+
+    advanceNotebookPhase: (from) =>
+      set((state) => {
+        const nextPhase = nextNotebookPhase[from]
+        return state.notebookPhase === from && nextPhase
+          ? { notebookPhase: nextPhase }
+          : state
+      }),
+
+    requestNotebookClose: () =>
+      set((state) =>
+        state.notebookPhase === 'editing'
+          ? { notebookPhase: 'closing' }
+          : state,
+      ),
+
+    openNotebookWithoutScene: () =>
+      set((state) =>
+        ['desk', 'approaching', 'opening'].includes(state.notebookPhase)
+          ? { notebookPhase: 'editing' }
+          : state,
+      ),
+
+    settleNotebookTransition: () =>
+      set((state) => {
+        if (state.notebookPhase === 'approaching' || state.notebookPhase === 'opening') {
+          return { notebookPhase: 'editing' }
+        }
+        if (state.notebookPhase === 'closing' || state.notebookPhase === 'retreating') {
+          return { notebookPhase: 'desk' }
+        }
+        return state
+      }),
 
     saveEntry: async (text) => {
       set({ saveStatus: 'saving', errorMessage: null })

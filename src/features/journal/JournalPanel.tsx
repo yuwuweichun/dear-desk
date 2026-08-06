@@ -5,11 +5,11 @@ import { formatLocalDate, MAX_ENTRY_LENGTH } from '../../domain/daily-entry'
 import { useAppStore } from '../../state/app-store-context'
 
 export function JournalPanel() {
-  const notebookOpen = useAppStore((state) => state.notebookOpen)
+  const notebookPhase = useAppStore((state) => state.notebookPhase)
   const selectedDate = useAppStore((state) => state.selectedDate)
   const entry = useAppStore((state) => state.entry)
 
-  if (!notebookOpen) return null
+  if (notebookPhase !== 'editing') return null
 
   return (
     <JournalEditor
@@ -28,7 +28,7 @@ function JournalEditor({ initialDraft }: JournalEditorProps) {
   const loadStatus = useAppStore((state) => state.loadStatus)
   const saveStatus = useAppStore((state) => state.saveStatus)
   const errorMessage = useAppStore((state) => state.errorMessage)
-  const closeNotebook = useAppStore((state) => state.closeNotebook)
+  const requestNotebookClose = useAppStore((state) => state.requestNotebookClose)
   const saveEntry = useAppStore((state) => state.saveEntry)
   const resetSaveStatus = useAppStore((state) => state.resetSaveStatus)
   const [draft, setDraft] = useState(initialDraft)
@@ -53,7 +53,7 @@ function JournalEditor({ initialDraft }: JournalEditorProps) {
         <button
           className="icon-button"
           type="button"
-          onClick={closeNotebook}
+          onClick={requestNotebookClose}
           aria-label="关闭本子"
           title="关闭本子"
         >

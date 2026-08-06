@@ -8,6 +8,12 @@ import { JournalPanel } from './JournalPanel'
 
 const date = '2026-08-06' as LocalDate
 
+const openNotebook = (store: ReturnType<typeof createAppStore>) => {
+  store.getState().requestNotebookOpen()
+  store.getState().advanceNotebookPhase('approaching')
+  store.getState().advanceNotebookPhase('opening')
+}
+
 describe('JournalPanel', () => {
   it('saves a DOM draft and reports local persistence', async () => {
     const repository: DailyEntryRepository = {
@@ -20,7 +26,7 @@ describe('JournalPanel', () => {
       })),
     }
     const store = createAppStore(repository, date)
-    store.getState().openNotebook()
+    openNotebook(store)
     const user = userEvent.setup()
 
     render(
@@ -43,7 +49,7 @@ describe('JournalPanel', () => {
       save: vi.fn().mockRejectedValue(new Error('这次没有保存成功')),
     }
     const store = createAppStore(repository, date)
-    store.getState().openNotebook()
+    openNotebook(store)
     const user = userEvent.setup()
 
     render(
@@ -58,5 +64,26 @@ describe('JournalPanel', () => {
 
     expect(await screen.findByRole('alert')).toHaveTextContent('这次没有保存成功')
     expect(textarea).toHaveValue('不要丢掉这句话')
+  })
+
+  it('unmounts the editor before the closing motion starts', async () => {
+    const repository: DailyEntryRepository = {
+      getByDate: vi.fn().mockResolvedValue(null),
+      save: vi.fn(),
+    }
+    const store = createAppStore(repository, date)
+    openNotebook(store)
+    const user = userEvent.setup()
+
+    render(
+      <AppStoreProvider store={store}>
+        <JournalPanel />
+      </AppStoreProvider>,
+    )
+
+    await user.click(screen.getByRole('button', { name: '关闭本子' }))
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(store.getState().notebookPhase).toBe('closing')
   })
 })

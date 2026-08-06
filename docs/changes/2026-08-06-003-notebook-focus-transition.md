@@ -4,22 +4,22 @@
 
 | 字段 | 内容 |
 | --- | --- |
-| 状态 | 待确认 |
+| 状态 | 已完成 |
 | 类型 | 功能 / 3D 交互 / 动效 |
 | 创建时间 | 2026-08-06 15:38 CST |
-| 最后更新 | 2026-08-06 16:30 CST |
-| 当前阶段 | 方案审阅，尚未执行 |
-| 源码基线 | 仓库没有初始提交；当前分支 `docs/document-driven-workflow`，基于编号 002 的未提交实现 |
-| 实现提交 | 尚未创建 |
+| 最后更新 | 2026-08-06 17:52 CST |
+| 当前阶段 | 用户已验收，任务完成 |
+| 源码基线 | `130b62f feat(core): 建立技术基础与首个纵向切片` |
+| 实现提交 | 本次提交：`feat(notebook): add focus transition` |
 | 关联任务 | 用户提出点击本子后模拟坐到桌前，再打开本子并衔接二维 UI |
 
-> 本文是待审阅方案。批准前只允许只读检查和修改本文档，不修改相机、本子、状态或二维编辑器源码。
+> 用户已于 2026-08-06 17:52 CST 明确回复“验收结束”，本任务实现、验证与文档回写均已接受。
 
 ## 1. 给阅读者的结论
 
-当前点击本子会立即显示二维编辑面板，没有“走近桌子、坐下、打开本子”的空间连续性。建议把一次打开操作拆成明确阶段：镜头平滑走近并转到本子正面，本子封面沿书脊打开，随后 DOM 编辑器在纸页位置淡入；关闭时反向执行。
+本子聚焦转场已经实现。点击 3D 本子或 DOM 等价入口后，镜头平滑走近并转到本子正面，封面沿书脊打开，随后 DOM 编辑器在纸页位置淡入；关闭时先卸载编辑器，再合盖并返回桌面全景。
 
-该转场使用现有 React Three Fiber 与 Three.js 帧循环实现，不新增动效依赖。Zustand 只记录交互阶段，真实 camera、Quaternion 和 Group 仍由 Three.js 拥有，保持编号 002 已批准的数据边界。
+该转场使用现有 React Three Fiber 与 Three.js 帧循环实现，没有新增动效依赖。Zustand 只记录六阶段交互状态，真实 camera、Quaternion 和 Group 仍由 Three.js 拥有，保持编号 002 已批准的数据边界；桌面、移动端与 reduced-motion 均已验证。
 
 ## 2. 用户需求
 
@@ -30,6 +30,8 @@
 Codex 将其解释为一个可逆、可中断且响应式的空间到 DOM 转场。二维 UI 仍使用 DOM，不创建第二个 WebGL 画布，也不把表单绘制到纹理中。
 
 ## 3. 当前源码事实
+
+本节保存批准方案时对基线提交 `130b62f` 的源码事实，用于解释改动起点；实施后的当前事实见第 11 节和 `docs/architecture/system-overview.html`。
 
 - `src/state/app-store.ts` 只有 `notebookOpen: boolean`；`openNotebook()` 立即写为 `true`，没有过渡阶段。
 - `src/app/App.tsx` 根据 `notebookOpen` 直接挂载 `JournalPanel`，因此点击后面板立即出现。
@@ -181,22 +183,60 @@ type NotebookPhase =
 
 ## 10. 最终批准方案
 
-尚未批准。批准后记录用户接受的节奏、UI 对齐方式、reduced-motion 和实施顺序。
+用户于 2026-08-06 17:09 CST 明确回复“批准并实施”，接受第 9 节全部建议决策：
+
+1. 普通模式打开约 `2s`、关闭约 `1.3s`，使用顺序明确且可逆的阶段状态机。
+2. 聚焦后 DOM 编辑器覆盖并对齐打开的右侧纸页，不增加第二个 WebGL 画布。
+3. `prefers-reduced-motion: reduce` 下跳过长距离镜头轨迹，以不超过 `150ms` 的切换进入稳定编辑取景。
+4. 编号 002 已完成待验收回写，003 在其当前源码基线上继续实施。
+
+最终执行清单：
+
+- 用 `NotebookPhase` 替代 `notebookOpen`，实现正反向合法流转、重复操作防抖和 WebGL 失败直达编辑的降级动作。
+- 在唯一 R3F Canvas 内加入响应式 `CameraRig`，按阶段推进 camera pose；Three.js 运行对象不进入 store。
+- 将本子拆成底封、纸页与书脊铰链上封面，阶段完成后显式推进状态。
+- 只在 `editing` 挂载 `JournalPanel`，关闭时先卸载 DOM，再合盖并退回桌面。
+- 同步自动测试、产品当前实现、架构 HTML、文档入口和本记录，完成桌面与移动端浏览器验收。
 
 ## 11. 实施记录
 
-尚未实施。当前没有修改 `notebookOpen`、camera、本子结构或 DOM 面板。
+实际实施文件与行为：
+
+- `src/state/app-store.ts`：用六阶段 `NotebookPhase` 替代 `notebookOpen`，新增打开请求、期望阶段推进、关闭请求、WebGL 降级直达编辑与页面隐藏收敛动作。刷新仍从 `desk` 开始，不写 IndexedDB。
+- `src/scene/notebook-transition.ts`：集中普通桌面、窄视口和 reduced-motion 时长及三次缓动；桌面计划打开 `1.83s`、关闭 `1.3s`，窄视口计划打开 `1.08s`、关闭 `0.78s`，reduced-motion 每个方向不超过 `0.12s`。
+- `src/scene/DeskScene.tsx`：以 `CameraRig` 插值 camera position、Quaternion 与 FOV；普通 React 层提供同阶段计时保护，RAF 或 R3F 子根被节流时仍可推进。桌面与移动端分别使用稳定 desk/focus pose。
+- `src/scene/NotebookObject.tsx`：本子拆成底封、纸页、书脊与独立上封面铰链；打开和关闭按墙钟时间转动，上层命中区只在 `desk` 可交互。
+- `src/app/App.tsx`、`src/features/journal/JournalPanel.tsx`、`src/styles.css`：DOM 入口在离开 `desk` 后卸载，编辑器只在 `editing` 挂载并自动聚焦；关闭先卸载 DOM 再执行 3D 反向流程，编辑器覆盖打开纸页并适配移动端。
+- `src/state/app-store.test.ts`、`src/features/journal/JournalPanel.test.tsx`、`src/scene/notebook-transition.test.ts`：覆盖完整正反向流转、重复和越序事件、页面隐藏收敛、WebGL 降级、DOM 关闭顺序、普通与减弱动态时长。
+- `docs/product/mvp.md`、`docs/architecture/system-overview.html`、`docs/index.html` 与本文：同步当前产品行为、状态所有权、真实调用链、失败路径、源码地图与待验收状态。
+
+方案偏差与原因：
+
+- 原方案建议 DOM 在封面完成前约 `0.15s` 开始淡入；实际严格等到 `editing` 才挂载，以保证 textarea 不会在 3D 动画仍未完成时抢焦点。进入后仍有 `180ms` 淡入。
+- 移动端高 DPR 验收发现 WebGL 主线程会延后 R3F 子根提交，因此新增窄视口短计划时长和普通 React 层计时保护。页面内实测总打开约 `2.25s`，仍符合“约 2s”的批准节奏并避免卡住。
+- reduced-motion 不等待动画计时器，而是在 effect 中立即收敛稳定阶段；页面内实测 `3ms`，满足不超过 `150ms`。
 
 ## 12. 验证结果
 
-已完成源码只读核对；自动测试、构建和浏览器验证需在方案批准并实施后执行。
+- `npm run lint`：通过。
+- `npm run test`：通过，5 个测试文件、16 项测试全部成功。
+- `npm run build`：通过；产物 JavaScript 约 `978.66 kB`、gzip 约 `276.20 kB`，保留编号 002 已知的大包提示，不影响构建。
+- `node scripts/check-doc-references.mjs`：通过，任务记录章节和本地引用有效。
+- `git diff --check`：通过，无空白错误。
+- ego-browser task space `47`，桌面 `1440 × 900`：DOM 入口与原生 Canvas PointerEvent 都能触发；重复 Canvas 命中只产生一次 `desk → approaching → opening → editing`；textarea 自动聚焦；关闭后按 `closing → retreating → desk` 返回；无横向溢出。
+- ego-browser task space `47`，移动端 `390 × 844`、DPR 2：编辑器边界为左右各 `14px`、底部 `18px`，没有横向或纵向页面溢出；打开纸页作为背景锚点，表单、关闭与保存控件均完整可见。
+- reduced-motion：通过 CDP 模拟 `prefers-reduced-motion: reduce`，页面内阶段观测从 `desk` 到 `editing` 为 `3ms`，焦点落在 `daily-entry`。
+- Canvas 非空检查：查看桌面、打开、移动端与返回阶段截图；对桌面画布主体 `1100 × 650` 裁剪转换后，编辑与桌面样本分别包含 `242` 和 `201` 种字节值且 SHA-256 不同，排除空白或同帧画布。
+- HTML 文档：直接打开 `docs/index.html` 与 `docs/architecture/system-overview.html`；桌面正文、`288px` 侧栏、搜索键盘跳转、空结果、复制按钮和术语卡正常；移动端 `scrollWidth === clientWidth === 390`，目录入口、标题与表格无页面级溢出。
+
+未执行破坏性 WebGL 初始化失败注入；降级动作由 store 自动测试覆盖，实际浏览器 `root.configure()` 失败路径仍是剩余风险。持久化 schema 与保存链路未改变，编号 002 的重开恢复证据继续有效。
 
 ## 13. 文档同步检查
 
-- 产品文档：当前产品范围已包含轻量本子交互；实施完成后补充真实转场行为。
-- 架构文档：编号 002 创建当前架构文档后，本任务更新交互状态与渲染链路。
-- 决策文档：若状态机成为多物件通用规则，再新增长期动效决策；本任务暂不预建。
-- 文档入口：批准或实施时加入 `docs/index.html`，并用 ego-browser 验证。
+- 产品文档：已更新 `docs/product/mvp.md` 的当前实现覆盖；MVP 范围与非目标不变。
+- 架构文档：已更新 `docs/architecture/system-overview.html` 的 `NotebookPhase`、CameraRig、封面铰链、低帧率保护、失败路径和源码地图。
+- 决策文档：未新增；本任务没有改变本地数据事实、DOM/Three.js 边界或单 Canvas 长期决策。
+- 文档入口：已将编号 003 更新为待验收，并同步当前完整调用链；桌面与移动端均已使用 ego-browser 验证。
 
 ## 14. 审阅记录
 
@@ -205,3 +245,9 @@ type NotebookPhase =
 | 2026-08-06 15:34 CST | 用户 | 提出镜头走近转正、本子打开后衔接二维 UI 的体验要求。 |
 | 2026-08-06 15:38 CST | Codex | 根据当前源码建立待确认方案，未修改业务实现。 |
 | 2026-08-06 16:30 CST | Codex | 编号 002 已收尾为待验收；本文仍保持待确认，未修改相机、本子或编辑器源码。 |
+| 2026-08-06 17:09 CST | 用户 | 明确回复“批准并实施”，接受第 9 节四项建议决策并授权开始执行。 |
+| 2026-08-06 17:09 CST | Codex | 将状态更新为已批准，锁定第 10 节最终执行清单；业务源码尚未修改。 |
+| 2026-08-06 17:09 CST | Codex | 按批准清单进入实施中，开始修改状态机、相机、本子与编辑面板。 |
+| 2026-08-06 17:34 CST | Codex | 完成实现、自动检查、桌面/移动端与 reduced-motion 浏览器验收，回写产品、架构和入口文档，状态更新为待验收。 |
+| 2026-08-06 17:52 CST | 用户 | 明确回复“验收结束”，接受编号 003 的实现与验证结果。 |
+| 2026-08-06 17:52 CST | Codex | 将任务状态更新为已完成，并准备创建实现提交。 |

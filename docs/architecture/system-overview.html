@@ -48,10 +48,10 @@
       <header id="start" class="doc-head">
         <div class="eyebrow">Dear Desk · 当前事实架构</div>
         <h1>一条本地记录，分别投影到 DOM 与 3D 桌面</h1>
-        <p class="lead">当前应用是一个纯前端、本地优先的单页应用。IndexedDB 保存当天文字记录，Zustand 协调内存状态，DOM 承担编辑，唯一的 Three.js 画布只负责空间呈现和发出“打开本子”意图。</p>
+        <p class="lead">当前应用是一个纯前端、本地优先的单页应用。IndexedDB 保存当天文字记录，Zustand 协调内存状态与本子转场阶段，DOM 承担编辑，唯一的 Three.js 画布负责空间呈现、镜头聚焦和封面开合。</p>
         <div class="callout">
           <strong>当前实现边界</strong>
-          <p>编号 002 已实现“打开本子、保存当天一句话、关闭或重新打开页面后恢复”。镜头走近与开本动画属于待批准的 003；贴纸、图片、台灯、过去日期和云同步均尚未接入。</p>
+          <p>编号 002 已实现当天记录保存与重开恢复；编号 003 已实现“走近本子、转正、开盖、在纸页 DOM 编辑、反向返回”。贴纸、图片、台灯、过去日期和云同步均尚未接入。</p>
         </div>
       </header>
 
@@ -88,7 +88,7 @@
         │       ├── camera + lights + desk
         │       └── NotebookObject
         ├── header + local status + DOM notebook entry
-        └── JournalPanel (only while notebookOpen)</code></pre>
+        └── JournalPanel (only while notebookPhase === 'editing')</code></pre>
         </div>
         <div class="note">
           <strong>为什么没有使用第二个 Canvas</strong>
@@ -101,7 +101,8 @@
         <h2>从点击本子到页面重新打开</h2>
         <ol class="checks">
           <li><strong>启动加载</strong><span><code>App</code> 挂载后调用 <code>loadToday()</code>，store 以浏览器本地日期向 repository 查询。</span></li>
-          <li><strong>打开编辑器</strong><span>3D 命中区域或 DOM 等价按钮调用同一个 <code>openNotebook()</code>；<code>JournalPanel</code> 随后挂载并自动聚焦 textarea。</span></li>
+          <li><strong>请求打开</strong><span>3D 命中区域或 DOM 等价按钮调用同一个 <code>requestNotebookOpen()</code>，把阶段从 <code>desk</code> 推进到 <code>approaching</code>；重复和越序请求无效。</span></li>
+          <li><strong>完成转场</strong><span><code>CameraRig</code> 插值 position、Quaternion 与 FOV，随后 <code>NotebookObject</code> 绕书脊展开上封面；只有进入 <code>editing</code> 后 <code>JournalPanel</code> 才挂载并聚焦 textarea。</span></li>
           <li><strong>保留草稿</strong><span>未保存文字只存在于 <code>JournalEditor</code> 局部 state，不会在每次按键时写数据库。</span></li>
           <li><strong>显式保存</strong><span><code>saveEntry(text)</code> 调用 repository；领域函数先去除首尾空白并校验 1 到 500 个字符。</span></li>
           <li><strong>事务提交</strong><span>Dexie 在一个读写事务中读取旧记录并执行 <code>put</code>，更新时保留 <code>createdAt</code>。</span></li>
@@ -110,7 +111,9 @@
         <div class="code-block">
           <div class="code-head"><span>调用方向</span><button class="copy-button" type="button" data-copy-target="call-chain">复制</button></div>
           <pre id="call-chain"><code>Canvas hitbox / DOM button
-  -> appStore.openNotebook()
+  -> appStore.requestNotebookOpen()
+  -> approaching -> opening -> editing
+  -> CameraRig + NotebookObject visual projection
   -> JournalPanel local draft
   -> appStore.saveEntry(text)
   -> DexieDailyEntryRepository.save(date, text)
@@ -132,7 +135,7 @@
               <tr><td>当天记录与时间戳</td><td>IndexedDB / repository</td><td>跨页面重开</td><td>Three.js 对象</td></tr>
               <tr><td>选中日期、已加载记录、加载/保存状态</td><td>Zustand store</td><td>当前页面运行</td><td>Mesh、Camera、Texture</td></tr>
               <tr><td>未保存草稿</td><td><code>JournalEditor</code></td><td>当前编辑面板</td><td>数据库自动写入</td></tr>
-              <tr><td>本子是否打开</td><td>Zustand store</td><td>当前页面运行</td><td>IndexedDB</td></tr>
+              <tr><td>本子阶段 <code>NotebookPhase</code></td><td>Zustand store</td><td>当前页面运行；刷新从 <code>desk</code> 开始</td><td>IndexedDB</td></tr>
               <tr><td>相机、灯光、几何体、材质与悬停动画</td><td>R3F / Three.js</td><td>Canvas 生命周期</td><td>store 与 IndexedDB</td></tr>
             </tbody>
           </table>
@@ -167,10 +170,10 @@ database.version(1).stores({
         <p class="section-index">06 · 场景</p>
         <h2>Canvas 只呈现空间并发出意图</h2>
         <p><code>DeskScene</code> 明确注册使用的 Three.js 构造器，按容器尺寸和受限 DPR 配置 R3F root，并用 <code>ResizeObserver</code> 保持绘图缓冲区与视口同步。StrictMode 下的短延迟释放机制避免同一 Canvas 被重复创建 root。</p>
-        <p><code>NotebookObject</code> 用透明几何体作为可射线检测的命中区域。命中后只调用 <code>openNotebook()</code>，不会直接访问 Dexie；悬停产生的高度与旋转变化只存在于帧循环。</p>
+        <p><code>NotebookObject</code> 用透明几何体作为可射线检测的命中区域。命中后只调用 <code>requestNotebookOpen()</code>，不会直接访问 Dexie；封面铰链、相机姿态、悬停高度与旋转都只存在于帧循环。</p>
         <div class="note">
-          <strong>当前没有镜头转场</strong>
-          <p>响应式相机只根据视口宽度选取固定桌面 pose。点击后 DOM 面板立即出现。镜头走近、转正、开合本子并衔接纸页 UI 已在编号 003 中形成待确认方案，尚不是当前事实。</p>
+          <strong>阶段推进与低帧率保护</strong>
+          <p><code>NotebookPhase</code> 依次经过 <code>desk → approaching → opening → editing</code>，关闭时反向经过 <code>closing → retreating → desk</code>。R3F 帧循环按墙钟时间插值；<code>DeskScene</code> 另有同阶段计时保护，RAF 被节流时也能收敛。窄视口使用更短计划时长，reduced-motion 直接进入稳定阶段。</p>
         </div>
       </section>
 
@@ -185,6 +188,7 @@ database.version(1).stores({
               <tr><td>空文本或超过 500 字</td><td>界面禁用保存，领域层仍会拒绝非法调用</td><td>textarea 草稿</td></tr>
               <tr><td>IndexedDB 写入失败</td><td>store 进入 <code>saveStatus: error</code> 并显示可见错误</td><td>组件局部草稿</td></tr>
               <tr><td>WebGL 初始化失败</td><td>显示 DOM 降级入口，用户仍可打开本子</td><td>完整日记读写链路</td></tr>
+              <tr><td>页面在转场中隐藏</td><td>打开方向收敛到 <code>editing</code>，关闭方向收敛到 <code>desk</code></td><td>不会恢复到半开阶段</td></tr>
               <tr><td>端口 5164 被占用</td><td>Vite 因 <code>strictPort</code> 明确退出</td><td>本地 IndexedDB 数据不受影响</td></tr>
             </tbody>
           </table>
@@ -197,26 +201,27 @@ database.version(1).stores({
         <div class="source-map">
           <div><code><a href="../../src/main.tsx">src/main.tsx</a></code><span>组合生产 repository、store 与 React 根</span></div>
           <div><code><a href="../../src/app/App.tsx">src/app/App.tsx</a></code><span>应用装配、初次加载与 DOM 等价入口</span></div>
-          <div><code><a href="../../src/state/app-store.ts">src/state/app-store.ts</a></code><span>加载、打开、关闭与保存动作</span></div>
+          <div><code><a href="../../src/state/app-store.ts">src/state/app-store.ts</a></code><span>加载、本子阶段状态机、关闭与保存动作</span></div>
           <div><code><a href="../../src/domain/daily-entry.ts">src/domain/daily-entry.ts</a></code><span>记录类型、本地日期与文本规则</span></div>
           <div><code><a href="../../src/persistence/daily-entry-repository.ts">daily-entry-repository.ts</a></code><span>事务读写与更新时间语义</span></div>
           <div><code><a href="../../src/persistence/database.ts">src/persistence/database.ts</a></code><span>数据库名和 IndexedDB v1 schema</span></div>
           <div><code><a href="../../src/features/journal/JournalPanel.tsx">JournalPanel.tsx</a></code><span>草稿、焦点、保存与错误反馈</span></div>
-          <div><code><a href="../../src/scene/DeskScene.tsx">src/scene/DeskScene.tsx</a></code><span>单 Canvas 生命周期、相机与桌面场景</span></div>
-          <div><code><a href="../../src/scene/NotebookObject.tsx">NotebookObject.tsx</a></code><span>3D 本子、命中区域与打开意图</span></div>
+          <div><code><a href="../../src/scene/DeskScene.tsx">src/scene/DeskScene.tsx</a></code><span>单 Canvas 生命周期、CameraRig、阶段计时保护与桌面场景</span></div>
+          <div><code><a href="../../src/scene/NotebookObject.tsx">NotebookObject.tsx</a></code><span>3D 本子、封面铰链、命中区域与打开意图</span></div>
+          <div><code><a href="../../src/scene/notebook-transition.ts">notebook-transition.ts</a></code><span>普通、窄视口、reduced-motion 时长与缓动</span></div>
         </div>
       </section>
 
       <section id="verification" data-search-title="验证与后续边界">
         <p class="section-index">09 · 验证</p>
         <h2>当前证据与仍未实现的范围</h2>
-        <p>自动验证覆盖领域规则、repository 新增与更新、store 成功和失败状态、DOM 保存与错误保留。浏览器验收覆盖桌面与 <code>390 × 844</code> 移动端、Canvas PointerEvent、关闭原标签页后的 IndexedDB 恢复、刷新恢复、页面溢出和非空截图像素。</p>
+        <p>自动验证覆盖领域规则、repository、新旧 store 状态、完整转场、重复和越序事件、reduced-motion 时长、DOM 保存与关闭卸载。浏览器验收覆盖桌面与 <code>390 × 844</code> 移动端、Canvas PointerEvent、响应式纸页对齐、textarea 焦点、阶段时序、页面溢出和非空截图像素。</p>
         <div class="table-wrap">
           <table>
             <thead><tr><th>能力</th><th>状态</th><th>归属</th></tr></thead>
             <tbody>
               <tr><td>当天文字记录与本地恢复</td><td><span class="status status-review">已实现，待验收</span></td><td>编号 002</td></tr>
-              <tr><td>镜头走近、转正、本子开合与 UI 对齐</td><td><span class="status status-pending">待确认</span></td><td>编号 003</td></tr>
+              <tr><td>镜头走近、转正、本子开合与 UI 对齐</td><td><span class="status status-review">已完成</span></td><td>编号 003</td></tr>
               <tr><td>文字贴纸制作、放置与持久化</td><td><span class="status status-pending">待确认</span></td><td>编号 004</td></tr>
               <tr><td>基础矩形图片贴纸</td><td><span class="status status-neutral">尚未规划切片</span></td><td>后续任务</td></tr>
             </tbody>
@@ -224,11 +229,11 @@ database.version(1).stores({
         </div>
         <div class="note">
           <strong>已知构建提示</strong>
-          <p>当前生产 JavaScript bundle 约 974 kB，gzip 后约 275 kB，超过 Vite 默认 500 kB 提示阈值。首切片功能与构建不受影响，但后续功能增长前应评估 Three.js 分包或按需加载。</p>
+          <p>当前生产 JavaScript bundle 约 979 kB，gzip 后约 276 kB，超过 Vite 默认 500 kB 提示阈值。当前功能与构建不受影响，但后续功能增长前应评估 Three.js 分包或按需加载。</p>
         </div>
       </section>
 
-      <footer>Dear Desk 当前系统架构 · 基于编号 002 的可运行源码与验证结果 · 2026-08-06</footer>
+      <footer>Dear Desk 当前系统架构 · 基于编号 002 与 003 的可运行源码和验证结果 · 2026-08-06</footer>
     </main>
   </div>
 

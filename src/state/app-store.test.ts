@@ -18,6 +18,54 @@ const createRepository = (entry: DailyEntry | null = null): DailyEntryRepository
 })
 
 describe('app store', () => {
+  it('advances the notebook through one legal open and close sequence', () => {
+    const store = createAppStore(createRepository(), date)
+
+    store.getState().requestNotebookOpen()
+    expect(store.getState().notebookPhase).toBe('approaching')
+
+    store.getState().advanceNotebookPhase('approaching')
+    expect(store.getState().notebookPhase).toBe('opening')
+
+    store.getState().advanceNotebookPhase('opening')
+    expect(store.getState().notebookPhase).toBe('editing')
+
+    store.getState().requestNotebookClose()
+    expect(store.getState().notebookPhase).toBe('closing')
+
+    store.getState().advanceNotebookPhase('closing')
+    expect(store.getState().notebookPhase).toBe('retreating')
+
+    store.getState().advanceNotebookPhase('retreating')
+    expect(store.getState().notebookPhase).toBe('desk')
+  })
+
+  it('ignores repeated or out-of-order transition requests', () => {
+    const store = createAppStore(createRepository(), date)
+
+    store.getState().requestNotebookOpen()
+    store.getState().requestNotebookOpen()
+    store.getState().advanceNotebookPhase('opening')
+    store.getState().requestNotebookClose()
+
+    expect(store.getState().notebookPhase).toBe('approaching')
+  })
+
+  it('settles interrupted transitions and supports the WebGL fallback', () => {
+    const store = createAppStore(createRepository(), date)
+
+    store.getState().requestNotebookOpen()
+    store.getState().settleNotebookTransition()
+    expect(store.getState().notebookPhase).toBe('editing')
+
+    store.getState().requestNotebookClose()
+    store.getState().settleNotebookTransition()
+    expect(store.getState().notebookPhase).toBe('desk')
+
+    store.getState().openNotebookWithoutScene()
+    expect(store.getState().notebookPhase).toBe('editing')
+  })
+
   it('loads and saves the selected local date through the repository', async () => {
     const repository = createRepository()
     const store = createAppStore(repository, date)

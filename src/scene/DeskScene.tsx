@@ -1,10 +1,16 @@
-import { createRoot, events, extend, useThree } from '@react-three/fiber'
+import { createRoot, events, extend, useFrame, useThree } from '@react-three/fiber'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import type { ReconcilerRoot } from '@react-three/fiber'
 import * as THREE from 'three'
 
 import { useAppStore } from '../state/app-store-context'
+import type { NotebookPhase } from '../state/app-store'
 import { NotebookObject } from './NotebookObject'
+import {
+  easeInOutCubic,
+  getNotebookTransitionDuration,
+  type AnimatedNotebookPhase,
+} from './notebook-transition'
 
 extend({
   AmbientLight: THREE.AmbientLight,
@@ -60,18 +66,136 @@ const releaseRoot = (canvas: HTMLCanvasElement) => {
   }, 0)
 }
 
-function ResponsiveCamera() {
+interface CameraPose {
+  fov: number
+  position: THREE.Vector3
+  target: THREE.Vector3
+}
+
+const cameraPose = (
+  position: [number, number, number],
+  target: [number, number, number],
+  fov: number,
+): CameraPose => ({
+  fov,
+  position: new THREE.Vector3(...position),
+  target: new THREE.Vector3(...target),
+})
+
+const getCameraPoses = (mobile: boolean) => ({
+  desk: mobile
+    ? cameraPose([6.6, 8.4, 10.8], [0, 0, 0], 36)
+    : cameraPose([7.8, 7.2, 9.6], [0, 0, 0], 36),
+  focus: mobile
+    ? cameraPose([0.1, 9.2, 5.4], [-0.72, 0.18, 0.25], 36)
+    : cameraPose([0.35, 7.2, 4.35], [-0.78, 0.18, 0.25], 31),
+})
+
+const quaternionForPose = (pose: CameraPose) => {
+  const poseCamera = new THREE.PerspectiveCamera()
+  poseCamera.position.copy(pose.position)
+  poseCamera.lookAt(pose.target)
+  return poseCamera.quaternion.clone()
+}
+
+const applyCameraPose = (camera: THREE.PerspectiveCamera, pose: CameraPose) => {
+  camera.position.copy(pose.position)
+  camera.quaternion.copy(quaternionForPose(pose))
+  camera.fov = pose.fov
+  camera.updateProjectionMatrix()
+  camera.updateMatrixWorld(true)
+}
+
+interface CameraRigProps {
+  notebookPhase: NotebookPhase
+  onAdvance: (from: NotebookPhase) => void
+  reducedMotion: boolean
+}
+
+function CameraRig({ notebookPhase, onAdvance, reducedMotion }: CameraRigProps) {
   const { camera, size } = useThree()
+  const transition = useRef<{
+    fromFov: number
+    fromPosition: THREE.Vector3
+    fromQuaternion: THREE.Quaternion
+    phase: AnimatedNotebookPhase
+    startedAt: number
+    toPose: CameraPose
+    toQuaternion: THREE.Quaternion
+  } | null>(null)
 
   useEffect(() => {
-    if (size.width < 700) {
-      camera.position.set(6.6, 8.4, 10.8)
-    } else {
-      camera.position.set(7.8, 7.2, 9.6)
+    if (!(camera instanceof THREE.PerspectiveCamera)) return
+    const poses = getCameraPoses(size.width < 700)
+
+    if (notebookPhase === 'desk') {
+      transition.current = null
+      applyCameraPose(camera, poses.desk)
+      return
     }
-    camera.lookAt(0, 0, 0)
-    camera.updateMatrixWorld(true)
-  }, [camera, size.width])
+    if (notebookPhase === 'editing') {
+      transition.current = null
+      applyCameraPose(camera, poses.focus)
+      return
+    }
+    if (notebookPhase === 'opening' || notebookPhase === 'closing') {
+      transition.current = null
+      applyCameraPose(camera, poses.focus)
+      return
+    }
+
+    const toPose = notebookPhase === 'approaching' ? poses.focus : poses.desk
+    transition.current = {
+      fromFov: camera.fov,
+      fromPosition: camera.position.clone(),
+      fromQuaternion: camera.quaternion.clone(),
+      phase: notebookPhase,
+      startedAt: performance.now(),
+      toPose,
+      toQuaternion: quaternionForPose(toPose),
+    }
+  }, [camera, notebookPhase, size.width])
+
+  useFrame((state) => {
+    if (!(state.camera instanceof THREE.PerspectiveCamera)) return
+    const frameCamera = state.camera
+    const active = transition.current
+    if (!active || active.phase !== notebookPhase) return
+
+    const duration = getNotebookTransitionDuration(
+      active.phase,
+      reducedMotion,
+      size.width < 700,
+    )
+    const elapsed = Math.min(
+      (performance.now() - active.startedAt) / 1000,
+      duration,
+    )
+    const progress = easeInOutCubic(elapsed / duration)
+
+    frameCamera.position.lerpVectors(
+      active.fromPosition,
+      active.toPose.position,
+      progress,
+    )
+    frameCamera.quaternion.slerpQuaternions(
+      active.fromQuaternion,
+      active.toQuaternion,
+      progress,
+    )
+    frameCamera.fov = THREE.MathUtils.lerp(
+      active.fromFov,
+      active.toPose.fov,
+      progress,
+    )
+    frameCamera.updateProjectionMatrix()
+    frameCamera.updateMatrixWorld(true)
+
+    if (elapsed >= duration) {
+      transition.current = null
+      onAdvance(active.phase)
+    }
+  })
 
   return null
 }
@@ -115,11 +239,18 @@ function Mug() {
 }
 
 interface DeskContentsProps {
-  notebookOpen: boolean
-  openNotebook: () => void
+  advanceNotebookPhase: (from: NotebookPhase) => void
+  notebookPhase: NotebookPhase
+  reducedMotion: boolean
+  requestNotebookOpen: () => void
 }
 
-function DeskContents({ notebookOpen, openNotebook }: DeskContentsProps) {
+function DeskContents({
+  advanceNotebookPhase,
+  notebookPhase,
+  reducedMotion,
+  requestNotebookOpen,
+}: DeskContentsProps) {
   return (
     <>
       <color attach="background" args={['#17201d']} />
@@ -134,7 +265,11 @@ function DeskContents({ notebookOpen, openNotebook }: DeskContentsProps) {
         shadow-bias={-0.0002}
       />
       <directionalLight color="#9ab8bd" intensity={0.7} position={[7, 4, -5]} />
-      <ResponsiveCamera />
+      <CameraRig
+        notebookPhase={notebookPhase}
+        onAdvance={advanceNotebookPhase}
+        reducedMotion={reducedMotion}
+      />
 
       <mesh position={[0, -0.46, 0]} castShadow receiveShadow>
         <boxGeometry args={[12, 0.8, 8]} />
@@ -152,7 +287,12 @@ function DeskContents({ notebookOpen, openNotebook }: DeskContentsProps) {
         <boxGeometry args={[1.5, 0.04, 1.18]} />
         <meshStandardMaterial color="#d2c69f" roughness={1} />
       </mesh>
-      <NotebookObject onOpen={openNotebook} open={notebookOpen} />
+      <NotebookObject
+        notebookPhase={notebookPhase}
+        onAdvance={advanceNotebookPhase}
+        onOpen={requestNotebookOpen}
+        reducedMotion={reducedMotion}
+      />
       <Pencil />
       <Mug />
     </>
@@ -168,9 +308,50 @@ export function DeskScene({ fallback }: DeskSceneProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const rootRef = useRef<ReconcilerRoot<HTMLCanvasElement> | null>(null)
   const [unavailable, setUnavailable] = useState(false)
-  const openNotebook = useAppStore((state) => state.openNotebook)
-  const notebookOpen = useAppStore((state) => state.notebookOpen)
-  const latestSceneProps = useRef<DeskContentsProps>({ notebookOpen, openNotebook })
+  const [reducedMotion, setReducedMotion] = useState(false)
+  const advanceNotebookPhase = useAppStore((state) => state.advanceNotebookPhase)
+  const notebookPhase = useAppStore((state) => state.notebookPhase)
+  const requestNotebookOpen = useAppStore((state) => state.requestNotebookOpen)
+  const latestSceneProps = useRef<DeskContentsProps>({
+    advanceNotebookPhase,
+    notebookPhase,
+    reducedMotion,
+    requestNotebookOpen,
+  })
+
+  useEffect(() => {
+    const media = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const updatePreference = () => setReducedMotion(media.matches)
+    updatePreference()
+    media.addEventListener('change', updatePreference)
+    return () => media.removeEventListener('change', updatePreference)
+  }, [])
+
+  useEffect(() => {
+    if (
+      notebookPhase !== 'approaching' &&
+      notebookPhase !== 'opening' &&
+      notebookPhase !== 'closing' &&
+      notebookPhase !== 'retreating'
+    ) {
+      return
+    }
+
+    if (reducedMotion) {
+      advanceNotebookPhase(notebookPhase)
+      return
+    }
+
+    const timer = window.setTimeout(
+      () => advanceNotebookPhase(notebookPhase),
+      getNotebookTransitionDuration(
+        notebookPhase,
+        reducedMotion,
+        window.innerWidth < 700,
+      ) * 1000,
+    )
+    return () => window.clearTimeout(timer)
+  }, [advanceNotebookPhase, notebookPhase, reducedMotion])
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -236,11 +417,16 @@ export function DeskScene({ fallback }: DeskSceneProps) {
   }, [])
 
   useEffect(() => {
-    latestSceneProps.current = { notebookOpen, openNotebook }
+    latestSceneProps.current = {
+      advanceNotebookPhase,
+      notebookPhase,
+      reducedMotion,
+      requestNotebookOpen,
+    }
     if (rootRef.current) {
       rootRef.current.render(<DeskContents {...latestSceneProps.current} />)
     }
-  }, [notebookOpen, openNotebook])
+  }, [advanceNotebookPhase, notebookPhase, reducedMotion, requestNotebookOpen])
 
   return (
     <div ref={containerRef} className="canvas-root">
