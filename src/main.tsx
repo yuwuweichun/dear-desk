@@ -4,11 +4,16 @@ import { createRoot } from 'react-dom/client'
 import { App } from './app/App'
 import { toLocalDate } from './domain/daily-entry'
 import { dailyEntryRepository } from './persistence/daily-entry-repository'
+import { stickerRepository } from './persistence/sticker-repository'
 import { createAppStore } from './state/app-store'
 import { AppStoreProvider } from './state/app-store-context'
 import './styles.css'
 
-const appStore = createAppStore(dailyEntryRepository, toLocalDate())
+const appStore = createAppStore(
+  dailyEntryRepository,
+  toLocalDate(),
+  stickerRepository,
+)
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

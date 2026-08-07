@@ -22,7 +22,7 @@
         <kbd aria-hidden="true">/</kbd>
         <div id="search-results" class="search-results" role="listbox" aria-label="搜索结果" hidden></div>
       </div>
-      <span class="top-meta">CURRENT · 2026-08-06</span>
+      <span class="top-meta">CURRENT · 2026-08-07</span>
       <button class="toc-toggle" type="button" aria-controls="sidebar" aria-expanded="false">目录</button>
     </div>
   </header>
@@ -34,7 +34,7 @@
         <a href="#start">架构结论</a>
         <a href="#mental-model">最小心智模型</a>
         <a href="#runtime">运行时结构</a>
-        <a href="#entry-flow">保存与恢复链路</a>
+        <a href="#entry-flow">记录与贴纸链路</a>
         <a href="#ownership">状态所有权</a>
         <a href="#persistence">本地持久化</a>
         <a href="#scene">3D 场景边界</a>
@@ -47,24 +47,24 @@
     <main>
       <header id="start" class="doc-head">
         <div class="eyebrow">Dear Desk · 当前事实架构</div>
-        <h1>一条本地记录，分别投影到 DOM 与 3D 桌面</h1>
-        <p class="lead">当前应用是一个纯前端、本地优先的单页应用。IndexedDB 保存当天文字记录，Zustand 协调内存状态与本子转场阶段，DOM 承担编辑，唯一的 Three.js 画布负责空间呈现、镜头聚焦和封面开合。</p>
+        <h1>本地记录与贴纸，投影到 DOM 和单活跃 WebGL 画布</h1>
+        <p class="lead">当前应用是一个纯前端、本地优先的单页应用。IndexedDB v2 保存当天文字、贴纸定义、透明 PNG 与桌面实例，Zustand 协调本子和贴纸工作流；DOM 承担编辑与控制，WebGL 在桌面 R3F 与 Sticker Forge 制作器之间切换所有者。</p>
         <div class="callout">
           <strong>当前实现边界</strong>
-          <p>编号 002 已实现当天记录保存与重开恢复；编号 003 已实现“走近本子、转正、开盖、在纸页 DOM 编辑、反向返回”。贴纸、图片、台灯、过去日期和云同步均尚未接入。</p>
+          <p>编号 002 与 003 已形成当天记录和本子转场链路；编号 007 已实现固定版本 Sticker Forge 的文字贴纸制作、放置、移动、旋转、删除与重开恢复。图片贴纸、台灯、过去日期和云同步仍未接入。</p>
         </div>
       </header>
 
       <section id="mental-model" data-search-title="最小心智模型">
         <p class="section-index">01 · 心智模型</p>
         <h2>先分清事实、协调与投影</h2>
-        <p>系统没有服务端。用户保存后，浏览器当前 origin 下的 IndexedDB 成为持久化事实；页面内的 Zustand store 是一次运行期间的协调层；DOM 和 Three.js 都是状态的消费者。</p>
+        <p>系统没有服务端。用户保存后，浏览器当前 origin 下的 IndexedDB 成为持久化事实；页面内的 Zustand store 是一次运行期间的协调层；DOM、Sticker Forge 制作器和 R3F 桌面都是状态的消费者或临时视觉生产者。</p>
         <div class="workflow" aria-label="系统分层关系">
-          <div><span>01</span><strong>用户意图</strong><small>点击本子、输入、保存</small></div>
+          <div><span>01</span><strong>用户意图</strong><small>记录、制作或摆放贴纸</small></div>
           <div><span>02</span><strong>应用动作</strong><small>Zustand 协调异步状态</small></div>
-          <div><span>03</span><strong>领域与仓储</strong><small>校验文本并读写记录</small></div>
+          <div><span>03</span><strong>领域与仓储</strong><small>校验并事务读写记录与贴纸</small></div>
           <div><span>04</span><strong>IndexedDB</strong><small>保存当前浏览器事实</small></div>
-          <div><span>05</span><strong>双重投影</strong><small>DOM 编辑器与 3D 场景</small></div>
+          <div><span>05</span><strong>视觉投影</strong><small>DOM、Sticker Forge 或 R3F</small></div>
         </div>
         <p>
           <button class="term" type="button" data-term="本地优先" data-definition="核心业务数据先写入当前浏览器本地存储，功能不依赖账号或服务端；当前实现不提供跨浏览器或跨设备同步。">本地优先</button>
@@ -76,29 +76,31 @@
 
       <section id="runtime" data-search-title="运行时结构">
         <p class="section-index">02 · 运行时</p>
-        <h2>React 装载一个应用和一个 WebGL 根</h2>
-        <p><code>src/main.tsx</code> 创建 repository 与 Zustand store，再通过 Context 注入 React 树。<code>App</code> 同时装载场景外壳和 DOM UI；场景内部使用 React Three Fiber 的 <code>createRoot(canvas)</code> 管理唯一 Canvas。</p>
+        <h2>React 保证任意时刻只有一个 Canvas 所有者</h2>
+        <p><code>src/main.tsx</code> 创建日记与贴纸 repository，再把同一个 Zustand store 注入 React 树。<code>App</code> 根据 <code>stickerWorkflow</code> 条件装载桌面或制作器：<code>idle/placing</code> 使用 R3F，<code>composing</code> 卸载 R3F 后才让 Sticker Forge 创建自己的 renderer。</p>
         <div class="code-block">
           <div class="code-head"><span>当前运行时层级</span><button class="copy-button" type="button" data-copy-target="runtime-tree">复制</button></div>
           <pre id="runtime-tree"><code>main.tsx
 └── AppStoreProvider
     └── App
-        ├── DeskScene
-        │   └── one HTMLCanvasElement / one R3F root
-        │       ├── camera + lights + desk
-        │       └── NotebookObject
-        ├── header + local status + DOM notebook entry
-        └── JournalPanel (only while notebookPhase === 'editing')</code></pre>
+        ├── stickerWorkflow === 'composing'
+        │   └── StickerStudio -> Sticker Forge Canvas
+        └── otherwise
+            └── DeskScene -> one R3F Canvas
+                ├── camera + lights + desk + NotebookObject
+                └── StickerObject[] from persisted PNG Blobs
+
+DOM siblings: header, JournalPanel, StickerControls</code></pre>
         </div>
         <div class="note">
-          <strong>为什么没有使用第二个 Canvas</strong>
-          <p>表单、错误信息、按钮和焦点管理由 DOM 更可靠地完成。WebGL 只用于空间关系、光照和遮挡，符合项目的单画布约束。</p>
+          <strong>单活跃 Canvas，不是单一 renderer 类型</strong>
+          <p>Sticker Forge 的公开 API 拥有自己的 renderer，不能直接复用 R3F root。因此系统切换所有者，而不是同时挂载两张 Canvas。制作器卸载时幂等调用 <code>destroy()</code>；桌面再从持久化 PNG 恢复贴纸视觉。</p>
         </div>
       </section>
 
-      <section id="entry-flow" data-search-title="保存与恢复链路">
+      <section id="entry-flow" data-search-title="记录与贴纸链路">
         <p class="section-index">03 · 主链路</p>
-        <h2>从点击本子到页面重新打开</h2>
+        <h2>日记提供文字，Sticker Forge 生成可持久化视觉</h2>
         <ol class="checks">
           <li><strong>启动加载</strong><span><code>App</code> 挂载后调用 <code>loadToday()</code>，store 以浏览器本地日期向 repository 查询。</span></li>
           <li><strong>请求打开</strong><span>3D 命中区域或 DOM 等价按钮调用同一个 <code>requestNotebookOpen()</code>，把阶段从 <code>desk</code> 推进到 <code>approaching</code>；重复和越序请求无效。</span></li>
@@ -106,22 +108,26 @@
           <li><strong>保留草稿</strong><span>未保存文字只存在于 <code>JournalEditor</code> 局部 state，不会在每次按键时写数据库。</span></li>
           <li><strong>显式保存</strong><span><code>saveEntry(text)</code> 调用 repository；领域函数先去除首尾空白并校验 1 到 500 个字符。</span></li>
           <li><strong>事务提交</strong><span>Dexie 在一个读写事务中读取旧记录并执行 <code>put</code>，更新时保留 <code>createdAt</code>。</span></li>
-          <li><strong>恢复投影</strong><span>事务成功后 store 更新记录与保存状态；页面重开时从同一 IndexedDB 记录恢复 DOM 内容和“今天有一页”状态。</span></li>
+          <li><strong>进入制作</strong><span>“制作贴纸”规范化最多 60 个字符，把未保存草稿暂存到 store，并把工作流切到 <code>composing</code>；取消制作会返回编辑态并恢复草稿。</span></li>
+          <li><strong>真实渲染</strong><span><code>StickerStudio</code> 动态加载固定 commit 的官方 ES bundle，调用 <code>createSticker()</code>，再通过公开 API 更新文字、颜色、材质与 peel 预览。</span></li>
+          <li><strong>确认快照</strong><span>确认时先 <code>reset()</code> 并等待 ready、非 dragging、progress 归零；读取上游 Canvas，按 alpha bounds 裁切为透明 PNG Blob，然后销毁 Forge。</span></li>
+          <li><strong>放置提交</strong><span>R3F 桌面恢复后，用户点击桌垫；repository 在一个 Dexie 事务中写入 definition、render asset 和 instance，放置点由领域层限制在桌垫范围内。</span></li>
+          <li><strong>桌面编辑与恢复</strong><span>拖动过程只更新 store，pointer up 才写位置；旋转每次 <code>15°</code>，删除同事务清理三条记录。页面重开加载 Blob、坐标和方向，创建临时对象 URL 与 Texture 投影。</span></li>
         </ol>
         <div class="code-block">
-          <div class="code-head"><span>调用方向</span><button class="copy-button" type="button" data-copy-target="call-chain">复制</button></div>
-          <pre id="call-chain"><code>Canvas hitbox / DOM button
-  -> appStore.requestNotebookOpen()
-  -> approaching -> opening -> editing
-  -> CameraRig + NotebookObject visual projection
-  -> JournalPanel local draft
-  -> appStore.saveEntry(text)
-  -> DexieDailyEntryRepository.save(date, text)
-  -> normalizeEntryText(text)
-  -> db.transaction('rw', dailyEntries)
-  -> IndexedDB commit
-  -> appStore.entry + saveStatus
-  -> DOM status and next-load projection</code></pre>
+          <div class="code-head"><span>贴纸调用方向</span><button class="copy-button" type="button" data-copy-target="call-chain">复制</button></div>
+          <pre id="call-chain"><code>JournalPanel draft
+  -> appStore.startStickerComposer(text)
+  -> App unmounts DeskScene
+  -> StickerStudio -> createStickerForgeSession()
+  -> vendored Sticker Forge createSticker()
+  -> reset + flat wait + transparent PNG crop
+  -> appStore.prepareStickerPlacement(draft)
+  -> App remounts DeskScene
+  -> desk raycast -> appStore.placePendingSticker(position)
+  -> DexieStickerRepository.create()
+  -> one transaction: definition + render asset + instance
+  -> StickerObject creates object URL + Three.js Texture</code></pre>
         </div>
       </section>
 
@@ -136,41 +142,43 @@
               <tr><td>选中日期、已加载记录、加载/保存状态</td><td>Zustand store</td><td>当前页面运行</td><td>Mesh、Camera、Texture</td></tr>
               <tr><td>未保存草稿</td><td><code>JournalEditor</code></td><td>当前编辑面板</td><td>数据库自动写入</td></tr>
               <tr><td>本子阶段 <code>NotebookPhase</code></td><td>Zustand store</td><td>当前页面运行；刷新从 <code>desk</code> 开始</td><td>IndexedDB</td></tr>
+              <tr><td>贴纸定义、PNG Blob、位置与旋转</td><td>IndexedDB / <code>StickerRepository</code></td><td>跨页面重开</td><td>Mesh、Texture、对象 URL</td></tr>
+              <tr><td>贴纸制作/放置/选择状态与临时草稿</td><td>Zustand store</td><td>当前页面运行</td><td>Forge 私有对象、DOM Event</td></tr>
+              <tr><td>制作轮廓、材质、光照与 peel 状态</td><td>Sticker Forge session</td><td>制作 Canvas 生命周期</td><td>IndexedDB peel 状态</td></tr>
               <tr><td>相机、灯光、几何体、材质与悬停动画</td><td>R3F / Three.js</td><td>Canvas 生命周期</td><td>store 与 IndexedDB</td></tr>
             </tbody>
           </table>
         </div>
-        <p>store 依赖 <code>DailyEntryRepository</code> 接口，不依赖 Dexie 具体类型。测试可以注入内存替身；生产入口才注入 <code>DexieDailyEntryRepository</code>。</p>
+        <p>store 依赖 <code>DailyEntryRepository</code> 与 <code>StickerRepository</code> 接口，不依赖 Dexie 具体类型。测试注入替身；生产入口才注入两个 Dexie repository。制作 session 只留在 <code>StickerStudio</code> ref 中，不能进入 store。</p>
       </section>
 
       <section id="persistence" data-search-title="本地持久化">
         <p class="section-index">05 · 数据</p>
-        <h2>IndexedDB v1 只有一张表</h2>
-        <p>数据库名为 <code>dear-desk</code>，版本为 <code>1</code>。<code>dailyEntries</code> 使用本地日期 <code>date</code> 作为主键，并为 <code>updatedAt</code> 建立索引。当前没有贴纸、图片、台灯或桌面状态表。</p>
+        <h2>IndexedDB v2 用三张贴纸表分离内容、资产与位置</h2>
+        <p>数据库名为 <code>dear-desk</code>，版本为 <code>2</code>。v1 的 <code>dailyEntries</code> 原样保留；v2 新增 <code>stickerDefinitions</code>、<code>stickerRenderAssets</code> 和 <code>stickerInstances</code>。创建与删除贴纸都在覆盖三张表的单一事务中完成。</p>
         <div class="code-block">
-          <div class="code-head"><span>DailyEntry</span><button class="copy-button" type="button" data-copy-target="daily-entry-shape">复制</button></div>
-          <pre id="daily-entry-shape"><code>interface DailyEntry {
-  date: LocalDate
-  text: string
-  createdAt: string
-  updatedAt: string
-}
-
-database.version(1).stores({
-  dailyEntries: 'date, updatedAt'
+          <div class="code-head"><span>IndexedDB v2 schema</span><button class="copy-button" type="button" data-copy-target="daily-entry-shape">复制</button></div>
+          <pre id="daily-entry-shape"><code>database.version(2).stores({
+  dailyEntries: 'date, updatedAt',
+  stickerDefinitions: 'id, kind, sourceEntryDate, createdAt',
+  stickerInstances: 'id, definitionId, updatedAt',
+  stickerRenderAssets: 'id, upstreamCommit'
 })</code></pre>
         </div>
         <p>
           <button class="term" type="button" data-term="LocalDate" data-definition="按用户浏览器本地日历生成的 YYYY-MM-DD 字符串。它不是 UTC 日期，避免午夜附近把记录放到前一天或后一天。">LocalDate</button>
-          是每天一条记录的身份。清除站点数据、切换浏览器或更换设备会失去访问这份记录的能力，这是当前批准的数据边界，不是同步故障。
+          是每天一条记录以及贴纸来源日期的身份；
+          <button class="term" type="button" data-term="渲染资产" data-definition="Sticker Forge 确认时产生的透明 PNG Blob、尺寸、MIME 类型和固定上游 commit。它是持久化视觉，不是 Three.js Texture。">渲染资产</button>
+          保存可重建桌面纹理的事实。清除站点数据、切换浏览器或更换设备会失去这些内容，这是当前批准的数据边界，不是同步故障。
         </p>
       </section>
 
       <section id="scene" data-search-title="3D 场景边界">
         <p class="section-index">06 · 场景</p>
-        <h2>Canvas 只呈现空间并发出意图</h2>
+        <h2>桌面 Canvas 只投影贴纸事实并发出意图</h2>
         <p><code>DeskScene</code> 明确注册使用的 Three.js 构造器，按容器尺寸和受限 DPR 配置 R3F root，并用 <code>ResizeObserver</code> 保持绘图缓冲区与视口同步。StrictMode 下的短延迟释放机制避免同一 Canvas 被重复创建 root。</p>
-        <p><code>NotebookObject</code> 用透明几何体作为可射线检测的命中区域。命中后只调用 <code>requestNotebookOpen()</code>，不会直接访问 Dexie；封面铰链、相机姿态、悬停高度与旋转都只存在于帧循环。</p>
+        <p><code>NotebookObject</code> 用透明几何体作为可射线检测的命中区域。<code>DeskContents</code> 让桌垫接收放置 raycast，让 <code>StickerObject</code> 独占选中和拖动事件；两者只调用 store action，不直接访问 Dexie。贴纸拖动过程更新内存位置，pointer up 才提交最终坐标。</p>
+        <p><code>StickerObject</code> 为 Blob 创建对象 URL，通过 <code>TextureLoader</code> 加载透明 PNG，并在卸载时同时 <code>dispose()</code> Texture 和 <code>revokeObjectURL()</code>。选中态由四条窄边线组成，不在透明像素后铺设矩形底色。</p>
         <div class="note">
           <strong>阶段推进与低帧率保护</strong>
           <p><code>NotebookPhase</code> 依次经过 <code>desk → approaching → opening → editing</code>，关闭时反向经过 <code>closing → retreating → desk</code>。R3F 帧循环按墙钟时间插值；<code>DeskScene</code> 另有同阶段计时保护，RAF 被节流时也能收敛。窄视口使用更短计划时长，reduced-motion 直接进入稳定阶段。</p>
@@ -187,6 +195,10 @@ database.version(1).stores({
               <tr><td>初次读取 IndexedDB 失败</td><td>store 进入 <code>loadStatus: error</code>，首页显示本地记录不可用</td><td>无已加载记录</td></tr>
               <tr><td>空文本或超过 500 字</td><td>界面禁用保存，领域层仍会拒绝非法调用</td><td>textarea 草稿</td></tr>
               <tr><td>IndexedDB 写入失败</td><td>store 进入 <code>saveStatus: error</code> 并显示可见错误</td><td>组件局部草稿</td></tr>
+              <tr><td>Sticker Forge 启动或更新失败</td><td>制作器显示可见错误；取消后返回本子编辑态</td><td>未保存日记草稿，不写贴纸表</td></tr>
+              <tr><td>快照空白、无法读取或未放平</td><td>停留制作阶段并允许重试，不进入放置模式</td><td>文字、颜色和材质仍在组件内存</td></tr>
+              <tr><td>贴纸三表事务失败</td><td>store 显示贴纸错误，不把半成品加入桌面</td><td>数据库不会只留下部分新记录</td></tr>
+              <tr><td>移动提交失败</td><td>显示错误并重新调用 <code>loadStickers()</code> 恢复持久化位置</td><td>最后一次成功提交的位置</td></tr>
               <tr><td>WebGL 初始化失败</td><td>显示 DOM 降级入口，用户仍可打开本子</td><td>完整日记读写链路</td></tr>
               <tr><td>页面在转场中隐藏</td><td>打开方向收敛到 <code>editing</code>，关闭方向收敛到 <code>desk</code></td><td>不会恢复到半开阶段</td></tr>
               <tr><td>端口 5164 被占用</td><td>Vite 因 <code>strictPort</code> 明确退出</td><td>本地 IndexedDB 数据不受影响</td></tr>
@@ -199,14 +211,19 @@ database.version(1).stores({
         <p class="section-index">08 · 源码地图</p>
         <h2>推荐按调用链阅读</h2>
         <div class="source-map">
-          <div><code><a href="../../src/main.tsx">src/main.tsx</a></code><span>组合生产 repository、store 与 React 根</span></div>
-          <div><code><a href="../../src/app/App.tsx">src/app/App.tsx</a></code><span>应用装配、初次加载与 DOM 等价入口</span></div>
-          <div><code><a href="../../src/state/app-store.ts">src/state/app-store.ts</a></code><span>加载、本子阶段状态机、关闭与保存动作</span></div>
+          <div><code><a href="../../src/main.tsx">src/main.tsx</a></code><span>组合两个生产 repository、store 与 React 根</span></div>
+          <div><code><a href="../../src/app/App.tsx">src/app/App.tsx</a></code><span>初次加载、Canvas 所有者切换与 DOM 入口</span></div>
+          <div><code><a href="../../src/state/app-store.ts">src/state/app-store.ts</a></code><span>本子状态机、贴纸工作流与持久化动作</span></div>
           <div><code><a href="../../src/domain/daily-entry.ts">src/domain/daily-entry.ts</a></code><span>记录类型、本地日期与文本规则</span></div>
+          <div><code><a href="../../src/domain/sticker.ts">src/domain/sticker.ts</a></code><span>贴纸模型、上游 commit、边界与旋转规则</span></div>
           <div><code><a href="../../src/persistence/daily-entry-repository.ts">daily-entry-repository.ts</a></code><span>事务读写与更新时间语义</span></div>
-          <div><code><a href="../../src/persistence/database.ts">src/persistence/database.ts</a></code><span>数据库名和 IndexedDB v1 schema</span></div>
-          <div><code><a href="../../src/features/journal/JournalPanel.tsx">JournalPanel.tsx</a></code><span>草稿、焦点、保存与错误反馈</span></div>
-          <div><code><a href="../../src/scene/DeskScene.tsx">src/scene/DeskScene.tsx</a></code><span>单 Canvas 生命周期、CameraRig、阶段计时保护与桌面场景</span></div>
+          <div><code><a href="../../src/persistence/sticker-repository.ts">sticker-repository.ts</a></code><span>贴纸三表事务、加载、移动、旋转与删除</span></div>
+          <div><code><a href="../../src/persistence/database.ts">src/persistence/database.ts</a></code><span>数据库名和 IndexedDB v1/v2 schema</span></div>
+          <div><code><a href="../../src/features/journal/JournalPanel.tsx">JournalPanel.tsx</a></code><span>草稿、保存与贴纸制作入口</span></div>
+          <div><code><a href="../../src/features/stickers/StickerStudio.tsx">StickerStudio.tsx</a></code><span>Forge 宿主、文字/材质控件、确认与销毁</span></div>
+          <div><code><a href="../../src/integrations/sticker-forge.ts">sticker-forge.ts</a></code><span>官方 bundle 适配、flat 等待、PNG 裁切与 session 生命周期</span></div>
+          <div><code><a href="../../src/scene/DeskScene.tsx">src/scene/DeskScene.tsx</a></code><span>R3F 生命周期、CameraRig、桌垫放置与贴纸集合</span></div>
+          <div><code><a href="../../src/scene/StickerObject.tsx">StickerObject.tsx</a></code><span>PNG 纹理投影、选择、拖动与资源释放</span></div>
           <div><code><a href="../../src/scene/NotebookObject.tsx">NotebookObject.tsx</a></code><span>3D 本子、封面铰链、命中区域与打开意图</span></div>
           <div><code><a href="../../src/scene/notebook-transition.ts">notebook-transition.ts</a></code><span>普通、窄视口、reduced-motion 时长与缓动</span></div>
         </div>
@@ -215,25 +232,25 @@ database.version(1).stores({
       <section id="verification" data-search-title="验证与后续边界">
         <p class="section-index">09 · 验证</p>
         <h2>当前证据与仍未实现的范围</h2>
-        <p>自动验证覆盖领域规则、repository、新旧 store 状态、完整转场、重复和越序事件、reduced-motion 时长、DOM 保存与关闭卸载。浏览器验收覆盖桌面与 <code>390 × 844</code> 移动端、Canvas PointerEvent、响应式纸页对齐、textarea 焦点、阶段时序、页面溢出和非空截图像素。</p>
+        <p>自动验证现有 7 个测试文件、23 项用例，覆盖领域规则、v1→v2 迁移、贴纸三表事务、store 工作流、取消制作恢复草稿、本子转场与 DOM 行为。浏览器验收覆盖 <code>1920 × 1050</code> 桌面和 <code>390 × 844</code> 移动端，并验证真实 Forge bundle、peel 事件、单 Canvas、非空 PNG、放置/移动/旋转/删除、刷新恢复与页面无横向溢出。</p>
         <div class="table-wrap">
           <table>
             <thead><tr><th>能力</th><th>状态</th><th>归属</th></tr></thead>
             <tbody>
               <tr><td>当天文字记录与本地恢复</td><td><span class="status status-review">已实现，待验收</span></td><td>编号 002</td></tr>
               <tr><td>镜头走近、转正、本子开合与 UI 对齐</td><td><span class="status status-review">已完成</span></td><td>编号 003</td></tr>
-              <tr><td>文字贴纸制作、放置与持久化</td><td><span class="status status-pending">待确认</span></td><td>编号 004</td></tr>
+              <tr><td>文字贴纸制作、放置与持久化</td><td><span class="status status-review">已实现，待验收</span></td><td>编号 007；004 已替代</td></tr>
               <tr><td>基础矩形图片贴纸</td><td><span class="status status-neutral">尚未规划切片</span></td><td>后续任务</td></tr>
             </tbody>
           </table>
         </div>
         <div class="note">
           <strong>已知构建提示</strong>
-          <p>当前生产 JavaScript bundle 约 979 kB，gzip 后约 276 kB，超过 Vite 默认 500 kB 提示阈值。当前功能与构建不受影响，但后续功能增长前应评估 Three.js 分包或按需加载。</p>
+          <p>当前应用生产 JavaScript bundle 约 1001 kB，gzip 后约 283 kB，超过 Vite 默认 500 kB 提示阈值。Sticker Forge vendored bundle 在进入制作阶段时独立动态加载，不进入该主 bundle；当前功能与构建不受影响，但后续增长仍应评估分包。</p>
         </div>
       </section>
 
-      <footer>Dear Desk 当前系统架构 · 基于编号 002 与 003 的可运行源码和验证结果 · 2026-08-06</footer>
+      <footer>Dear Desk 当前系统架构 · 基于编号 002、003 与 007 的可运行源码和验证结果 · 2026-08-07</footer>
     </main>
   </div>
 

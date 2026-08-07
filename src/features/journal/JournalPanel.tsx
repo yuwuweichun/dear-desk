@@ -1,20 +1,22 @@
-import { Save, X } from 'lucide-react'
+import { Save, Sticker, X } from 'lucide-react'
 import { useState } from 'react'
 
 import { formatLocalDate, MAX_ENTRY_LENGTH } from '../../domain/daily-entry'
+import { MAX_STICKER_TEXT_LENGTH } from '../../domain/sticker'
 import { useAppStore } from '../../state/app-store-context'
 
 export function JournalPanel() {
   const notebookPhase = useAppStore((state) => state.notebookPhase)
   const selectedDate = useAppStore((state) => state.selectedDate)
   const entry = useAppStore((state) => state.entry)
+  const stickerDraftText = useAppStore((state) => state.stickerDraftText)
 
   if (notebookPhase !== 'editing') return null
 
   return (
     <JournalEditor
-      key={`${selectedDate}-${entry?.updatedAt ?? 'empty'}`}
-      initialDraft={entry?.text ?? ''}
+      key={`${selectedDate}-${entry?.updatedAt ?? 'empty'}-${stickerDraftText ?? 'stored'}`}
+      initialDraft={stickerDraftText ?? entry?.text ?? ''}
     />
   )
 }
@@ -31,6 +33,12 @@ function JournalEditor({ initialDraft }: JournalEditorProps) {
   const requestNotebookClose = useAppStore((state) => state.requestNotebookClose)
   const saveEntry = useAppStore((state) => state.saveEntry)
   const resetSaveStatus = useAppStore((state) => state.resetSaveStatus)
+  const startStickerComposer = useAppStore(
+    (state) => state.startStickerComposer,
+  )
+  const stickerErrorMessage = useAppStore(
+    (state) => state.stickerErrorMessage,
+  )
   const [draft, setDraft] = useState(initialDraft)
 
   const overLimit = draft.length > MAX_ENTRY_LENGTH
@@ -93,20 +101,36 @@ function JournalEditor({ initialDraft }: JournalEditorProps) {
           </span>
         </div>
 
-        {errorMessage ? (
+        {errorMessage || stickerErrorMessage ? (
           <p className="journal-error" role="alert">
-            {errorMessage}
+            {errorMessage || stickerErrorMessage}
           </p>
         ) : null}
 
-        <button
-          className="save-button"
-          type="submit"
-          disabled={saving || !draft.trim() || overLimit || loadStatus === 'loading'}
-        >
-          <Save aria-hidden="true" size={18} strokeWidth={1.8} />
-          <span>{saving ? '保存中' : '保存'}</span>
-        </button>
+        <div className="journal-actions">
+          <button
+            className="sticker-button"
+            type="button"
+            onClick={() => startStickerComposer(draft)}
+            disabled={
+              !draft.trim() ||
+              draft.trim().length > MAX_STICKER_TEXT_LENGTH ||
+              loadStatus === 'loading'
+            }
+            title={`制作贴纸，最多 ${MAX_STICKER_TEXT_LENGTH} 个字符`}
+          >
+            <Sticker aria-hidden="true" size={18} strokeWidth={1.8} />
+            <span>制作贴纸</span>
+          </button>
+          <button
+            className="save-button"
+            type="submit"
+            disabled={saving || !draft.trim() || overLimit || loadStatus === 'loading'}
+          >
+            <Save aria-hidden="true" size={18} strokeWidth={1.8} />
+            <span>{saving ? '保存中' : '保存'}</span>
+          </button>
+        </div>
       </form>
     </aside>
   )

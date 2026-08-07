@@ -36,6 +36,7 @@ body {
 }
 
 button,
+input,
 textarea {
   font: inherit;
   letter-spacing: 0;
@@ -47,6 +48,7 @@ button {
 
 button:focus-visible,
 a:focus-visible,
+input:focus-visible,
 textarea:focus-visible {
   outline: 2px solid #f3c56e;
   outline-offset: 3px;
@@ -165,7 +167,9 @@ textarea:focus-visible {
 
 .notebook-button,
 .scene-fallback button,
-.save-button {
+.save-button,
+.sticker-button,
+.studio-confirm {
   display: inline-flex;
   min-height: 42px;
   align-items: center;
@@ -323,10 +327,20 @@ textarea:focus-visible {
   font-size: 13px;
 }
 
-.save-button {
-  width: 100%;
+.journal-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
   margin-top: 16px;
+}
+
+.save-button,
+.sticker-button {
+  width: 100%;
   padding: 0 18px;
+}
+
+.save-button {
   background: var(--accent);
   color: #fffaf1;
   font-size: 14px;
@@ -341,6 +355,293 @@ textarea:focus-visible {
 .save-button:disabled {
   cursor: not-allowed;
   opacity: 0.48;
+}
+
+.sticker-button {
+  border-color: #b9a98f;
+  background: transparent;
+  color: #544b3f;
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.sticker-button:hover:not(:disabled) {
+  border-color: #8f7756;
+  background: #ebe0cc;
+}
+
+.sticker-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.44;
+}
+
+.sticker-studio {
+  position: absolute;
+  z-index: 30;
+  inset: 72px 0 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  min-height: 0;
+  background: #d4d0c7;
+  color: #252925;
+}
+
+.sticker-stage {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  padding: 58px;
+  border-right: 1px solid rgba(31, 39, 35, 0.18);
+  background: #cbc6bc;
+  overflow: hidden;
+}
+
+.sticker-stage-head {
+  position: absolute;
+  top: 24px;
+  left: 28px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #5a615d;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.sticker-forge-mount {
+  width: min(620px, 72vh, 82%);
+  aspect-ratio: 1;
+  min-width: 260px;
+  min-height: 260px;
+}
+
+.sticker-forge-mount canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  touch-action: none;
+}
+
+.studio-status {
+  position: absolute;
+  left: 28px;
+  bottom: 24px;
+  color: #5a615d;
+  font-size: 12px;
+}
+
+.sticker-studio-controls {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 28px;
+  overflow-y: auto;
+  background: #f2ede3;
+  color: #2b2925;
+}
+
+.sticker-studio-controls header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid #d5cbbc;
+}
+
+.sticker-studio-controls header p {
+  margin: 0 0 5px;
+  color: #776e61;
+  font-size: 12px;
+}
+
+.sticker-studio-controls h1 {
+  margin: 0;
+  font-family: Georgia, "Songti SC", serif;
+  font-size: 30px;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+.studio-icon-button,
+.sticker-mode-bar button,
+.sticker-selection-bar button,
+.sticker-error-toast button {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  place-items: center;
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.studio-field {
+  display: grid;
+  gap: 10px;
+  margin: 24px 0 0;
+  padding: 0;
+  border: 0;
+  color: #5f574c;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.studio-field input {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid #c8bca9;
+  border-radius: 4px;
+  background: #fffdf8;
+  color: #292620;
+}
+
+.color-swatches {
+  display: flex;
+  gap: 10px;
+}
+
+.color-swatch {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 0 0 1px rgba(42, 37, 31, 0.25);
+}
+
+.color-swatch.is-active {
+  border-color: #fffdf8;
+  box-shadow: 0 0 0 2px #8a6e42;
+}
+
+.material-control {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border: 1px solid #c8bca9;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.material-control button {
+  min-height: 38px;
+  border: 0;
+  border-right: 1px solid #c8bca9;
+  border-bottom: 1px solid #c8bca9;
+  background: transparent;
+  color: #5f574c;
+  cursor: pointer;
+}
+
+.material-control button:nth-child(2n) {
+  border-right: 0;
+}
+
+.material-control button:nth-last-child(-n + 2) {
+  border-bottom: 0;
+}
+
+.material-control button.is-active {
+  background: #2f514d;
+  color: #fffdf8;
+}
+
+.studio-error {
+  margin: 18px 0 0;
+  color: #913139;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.studio-confirm {
+  width: 100%;
+  margin-top: auto;
+  padding: 0 18px;
+  background: #b54049;
+  color: #fffaf1;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.studio-confirm:hover:not(:disabled) {
+  background: #913139;
+}
+
+.studio-confirm:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+}
+
+.sticker-mode-bar,
+.sticker-selection-bar {
+  position: absolute;
+  z-index: 18;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 6px 5px 14px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: rgba(23, 32, 29, 0.94);
+  color: var(--ink);
+  box-shadow: 0 10px 30px rgba(5, 10, 8, 0.24);
+}
+
+.sticker-mode-bar span {
+  min-width: 92px;
+  font-size: 13px;
+}
+
+.sticker-selection-bar > span {
+  max-width: 210px;
+  overflow: hidden;
+  color: #d6ded9;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sticker-selection-bar button {
+  border-color: rgba(238, 232, 218, 0.26);
+}
+
+.sticker-selection-bar button:hover:not(:disabled) {
+  border-color: #f3c56e;
+  color: #f3c56e;
+}
+
+.sticker-selection-bar button.danger:hover:not(:disabled) {
+  border-color: #ee8188;
+  color: #ee8188;
+}
+
+.sticker-error-toast {
+  position: absolute;
+  z-index: 22;
+  top: 88px;
+  right: 24px;
+  max-width: min(420px, calc(100vw - 48px));
+  min-height: 46px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 5px 5px 13px;
+  border: 1px solid rgba(238, 129, 136, 0.54);
+  border-radius: 5px;
+  background: #442c2e;
+  color: #ffe7e4;
+  font-size: 13px;
 }
 
 .scene-fallback {
@@ -417,6 +718,72 @@ textarea:focus-visible {
     min-height: 120px;
     font-size: 18px;
     line-height: 1.75;
+  }
+
+  .journal-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .sticker-studio {
+    inset: 64px 0 0;
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(280px, 44%) minmax(0, 1fr);
+  }
+
+  .sticker-stage {
+    padding: 46px 18px 24px;
+    border-right: 0;
+    border-bottom: 1px solid rgba(31, 39, 35, 0.18);
+  }
+
+  .sticker-stage-head {
+    top: 16px;
+    left: 18px;
+  }
+
+  .sticker-forge-mount {
+    width: min(330px, 74vw, 34vh);
+    min-width: 220px;
+    min-height: 220px;
+  }
+
+  .studio-status {
+    right: 18px;
+    bottom: 12px;
+    left: auto;
+  }
+
+  .sticker-studio-controls {
+    padding: 20px 18px max(20px, env(safe-area-inset-bottom));
+  }
+
+  .sticker-studio-controls header {
+    padding-bottom: 16px;
+  }
+
+  .studio-field {
+    margin-top: 18px;
+  }
+
+  .studio-confirm {
+    min-height: 44px;
+    margin-top: 22px;
+  }
+
+  .sticker-mode-bar,
+  .sticker-selection-bar {
+    bottom: max(16px, env(safe-area-inset-bottom));
+    max-width: calc(100vw - 32px);
+  }
+
+  .sticker-selection-bar > span {
+    max-width: 92px;
+  }
+
+  .sticker-error-toast {
+    top: 76px;
+    right: 16px;
+    max-width: calc(100vw - 32px);
   }
 }
 

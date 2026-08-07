@@ -3,6 +3,8 @@ import { useEffect } from 'react'
 
 import { formatLocalDate } from '../domain/daily-entry'
 import { JournalPanel } from '../features/journal/JournalPanel'
+import { StickerControls } from '../features/stickers/StickerControls'
+import { StickerStudio } from '../features/stickers/StickerStudio'
 import { DeskScene } from '../scene/DeskScene'
 import { useAppStore } from '../state/app-store-context'
 
@@ -27,15 +29,19 @@ export function App() {
   const entry = useAppStore((state) => state.entry)
   const loadStatus = useAppStore((state) => state.loadStatus)
   const loadToday = useAppStore((state) => state.loadToday)
+  const loadStickers = useAppStore((state) => state.loadStickers)
   const notebookPhase = useAppStore((state) => state.notebookPhase)
   const requestNotebookOpen = useAppStore((state) => state.requestNotebookOpen)
   const settleNotebookTransition = useAppStore(
     (state) => state.settleNotebookTransition,
   )
+  const stickerWorkflow = useAppStore((state) => state.stickerWorkflow)
+  const selectedStickerId = useAppStore((state) => state.selectedStickerId)
 
   useEffect(() => {
     void loadToday()
-  }, [loadToday])
+    void loadStickers()
+  }, [loadStickers, loadToday])
 
   useEffect(() => {
     const settleWhenHidden = () => {
@@ -55,10 +61,18 @@ export function App() {
           : '今天还是空白'
 
   return (
-    <main className="app-shell" data-notebook-phase={notebookPhase}>
-      <div className="scene-shell">
-        <DeskScene fallback={<SceneFallback />} />
-      </div>
+    <main
+      className="app-shell"
+      data-notebook-phase={notebookPhase}
+      data-sticker-workflow={stickerWorkflow}
+    >
+      {stickerWorkflow === 'composing' ? (
+        <StickerStudio />
+      ) : (
+        <div className="scene-shell">
+          <DeskScene fallback={<SceneFallback />} />
+        </div>
+      )}
 
       <header className="app-header">
         <a className="app-brand" href="/" aria-label="Dear Desk 首页">
@@ -73,7 +87,9 @@ export function App() {
 
       <div
         className={
-          notebookPhase === 'desk' ? 'date-block' : 'date-block is-hidden'
+          notebookPhase === 'desk' && stickerWorkflow === 'idle'
+            ? 'date-block'
+            : 'date-block is-hidden'
         }
         aria-live="polite"
       >
@@ -81,7 +97,9 @@ export function App() {
         <strong>{entryState}</strong>
       </div>
 
-      {notebookPhase === 'desk' ? (
+      {notebookPhase === 'desk' &&
+      stickerWorkflow === 'idle' &&
+      !selectedStickerId ? (
         <button
           className="notebook-button"
           type="button"
@@ -93,6 +111,7 @@ export function App() {
       ) : null}
 
       <JournalPanel />
+      {stickerWorkflow !== 'composing' ? <StickerControls /> : null}
     </main>
   )
 }

@@ -3,9 +3,11 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import type { ReconcilerRoot } from '@react-three/fiber'
 import * as THREE from 'three'
 
+import type { PlacedSticker, StickerPosition } from '../domain/sticker'
 import { useAppStore } from '../state/app-store-context'
-import type { NotebookPhase } from '../state/app-store'
+import type { NotebookPhase, StickerWorkflow } from '../state/app-store'
 import { NotebookObject } from './NotebookObject'
+import { StickerObject } from './StickerObject'
 import {
   easeInOutCubic,
   getNotebookTransitionDuration,
@@ -24,6 +26,7 @@ extend({
   Mesh: THREE.Mesh,
   MeshBasicMaterial: THREE.MeshBasicMaterial,
   MeshStandardMaterial: THREE.MeshStandardMaterial,
+  PlaneGeometry: THREE.PlaneGeometry,
   TorusGeometry: THREE.TorusGeometry,
 })
 
@@ -240,16 +243,33 @@ function Mug() {
 
 interface DeskContentsProps {
   advanceNotebookPhase: (from: NotebookPhase) => void
+  commitStickerPosition: (
+    instanceId: string,
+    position: StickerPosition,
+  ) => Promise<boolean>
   notebookPhase: NotebookPhase
+  placePendingSticker: (position: StickerPosition) => Promise<boolean>
+  previewStickerPosition: (instanceId: string, position: StickerPosition) => void
   reducedMotion: boolean
   requestNotebookOpen: () => void
+  selectSticker: (instanceId: string | null) => void
+  selectedStickerId: string | null
+  stickers: PlacedSticker[]
+  stickerWorkflow: StickerWorkflow
 }
 
 function DeskContents({
   advanceNotebookPhase,
+  commitStickerPosition,
   notebookPhase,
+  placePendingSticker,
+  previewStickerPosition,
   reducedMotion,
   requestNotebookOpen,
+  selectSticker,
+  selectedStickerId,
+  stickers,
+  stickerWorkflow,
 }: DeskContentsProps) {
   return (
     <>
@@ -275,10 +295,40 @@ function DeskContents({
         <boxGeometry args={[12, 0.8, 8]} />
         <meshStandardMaterial color="#75543f" roughness={0.82} />
       </mesh>
-      <mesh position={[0, 0.02, 0.2]} receiveShadow>
+      <mesh
+        position={[0, 0.02, 0.2]}
+        receiveShadow
+        onClick={(event) => {
+          if (stickerWorkflow === 'placing') {
+            event.stopPropagation()
+            void placePendingSticker({ x: event.point.x, z: event.point.z })
+            return
+          }
+          if (stickerWorkflow === 'idle') selectSticker(null)
+        }}
+        onPointerOver={() => {
+          if (stickerWorkflow === 'placing') document.body.style.cursor = 'crosshair'
+        }}
+        onPointerOut={() => {
+          if (stickerWorkflow === 'placing') document.body.style.cursor = ''
+        }}
+      >
         <boxGeometry args={[8.7, 0.12, 6.25]} />
         <meshStandardMaterial color="#315b57" roughness={0.92} />
       </mesh>
+      {stickers.map((sticker) => (
+        <StickerObject
+          key={sticker.instance.id}
+          sticker={sticker}
+          interactive={stickerWorkflow === 'idle' && notebookPhase === 'desk'}
+          selected={selectedStickerId === sticker.instance.id}
+          onSelect={selectSticker}
+          onPreviewPosition={previewStickerPosition}
+          onCommitPosition={(instanceId, position) => {
+            void commitStickerPosition(instanceId, position)
+          }}
+        />
+      ))}
       <mesh position={[-4.55, 0.13, -2.1]} castShadow>
         <boxGeometry args={[1.7, 0.24, 1.4]} />
         <meshStandardMaterial color="#b5a57f" roughness={0.9} />
@@ -310,13 +360,31 @@ export function DeskScene({ fallback }: DeskSceneProps) {
   const [unavailable, setUnavailable] = useState(false)
   const [reducedMotion, setReducedMotion] = useState(false)
   const advanceNotebookPhase = useAppStore((state) => state.advanceNotebookPhase)
+  const commitStickerPosition = useAppStore(
+    (state) => state.commitStickerPosition,
+  )
   const notebookPhase = useAppStore((state) => state.notebookPhase)
+  const placePendingSticker = useAppStore((state) => state.placePendingSticker)
+  const previewStickerPosition = useAppStore(
+    (state) => state.previewStickerPosition,
+  )
   const requestNotebookOpen = useAppStore((state) => state.requestNotebookOpen)
+  const selectSticker = useAppStore((state) => state.selectSticker)
+  const selectedStickerId = useAppStore((state) => state.selectedStickerId)
+  const stickers = useAppStore((state) => state.stickers)
+  const stickerWorkflow = useAppStore((state) => state.stickerWorkflow)
   const latestSceneProps = useRef<DeskContentsProps>({
     advanceNotebookPhase,
+    commitStickerPosition,
     notebookPhase,
+    placePendingSticker,
+    previewStickerPosition,
     reducedMotion,
     requestNotebookOpen,
+    selectSticker,
+    selectedStickerId,
+    stickers,
+    stickerWorkflow,
   })
 
   useEffect(() => {
@@ -419,14 +487,33 @@ export function DeskScene({ fallback }: DeskSceneProps) {
   useEffect(() => {
     latestSceneProps.current = {
       advanceNotebookPhase,
+      commitStickerPosition,
       notebookPhase,
+      placePendingSticker,
+      previewStickerPosition,
       reducedMotion,
       requestNotebookOpen,
+      selectSticker,
+      selectedStickerId,
+      stickers,
+      stickerWorkflow,
     }
     if (rootRef.current) {
       rootRef.current.render(<DeskContents {...latestSceneProps.current} />)
     }
-  }, [advanceNotebookPhase, notebookPhase, reducedMotion, requestNotebookOpen])
+  }, [
+    advanceNotebookPhase,
+    commitStickerPosition,
+    notebookPhase,
+    placePendingSticker,
+    previewStickerPosition,
+    reducedMotion,
+    requestNotebookOpen,
+    selectSticker,
+    selectedStickerId,
+    stickers,
+    stickerWorkflow,
+  ])
 
   return (
     <div ref={containerRef} className="canvas-root">
