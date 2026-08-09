@@ -146,6 +146,7 @@ export interface StickerRepository {
   delete(instanceId: string): Promise<void>
   listDesk(): Promise<PlacedSticker[]>
   listJournal(date: LocalDate): Promise<PlacedSticker[]>
+  listJournalDates(): Promise<LocalDate[]>
   move(instanceId: string, position: StickerInstance['position']): Promise<StickerInstance>
   rotate(instanceId: string, rotationY: number): Promise<StickerInstance>
 }

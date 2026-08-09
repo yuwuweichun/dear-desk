@@ -22,7 +22,7 @@
         <kbd aria-hidden="true">/</kbd>
         <div id="search-results" class="search-results" role="listbox" aria-label="搜索结果" hidden></div>
       </div>
-      <span class="top-meta">2026-08-07 · 007 待验收</span>
+      <span class="top-meta">2026-08-09 · 双页翻页已完成</span>
       <button class="toc-toggle" type="button" aria-controls="sidebar" aria-expanded="false">目录</button>
     </div>
   </header>
@@ -48,7 +48,7 @@
         <p class="lead">这里汇总当前产品范围、系统架构、每项任务的方案与实施结果。代码改动必须先有可审阅方案，完成后再把真实结果回写到同一份记录。</p>
         <div class="callout">
           <strong>当前结论</strong>
-          <p>文档驱动流程和 MVP 产品范围已经通过确认。编号 007 已按批准边界接入真实 Sticker Forge 文字贴纸闭环并进入待验收；编号 004 的自研方案已替代。002 仍待验收，005 与 006 仍待确认。</p>
+          <p>MVP 已明确采用双页本子与受控仿真翻页。DD-20260809-001 已完成日期页序、左右整页导航、CSS 3D 翻页和自动验证，并已由开发者验收。独立 Sticker Forge 图片工作台与桌面/日记双目标也已实现，详见 DD-20260808-002。</p>
         </div>
       </header>
 
@@ -60,13 +60,15 @@
             <thead><tr><th>项目面</th><th>状态</th><th>说明</th></tr></thead>
             <tbody>
               <tr><td>文档协作流程</td><td><span class="status status-review">已完成</span></td><td>规则、模板、决策记录和阅读入口已经建立并通过验收。</td></tr>
-              <tr><td>首版产品规格</td><td><span class="status status-review">已批准</span></td><td>文字与矩形图片贴纸、无语音、轻量翻页、可选台灯和 IndexedDB 本地数据边界已经确认。</td></tr>
+              <tr><td>首版产品规格</td><td><span class="status status-review">已批准</span></td><td>文字/图片贴纸、本地抠图、双 surface、双页仿真翻页、无语音、可选台灯和 IndexedDB 本地数据边界已经确认。</td></tr>
               <tr><td>技术基础与首个切片</td><td><span class="status status-pending">待验收</span></td><td>3D 本子入口、DOM 当天文字编辑和 IndexedDB 重开恢复已经实现并通过验证。</td></tr>
               <tr><td>本子聚焦转场</td><td><span class="status status-review">已完成</span></td><td>编号 003 已实现镜头走近、转正、开本、纸页 DOM 衔接与反向返回，并通过用户验收。</td></tr>
-              <tr><td>Sticker Forge 文字贴纸</td><td><span class="status status-review">待验收</span></td><td>编号 007 已实现固定官方 bundle、制作预览、透明 PNG、放置/移动/旋转/删除与重开恢复；004 已替代。</td></tr>
+              <tr><td>独立贴纸工作台</td><td><span class="status status-pending">实施中</span></td><td>DD-20260808-002 已实现文字/图片、本地自动与手动抠图、桌面/日记双目标、v3 持久化；浏览器和 HTML 验收尚未补齐。</td></tr>
+              <tr><td>双页日记与仿真翻页</td><td><span class="status status-review">已完成</span></td><td>DD-20260809-001 已实现日期并集、按需加载、左页上一页、右页下一页、CSS 3D 翻页、重入锁和 reduced-motion，并已由开发者验收。</td></tr>
               <tr><td>本子封面铭牌</td><td><span class="status status-pending">待确认</span></td><td>编号 005 建议支持自定义铭牌内容与 Text3D；字符范围、默认内容与字体资源待确认。</td></tr>
-              <tr><td>Minecraft 像素场景</td><td><span class="status status-pending">待确认</span></td><td>编号 006 把工作台九宫格、火把灯、像素书与其他固定道具统一为同一体素视觉；资源边界、实现方式与灯光范围待确认。</td></tr>
-              <tr><td>当前分支</td><td><code>docs/document-driven-workflow</code></td><td>当前源码基线为 <code>dd7d08e</code>；007 实施尚未提交，005 与 006 方案尚未实施。</td></tr>
+              <tr><td>历史 Minecraft 像素场景</td><td><span class="status status-neutral">已取消</span></td><td>编号 006 从未批准或实施，用户已于 2026-08-09 明确弃用，不再作为实现依据。</td></tr>
+              <tr><td>统一空间视觉</td><td><span class="status status-pending">待确认</span></td><td>DD-20260809-002 建议采用暖木纸本工坊方向，统一桌面、本子、日记页和贴纸工作台。</td></tr>
+              <tr><td>当前分支</td><td><code>main</code></td><td>本轮核对源码基线为 <code>0a842fc</code>；工作区存在其他任务的未提交改动。</td></tr>
             </tbody>
           </table>
         </div>
@@ -104,14 +106,18 @@
               <tr><td><a href="./changes/2026-08-06-001-document-driven-workflow.md">文档流程任务记录</a></td><td>查看本次方案、批准范围、实施和验证证据。</td><td>已完成</td></tr>
               <tr><td><a href="./changes/2026-08-06-002-technical-foundation-and-first-slice.md">技术基础与首个切片</a></td><td>查看技术栈、状态所有权、实际实现、验证结果和方案偏差。</td><td>待验收</td></tr>
               <tr><td><a href="./architecture/system-overview.html">当前系统架构</a></td><td>从零理解运行时、保存链路、失败路径、状态边界和源码地图。</td><td>当前事实</td></tr>
+              <tr><td><a href="./architecture/sticker-system.md">贴纸系统架构</a></td><td>理解本地抠图、图片资产、双 surface placement 与 v3 数据边界。</td><td>当前事实</td></tr>
+              <tr><td><a href="./changes/2026-08-09-001-two-page-journal-page-turn.md">双页日记与仿真翻页</a></td><td>查看 MVP 决策替代、页面序列、实施范围、自动测试和开发者验收记录。</td><td>已完成</td></tr>
               <tr><td><a href="./changes/2026-08-06-003-notebook-focus-transition.md">本子聚焦转场</a></td><td>查看镜头走近、转正、开本、二维 UI 衔接与验证证据。</td><td>已完成</td></tr>
               <tr><td><a href="./changes/2026-08-06-004-basic-sticker-system.md">历史自研贴纸方案</a></td><td>保留 004 被 Sticker Forge 集成方案替代的审阅轨迹，不再作为实施依据。</td><td>已替代</td></tr>
               <tr><td><a href="./changes/2026-08-06-007-sticker-forge-integration.md">Sticker Forge 文字贴纸</a></td><td>查看固定上游版本、单 Canvas 切换、持久化实现和验收证据。</td><td>待验收</td></tr>
               <tr><td><a href="./changes/2026-08-06-005-custom-notebook-nameplate-text3d.md">本子封面铭牌</a></td><td>审核可编辑铭牌、Text3D、字体资源与本地持久化方案。</td><td>待确认</td></tr>
-              <tr><td><a href="./changes/2026-08-06-006-crafting-table-desk-texture.md">整体场景 Minecraft 像素风</a></td><td>审核工作台、火把灯、像素书、固定道具、公开模型资源与授权边界。</td><td>待确认</td></tr>
+              <tr><td><a href="./changes/2026-08-06-006-crafting-table-desk-texture.md">历史 Minecraft 像素场景方案</a></td><td>保留已弃用的工作台、火把灯、像素书和公开资源调研轨迹，不再作为实现依据。</td><td>已取消</td></tr>
+              <tr><td><a href="./changes/2026-08-09-002-unified-desk-visual-direction.md">暖木纸本工坊视觉方向</a></td><td>审核桌子、固定陈列、本子、日记页和贴纸工作台的一体化视觉方案。</td><td>待确认</td></tr>
               <tr><td><a href="./decisions/2026-08-06-001-documentation-as-review-interface.md">文档审核界面决策</a></td><td>理解为什么采用先审批、后实施、再回写。</td><td>已接受</td></tr>
               <tr><td><a href="./decisions/2026-08-06-002-local-first-data-and-scene-projection.md">本地数据与场景投影决策</a></td><td>理解 IndexedDB、Zustand、DOM 和 Three.js 的长期所有权边界。</td><td>已接受</td></tr>
               <tr><td><a href="./decisions/2026-08-07-001-sticker-forge-canvas-ownership.md">Sticker Forge 与 Canvas 所有权决策</a></td><td>理解固定上游产物、透明 PNG 快照和单活跃 WebGL Canvas 边界。</td><td>已接受</td></tr>
+              <tr><td><a href="./decisions/2026-08-08-001-local-image-cutout-and-dual-sticker-surfaces.md">本地抠图与双贴纸表面</a></td><td>理解 source/render 分层、日记日期关联、v3 迁移和本地模型边界。</td><td>已接受</td></tr>
               <tr><td><a href="./templates/change-record.md">任务记录模板</a></td><td>查看以后每项任务保持一致的内容框架。</td><td>当前模板</td></tr>
               <tr><td><a href="../AGENTS.md">项目协作规则</a></td><td>查看 Codex 在本仓库必须遵守的长期规则。</td><td>当前规则</td></tr>
             </tbody>
@@ -145,10 +151,10 @@
         <h2>“痕迹工作台”的首版边界已经锁定</h2>
         <p>首版规格已于 2026-08-06 获批。它把核心循环控制在三分钟以内，并围绕桌面、本子、基础贴纸、旧痕迹入口和台灯定义验收场景。</p>
         <div class="decision-list">
-          <div><strong>文字贴纸</strong><span>固定使用开源 Sticker Forge 制作；007 已交付文字首切片并待验收。</span></div>
-          <div><strong>图片贴纸</strong><span>支持基础矩形图片，不做透明轮廓和高级材质。</span></div>
+          <div><strong>文字与图片贴纸</strong><span>固定使用 Sticker Forge 制作视觉；图片可保留矩形或在本地自动/手动抠图。</span></div>
+          <div><strong>双目标</strong><span>确认后的贴纸可以放到桌面或今天的日记，位置和方向本地持久化。</span></div>
           <div><strong>语音记录</strong><span>不进入首版。</span></div>
-          <div><strong>本子翻页</strong><span>采用明确但轻量的页切换。</span></div>
+          <div><strong>本子翻页</strong><span>采用打开的双页模型与受控仿真纸张翻页；左页上一页、右页下一页，不引入真实物理引擎。</span></div>
           <div><strong>台灯职责</strong><span>只做可选氛围状态。</span></div>
           <div><strong>数据位置</strong><span>使用 IndexedDB 本地持久化，不做账号与云同步。</span></div>
         </div>
@@ -157,13 +163,14 @@
 
       <section id="source" data-search-title="项目事实">
         <p class="section-index">06 · 项目事实</p>
-        <h2>当前应用已经形成记录与文字贴纸两条可运行链路</h2>
-        <p>React 应用通过 Zustand 协调日记、本子和贴纸工作流，两个 Dexie repository 把当天记录与贴纸三类数据保存到 IndexedDB v2。WebGL 任意时刻只有一个活跃 Canvas：桌面阶段由 R3F 拥有，制作阶段切换给固定 commit 的 Sticker Forge。</p>
-        <p>贴纸链路是“未保存日记草稿 -> Sticker Forge 制作与 peel 预览 -> 透明 PNG 快照 -> 桌垫放置 -> 三表事务 -> R3F 纹理投影 -> 移动/15° 旋转/删除 -> 刷新恢复”。图片贴纸、过去日期和台灯仍未实现，不能从已批准产品范围反推为源码事实。</p>
+        <h2>当前应用已经形成双页日记与双 surface 贴纸链路</h2>
+        <p>React 应用通过 Zustand 协调今天、历史页面游标、本子状态机和贴纸工作流；两个 Dexie repository 把正文、图片 source、Forge PNG 与 placement 保存到 IndexedDB v3。WebGL 任意时刻只有一个活跃 Canvas：桌面阶段由 R3F 拥有，制作阶段切换给固定 commit 的 Sticker Forge。</p>
+        <p>日记链路是“正文日期 + 日记贴纸日期 + 今天 -> 排序页序 -> 只加载可见跨页 -> 左/右整页意图 -> 目标预读 -> CSS 3D 翻页 -> 动画结束提交游标”。历史浏览与始终指向今天的 <code>selectedDate</code> 分离；台灯和旧痕迹抽屉仍未实现。</p>
         <div class="source-map">
           <div><code>src/main.tsx</code><span>组合 repository、store 与 React 根</span></div>
-          <div><code>src/state/app-store.ts</code><span>本子状态机、贴纸工作流与异步状态</span></div>
-          <div><code>src/persistence/</code><span>IndexedDB v2、日记仓储与贴纸三表事务</span></div>
+          <div><code>src/state/app-store.ts</code><span>本子状态机、页面游标、翻页锁与贴纸工作流</span></div>
+          <div><code>src/features/journal/</code><span>双页 DOM、今天编辑、历史只读贴纸与 CSS 翻页</span></div>
+          <div><code>src/persistence/</code><span>IndexedDB v3、日期查询与贴纸四表事务</span></div>
           <div><code>src/integrations/sticker-forge.ts</code><span>固定官方 bundle、flat 快照与销毁生命周期</span></div>
           <div><code>src/features/stickers/</code><span>制作宿主、材质控件与桌面命令</span></div>
           <div><code>src/scene/</code><span>R3F Canvas、本子转场、贴纸放置与 PNG 投影</span></div>
@@ -172,7 +179,7 @@
       </section>
 
       <footer>
-        Dear Desk 项目文档 · 当前内容依据仓库实际文件整理 · 更新于 2026-08-07
+        Dear Desk 项目文档 · 当前内容依据仓库实际文件整理 · 更新于 2026-08-09
       </footer>
     </main>
   </div>

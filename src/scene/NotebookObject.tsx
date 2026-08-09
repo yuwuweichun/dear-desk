@@ -164,6 +164,10 @@ export function NotebookObject({
           <boxGeometry args={[2.78, 0.02, 3.42]} />
           <meshStandardMaterial color="#8e3037" roughness={0.82} />
         </mesh>
+        <mesh position={[1.5, -0.078, 0]} castShadow receiveShadow>
+          <boxGeometry args={[2.82, 0.024, 3.46]} />
+          <meshStandardMaterial color="#f4ead6" roughness={0.96} />
+        </mesh>
         <mesh position={[1.5, 0.082, 0.15]}>
           <boxGeometry args={[1.24, 0.025, 0.72]} />
           <meshStandardMaterial color="#d9b46f" roughness={0.72} />

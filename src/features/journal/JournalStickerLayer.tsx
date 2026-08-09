@@ -8,6 +8,7 @@ import type {
 import { useAppStore } from '../../state/app-store-context'
 
 interface JournalStickerItemProps {
+  interactive: boolean
   instance: JournalStickerInstance
   onCommit: (id: string, position: JournalStickerPosition) => void
   onPreview: (id: string, position: JournalStickerPosition) => void
@@ -17,6 +18,7 @@ interface JournalStickerItemProps {
 }
 
 function JournalStickerItem({
+  interactive,
   instance,
   onCommit,
   onPreview,
@@ -60,7 +62,7 @@ function JournalStickerItem({
   return (
     <button
       type="button"
-      className={selected ? 'journal-sticker is-selected' : 'journal-sticker'}
+      className={`${selected ? 'journal-sticker is-selected' : 'journal-sticker'}${interactive ? '' : ' is-readonly'}`}
       style={{
         left: `${instance.position.x * 100}%`,
         top: `${instance.position.y * 100}%`,
@@ -68,24 +70,28 @@ function JournalStickerItem({
         height,
         transform: `translate(-50%, -50%) rotate(${instance.rotationY}rad)`,
       }}
-      aria-label={`选择贴纸 ${sticker.definition.kind === 'text' ? sticker.definition.source.text : sticker.definition.source.name}`}
+      aria-hidden={!interactive}
+      aria-label={interactive ? `选择贴纸 ${sticker.definition.kind === 'text' ? sticker.definition.source.text : sticker.definition.source.name}` : undefined}
+      tabIndex={interactive ? 0 : -1}
       onClick={(event) => {
+        if (!interactive) return
         event.stopPropagation()
         onSelect(instance.id)
       }}
       onPointerDown={(event) => {
+        if (!interactive) return
         event.stopPropagation()
         dragRef.current = true
         onSelect(instance.id)
         event.currentTarget.setPointerCapture(event.pointerId)
       }}
       onPointerMove={(event) => {
-        if (!dragRef.current) return
+        if (!interactive || !dragRef.current) return
         event.stopPropagation()
         onPreview(instance.id, positionFromPointer(event))
       }}
       onPointerUp={(event) => {
-        if (!dragRef.current) return
+        if (!interactive || !dragRef.current) return
         event.stopPropagation()
         dragRef.current = false
         event.currentTarget.releasePointerCapture(event.pointerId)
@@ -100,8 +106,16 @@ function JournalStickerItem({
   )
 }
 
-export function JournalStickerLayer() {
-  const stickers = useAppStore((state) => state.journalStickers)
+interface JournalStickerLayerProps {
+  interactive?: boolean
+  stickers?: PlacedSticker[]
+}
+
+export function JournalStickerLayer({
+  interactive = true,
+  stickers: providedStickers,
+}: JournalStickerLayerProps = {}) {
+  const storedStickers = useAppStore((state) => state.journalStickers)
   const stickerWorkflow = useAppStore((state) => state.stickerWorkflow)
   const selectedStickerId = useAppStore((state) => state.selectedStickerId)
   const placePendingJournalSticker = useAppStore(
@@ -114,7 +128,8 @@ export function JournalStickerLayer() {
   const commitJournalStickerPosition = useAppStore(
     (state) => state.commitJournalStickerPosition,
   )
-  const placing = stickerWorkflow === 'placingJournal'
+  const stickers = providedStickers ?? storedStickers
+  const placing = interactive && stickerWorkflow === 'placingJournal'
 
   return (
     <div
@@ -135,6 +150,7 @@ export function JournalStickerLayer() {
           <JournalStickerItem
             key={sticker.instance.id}
             sticker={sticker}
+            interactive={interactive}
             instance={sticker.instance}
             selected={sticker.instance.id === selectedStickerId}
             onSelect={selectSticker}

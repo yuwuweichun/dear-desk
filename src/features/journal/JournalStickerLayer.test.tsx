@@ -11,6 +11,7 @@ const date = '2026-08-08' as LocalDate
 
 const repository: DailyEntryRepository = {
   getByDate: vi.fn().mockResolvedValue(null),
+  listDates: vi.fn().mockResolvedValue([]),
   save: vi.fn(),
 }
 

@@ -168,6 +168,10 @@
   cursor: grabbing;
 }
 
+.journal-sticker.is-readonly {
+  pointer-events: none;
+}
+
 .journal-sticker.is-selected::after {
   content: '';
   position: absolute;

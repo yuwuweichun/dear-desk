@@ -5,6 +5,7 @@ import type {
   DailyEntryRepository,
   LocalDate,
 } from '../domain/daily-entry'
+import { sortLocalDates } from '../domain/daily-entry'
 import {
   clampJournalStickerPosition,
   clampStickerPosition,
@@ -19,6 +20,10 @@ import {
 type LoadStatus = 'idle' | 'loading' | 'ready' | 'error'
 type SaveStatus = 'idle' | 'saving' | 'saved' | 'error'
 type StickerStatus = 'idle' | 'loading' | 'saving' | 'error'
+type JournalLoadStatus = 'idle' | 'loading' | 'ready' | 'error'
+
+export type JournalTurnDirection = 'previous' | 'next'
+export type JournalTurnPhase = 'idle' | 'loading' | 'turning'
 
 export type StickerWorkflow =
   | 'idle'
@@ -50,6 +55,15 @@ export interface AppState {
   errorMessage: string | null
   stickers: PlacedSticker[]
   journalStickers: PlacedSticker[]
+  journalPageDates: LocalDate[]
+  journalPageEntries: Record<string, DailyEntry | null>
+  journalPageStickers: Record<string, PlacedSticker[]>
+  journalCursor: number
+  journalLoadStatus: JournalLoadStatus
+  journalErrorMessage: string | null
+  journalTurnDirection: JournalTurnDirection | null
+  journalTurnPhase: JournalTurnPhase
+  journalPendingCursor: number | null
   stickerWorkflow: StickerWorkflow
   stickerStatus: StickerStatus
   stickerErrorMessage: string | null
@@ -57,6 +71,9 @@ export interface AppState {
   selectedStickerId: string | null
   loadToday: () => Promise<void>
   loadStickers: () => Promise<void>
+  loadJournalPages: () => Promise<void>
+  requestJournalTurn: (direction: JournalTurnDirection) => Promise<boolean>
+  settleJournalTurn: () => void
   requestNotebookOpen: () => void
   advanceNotebookPhase: (from: NotebookPhase) => void
   requestNotebookClose: () => void
@@ -104,6 +121,7 @@ const unavailableStickerRepository: StickerRepository = {
   delete: async () => undefined,
   listDesk: async () => [],
   listJournal: async () => [],
+  listJournalDates: async () => [],
   move: async () => {
     throw new Error('贴纸存储不可用。')
   },
@@ -126,6 +144,15 @@ export const createAppStore = (
     errorMessage: null,
     stickers: [],
     journalStickers: [],
+    journalPageDates: [selectedDate],
+    journalPageEntries: {},
+    journalPageStickers: {},
+    journalCursor: 0,
+    journalLoadStatus: 'idle',
+    journalErrorMessage: null,
+    journalTurnDirection: null,
+    journalTurnPhase: 'idle',
+    journalPendingCursor: null,
     stickerWorkflow: 'idle',
     stickerStatus: 'idle',
     stickerErrorMessage: null,
@@ -136,7 +163,14 @@ export const createAppStore = (
       set({ loadStatus: 'loading', errorMessage: null })
       try {
         const entry = await repository.getByDate(get().selectedDate)
-        set({ entry, loadStatus: 'ready' })
+        set((state) => ({
+          entry,
+          journalPageEntries: {
+            ...state.journalPageEntries,
+            [state.selectedDate]: entry,
+          },
+          loadStatus: 'ready',
+        }))
       } catch (error) {
         set({
           loadStatus: 'error',
@@ -152,7 +186,15 @@ export const createAppStore = (
           stickerRepository.listDesk(),
           stickerRepository.listJournal(get().selectedDate),
         ])
-        set({ stickers, journalStickers, stickerStatus: 'idle' })
+        set((state) => ({
+          stickers,
+          journalStickers,
+          journalPageStickers: {
+            ...state.journalPageStickers,
+            [state.selectedDate]: journalStickers,
+          },
+          stickerStatus: 'idle',
+        }))
       } catch (error) {
         set({
           stickerStatus: 'error',
@@ -163,6 +205,123 @@ export const createAppStore = (
         })
       }
     },
+
+    loadJournalPages: async () => {
+      set({ journalLoadStatus: 'loading', journalErrorMessage: null })
+      try {
+        const [entryDates, stickerDates] = await Promise.all([
+          repository.listDates(),
+          stickerRepository.listJournalDates(),
+        ])
+        const dates = sortLocalDates([
+          ...entryDates,
+          ...stickerDates,
+          get().selectedDate,
+        ]).filter((date) => date <= get().selectedDate)
+        const cursor = Math.max(0, dates.indexOf(get().selectedDate))
+        const visibleDates = dates.slice(Math.max(0, cursor - 1), cursor + 1)
+        const pages = await Promise.all(
+          visibleDates.map(async (date) => ({
+            date,
+            entry: await repository.getByDate(date),
+            stickers: await stickerRepository.listJournal(date),
+          })),
+        )
+        const journalPageEntries: Record<string, DailyEntry | null> = {}
+        const journalPageStickers: Record<string, PlacedSticker[]> = {}
+        for (const page of pages) {
+          journalPageEntries[page.date] = page.entry
+          journalPageStickers[page.date] = page.stickers
+        }
+        set({
+          journalPageDates: dates,
+          journalPageEntries,
+          journalPageStickers,
+          journalCursor: cursor,
+          journalLoadStatus: 'ready',
+          journalTurnDirection: null,
+          journalTurnPhase: 'idle',
+          journalPendingCursor: null,
+        })
+      } catch (error) {
+        set({
+          journalLoadStatus: 'error',
+          journalErrorMessage: messageFromError(
+            error,
+            '过去的日记页暂时无法读取。',
+          ),
+        })
+      }
+    },
+
+    requestJournalTurn: async (direction) => {
+      const state = get()
+      if (state.journalTurnPhase !== 'idle' || state.journalLoadStatus !== 'ready') {
+        return false
+      }
+      const targetCursor = state.journalCursor + (direction === 'previous' ? -1 : 1)
+      if (targetCursor < 0 || targetCursor >= state.journalPageDates.length) {
+        return false
+      }
+      set({
+        journalErrorMessage: null,
+        journalTurnDirection: direction,
+        journalTurnPhase: 'loading',
+        journalPendingCursor: targetCursor,
+      })
+      try {
+        const targetDates = [targetCursor - 1, targetCursor]
+          .map((index) => state.journalPageDates[index])
+          .filter((date): date is LocalDate => Boolean(date))
+        const pages = await Promise.all(
+          targetDates.map(async (date) => ({
+            date,
+            entry: Object.prototype.hasOwnProperty.call(state.journalPageEntries, date)
+              ? state.journalPageEntries[date] ?? null
+              : await repository.getByDate(date),
+            stickers: Object.prototype.hasOwnProperty.call(state.journalPageStickers, date)
+              ? state.journalPageStickers[date] ?? []
+              : await stickerRepository.listJournal(date),
+          })),
+        )
+        set((current) => ({
+          journalPageEntries: pages.reduce<Record<string, DailyEntry | null>>(
+            (entries, page) => ({ ...entries, [page.date]: page.entry }),
+            current.journalPageEntries,
+          ),
+          journalPageStickers: pages.reduce<Record<string, PlacedSticker[]>>(
+            (stickers, page) => ({ ...stickers, [page.date]: page.stickers }),
+            current.journalPageStickers,
+          ),
+          journalTurnPhase: 'turning',
+        }))
+        return true
+      } catch (error) {
+        set({
+          journalErrorMessage: messageFromError(
+            error,
+            '这一页暂时翻不开，请再试一次。',
+          ),
+          journalTurnDirection: null,
+          journalTurnPhase: 'idle',
+          journalPendingCursor: null,
+        })
+        return false
+      }
+    },
+
+    settleJournalTurn: () =>
+      set((state) =>
+        state.journalTurnPhase === 'turning' && state.journalPendingCursor !== null
+          ? {
+              journalCursor: state.journalPendingCursor,
+              journalTurnDirection: null,
+              journalTurnPhase: 'idle',
+              journalPendingCursor: null,
+              selectedStickerId: null,
+            }
+          : state,
+      ),
 
     requestNotebookOpen: () =>
       set((state) =>
@@ -213,7 +372,14 @@ export const createAppStore = (
       set({ saveStatus: 'saving', errorMessage: null })
       try {
         const entry = await repository.save(get().selectedDate, text)
-        set({ entry, saveStatus: 'saved' })
+        set((state) => ({
+          entry,
+          journalPageEntries: {
+            ...state.journalPageEntries,
+            [state.selectedDate]: entry,
+          },
+          saveStatus: 'saved',
+        }))
         return true
       } catch (error) {
         set({
@@ -302,6 +468,10 @@ export const createAppStore = (
           pendingSticker: null,
           selectedStickerId: sticker.instance.id,
           journalStickers: [...state.journalStickers, sticker],
+          journalPageStickers: {
+            ...state.journalPageStickers,
+            [state.selectedDate]: [...state.journalStickers, sticker],
+          },
           stickerStatus: 'idle',
           stickerWorkflow: 'idle',
         }))

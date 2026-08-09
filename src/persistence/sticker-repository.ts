@@ -38,6 +38,16 @@ export class DexieStickerRepository implements StickerRepository {
     )
   }
 
+  async listJournalDates(): Promise<LocalDate[]> {
+    const instances = await this.db.stickerInstances
+      .where('surface')
+      .equals('journal')
+      .toArray()
+    return [...new Set(instances.flatMap((instance) =>
+      instance.surface === 'journal' ? [instance.journalDate] : [],
+    ))].sort((left, right) => left.localeCompare(right))
+  }
+
   private async listInstances(
     query: Promise<StickerInstance[]>,
   ): Promise<PlacedSticker[]> {

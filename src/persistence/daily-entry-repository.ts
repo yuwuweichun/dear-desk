@@ -16,6 +16,11 @@ export class DexieDailyEntryRepository implements DailyEntryRepository {
     return (await this.db.dailyEntries.get(date)) ?? null
   }
 
+  async listDates() {
+    const keys = await this.db.dailyEntries.orderBy('date').primaryKeys()
+    return keys.filter((key): key is LocalDate => typeof key === 'string')
+  }
+
   async save(date: LocalDate, text: string): Promise<DailyEntry> {
     const normalizedText = normalizeEntryText(text)
 

@@ -11,6 +11,7 @@ export interface DailyEntry {
 
 export interface DailyEntryRepository {
   getByDate(date: LocalDate): Promise<DailyEntry | null>
+  listDates(): Promise<LocalDate[]>
   save(date: LocalDate, text: string): Promise<DailyEntry>
 }
 
@@ -50,3 +51,6 @@ export const formatLocalDate = (date: LocalDate) => {
     weekday: 'long',
   }).format(localDate)
 }
+
+export const sortLocalDates = (dates: Iterable<LocalDate>) =>
+  [...new Set(dates)].sort((left, right) => left.localeCompare(right))

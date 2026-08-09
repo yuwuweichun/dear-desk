@@ -15,6 +15,7 @@ const date = '2026-08-06' as LocalDate
 
 const createRepository = (entry: DailyEntry | null = null): DailyEntryRepository => ({
   getByDate: vi.fn().mockResolvedValue(entry),
+  listDates: vi.fn().mockResolvedValue(entry ? [entry.date] : []),
   save: vi.fn().mockImplementation(async (selectedDate, text) => ({
     date: selectedDate,
     text,
@@ -98,6 +99,7 @@ const createStickerRepository = (): StickerRepository => ({
   delete: vi.fn().mockResolvedValue(undefined),
   listDesk: vi.fn().mockResolvedValue([]),
   listJournal: vi.fn().mockResolvedValue([]),
+  listJournalDates: vi.fn().mockResolvedValue([]),
   move: vi.fn().mockImplementation(async (id, position) => {
     const sticker = id === 'instance-journal' ? journalSticker : deskSticker
     return { ...sticker.instance, position } as typeof sticker.instance
@@ -130,6 +132,44 @@ describe('app store', () => {
     expect(stickers.listJournal).toHaveBeenCalledWith(date)
     expect(store.getState().stickers).toEqual([deskSticker])
     expect(store.getState().journalStickers).toEqual([journalSticker])
+  })
+
+  it('builds a dated journal sequence and locks overlapping page turns', async () => {
+    const repository = createRepository()
+    vi.mocked(repository.listDates).mockResolvedValue([
+      '2026-08-06' as LocalDate,
+    ])
+    const stickers = createStickerRepository()
+    vi.mocked(stickers.listJournalDates).mockResolvedValue([
+      '2026-08-07' as LocalDate,
+    ])
+    const store = createAppStore(repository, '2026-08-08' as LocalDate, stickers)
+
+    await store.getState().loadJournalPages()
+    expect(store.getState()).toMatchObject({
+      journalPageDates: ['2026-08-06', '2026-08-07', '2026-08-08'],
+      journalCursor: 2,
+      journalLoadStatus: 'ready',
+    })
+
+    const firstTurn = store.getState().requestJournalTurn('previous')
+    await expect(store.getState().requestJournalTurn('previous')).resolves.toBe(false)
+    await expect(firstTurn).resolves.toBe(true)
+    expect(store.getState()).toMatchObject({
+      journalPendingCursor: 1,
+      journalTurnDirection: 'previous',
+      journalTurnPhase: 'turning',
+    })
+
+    store.getState().settleJournalTurn()
+    expect(store.getState()).toMatchObject({
+      journalCursor: 1,
+      journalTurnPhase: 'idle',
+    })
+    await expect(store.getState().requestJournalTurn('next')).resolves.toBe(true)
+    store.getState().settleJournalTurn()
+    expect(store.getState().journalCursor).toBe(2)
+    await expect(store.getState().requestJournalTurn('next')).resolves.toBe(false)
   })
 
   it('opens the sticker workbench directly from the desk without a journal draft', () => {
