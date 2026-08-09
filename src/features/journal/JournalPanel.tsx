@@ -1,22 +1,21 @@
-import { Save, Sticker, X } from 'lucide-react'
+import { Save, X } from 'lucide-react'
 import { useState } from 'react'
 
 import { formatLocalDate, MAX_ENTRY_LENGTH } from '../../domain/daily-entry'
-import { MAX_STICKER_TEXT_LENGTH } from '../../domain/sticker'
 import { useAppStore } from '../../state/app-store-context'
+import { JournalStickerLayer } from './JournalStickerLayer'
 
 export function JournalPanel() {
   const notebookPhase = useAppStore((state) => state.notebookPhase)
   const selectedDate = useAppStore((state) => state.selectedDate)
   const entry = useAppStore((state) => state.entry)
-  const stickerDraftText = useAppStore((state) => state.stickerDraftText)
 
   if (notebookPhase !== 'editing') return null
 
   return (
     <JournalEditor
-      key={`${selectedDate}-${entry?.updatedAt ?? 'empty'}-${stickerDraftText ?? 'stored'}`}
-      initialDraft={stickerDraftText ?? entry?.text ?? ''}
+      key={`${selectedDate}-${entry?.updatedAt ?? 'empty'}`}
+      initialDraft={entry?.text ?? ''}
     />
   )
 }
@@ -30,19 +29,16 @@ function JournalEditor({ initialDraft }: JournalEditorProps) {
   const loadStatus = useAppStore((state) => state.loadStatus)
   const saveStatus = useAppStore((state) => state.saveStatus)
   const errorMessage = useAppStore((state) => state.errorMessage)
+  const stickerErrorMessage = useAppStore((state) => state.stickerErrorMessage)
+  const stickerWorkflow = useAppStore((state) => state.stickerWorkflow)
   const requestNotebookClose = useAppStore((state) => state.requestNotebookClose)
   const saveEntry = useAppStore((state) => state.saveEntry)
   const resetSaveStatus = useAppStore((state) => state.resetSaveStatus)
-  const startStickerComposer = useAppStore(
-    (state) => state.startStickerComposer,
-  )
-  const stickerErrorMessage = useAppStore(
-    (state) => state.stickerErrorMessage,
-  )
   const [draft, setDraft] = useState(initialDraft)
 
   const overLimit = draft.length > MAX_ENTRY_LENGTH
   const saving = saveStatus === 'saving'
+  const placingSticker = stickerWorkflow === 'placingJournal'
 
   return (
     <aside
@@ -76,21 +72,24 @@ function JournalEditor({ initialDraft }: JournalEditorProps) {
           await saveEntry(draft)
         }}
       >
-        <label className="sr-only" htmlFor="daily-entry">
-          今天的记录
-        </label>
-        <textarea
-          autoFocus
-          id="daily-entry"
-          value={draft}
-          onChange={(event) => {
-            setDraft(event.target.value)
-            if (saveStatus !== 'idle') resetSaveStatus()
-          }}
-          maxLength={MAX_ENTRY_LENGTH + 1}
-          placeholder={loadStatus === 'loading' ? '正在打开...' : '写下一句话'}
-          disabled={loadStatus === 'loading'}
-        />
+        <div className="journal-paper">
+          <label className="sr-only" htmlFor="daily-entry">
+            今天的记录
+          </label>
+          <textarea
+            autoFocus={!placingSticker}
+            id="daily-entry"
+            value={draft}
+            onChange={(event) => {
+              setDraft(event.target.value)
+              if (saveStatus !== 'idle') resetSaveStatus()
+            }}
+            maxLength={MAX_ENTRY_LENGTH + 1}
+            placeholder={loadStatus === 'loading' ? '正在打开...' : '写下一句话'}
+            disabled={loadStatus === 'loading' || placingSticker}
+          />
+          <JournalStickerLayer />
+        </div>
 
         <div className="journal-meta">
           <span className={overLimit ? 'character-count over-limit' : 'character-count'}>
@@ -109,23 +108,9 @@ function JournalEditor({ initialDraft }: JournalEditorProps) {
 
         <div className="journal-actions">
           <button
-            className="sticker-button"
-            type="button"
-            onClick={() => startStickerComposer(draft)}
-            disabled={
-              !draft.trim() ||
-              draft.trim().length > MAX_STICKER_TEXT_LENGTH ||
-              loadStatus === 'loading'
-            }
-            title={`制作贴纸，最多 ${MAX_STICKER_TEXT_LENGTH} 个字符`}
-          >
-            <Sticker aria-hidden="true" size={18} strokeWidth={1.8} />
-            <span>制作贴纸</span>
-          </button>
-          <button
             className="save-button"
             type="submit"
-            disabled={saving || !draft.trim() || overLimit || loadStatus === 'loading'}
+            disabled={saving || !draft.trim() || overLimit || loadStatus === 'loading' || placingSticker}
           >
             <Save aria-hidden="true" size={18} strokeWidth={1.8} />
             <span>{saving ? '保存中' : '保存'}</span>

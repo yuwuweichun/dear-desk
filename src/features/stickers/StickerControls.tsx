@@ -7,6 +7,7 @@ import {
   X,
 } from 'lucide-react'
 
+import { stickerLabel } from '../../domain/sticker'
 import { useAppStore } from '../../state/app-store-context'
 
 export function StickerControls() {
@@ -15,6 +16,7 @@ export function StickerControls() {
   const stickerErrorMessage = useAppStore((state) => state.stickerErrorMessage)
   const selectedStickerId = useAppStore((state) => state.selectedStickerId)
   const stickers = useAppStore((state) => state.stickers)
+  const journalStickers = useAppStore((state) => state.journalStickers)
   const cancelStickerPlacement = useAppStore(
     (state) => state.cancelStickerPlacement,
   )
@@ -25,17 +27,23 @@ export function StickerControls() {
     (state) => state.deleteSelectedSticker,
   )
   const clearStickerError = useAppStore((state) => state.clearStickerError)
-  const selected = stickers.find(
+  const selected = [...stickers, ...journalStickers].find(
     (sticker) => sticker.instance.id === selectedStickerId,
   )
   const busy = stickerStatus === 'saving'
+  const placing =
+    stickerWorkflow === 'placingDesk' || stickerWorkflow === 'placingJournal'
 
   return (
     <>
-      {stickerWorkflow === 'placing' ? (
+      {placing ? (
         <div className="sticker-mode-bar" role="status">
           <Crosshair aria-hidden="true" size={18} strokeWidth={1.8} />
-          <span>放置贴纸</span>
+          <span>
+            {stickerWorkflow === 'placingJournal'
+              ? '点击纸页放置贴纸'
+              : '点击桌垫放置贴纸'}
+          </span>
           <button
             type="button"
             aria-label="取消放置"
@@ -47,8 +55,8 @@ export function StickerControls() {
         </div>
       ) : selected ? (
         <div className="sticker-selection-bar" aria-label="贴纸工具">
-          <span title={selected.definition.source.text}>
-            {selected.definition.source.text}
+          <span title={stickerLabel(selected.definition)}>
+            {stickerLabel(selected.definition)}
           </span>
           <button
             type="button"

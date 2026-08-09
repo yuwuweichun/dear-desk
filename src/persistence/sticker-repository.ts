@@ -1,12 +1,18 @@
+import type { LocalDate } from '../domain/daily-entry'
 import {
+  clampJournalStickerPosition,
   clampStickerPosition,
   normalizeStickerRotation,
   STICKER_FORGE_COMMIT,
+  type JournalStickerPosition,
   type PlacedSticker,
+  type StickerDefinition,
   type StickerDraft,
   type StickerInstance,
+  type StickerPlacement,
   type StickerPosition,
   type StickerRepository,
+  type StickerSourceAsset,
 } from '../domain/sticker'
 import { database, type DearDeskDatabase } from './database'
 
@@ -17,8 +23,25 @@ export class DexieStickerRepository implements StickerRepository {
     private readonly createId: () => string = () => crypto.randomUUID(),
   ) {}
 
-  async list(): Promise<PlacedSticker[]> {
-    const instances = (await this.db.stickerInstances.toArray()).sort((left, right) =>
+  listDesk(): Promise<PlacedSticker[]> {
+    return this.listInstances(
+      this.db.stickerInstances.where('surface').equals('desk').toArray(),
+    )
+  }
+
+  listJournal(date: LocalDate): Promise<PlacedSticker[]> {
+    return this.listInstances(
+      this.db.stickerInstances
+        .where('[surface+journalDate]')
+        .equals(['journal', date])
+        .toArray(),
+    )
+  }
+
+  private async listInstances(
+    query: Promise<StickerInstance[]>,
+  ): Promise<PlacedSticker[]> {
+    const instances = (await query).sort((left, right) =>
       left.createdAt.localeCompare(right.createdAt),
     )
     const stickers = await Promise.all(
@@ -36,41 +59,79 @@ export class DexieStickerRepository implements StickerRepository {
 
   async create(
     draft: StickerDraft,
-    position: StickerPosition,
+    placement: StickerPlacement,
   ): Promise<PlacedSticker> {
     const definitionId = this.createId()
-    const assetId = this.createId()
+    const previewAssetId = this.createId()
     const instanceId = this.createId()
+    const sourceAssetId = draft.kind === 'image' ? this.createId() : null
     const timestamp = this.now().toISOString()
-    const definition = {
-      id: definitionId,
-      kind: 'text' as const,
-      source: draft.source,
-      forge: draft.forge,
-      previewAssetId: assetId,
-      sourceEntryDate: draft.sourceEntryDate,
-      createdAt: timestamp,
-    }
+
+    const definition: StickerDefinition =
+      draft.kind === 'text'
+        ? {
+            id: definitionId,
+            kind: 'text',
+            source: draft.source,
+            forge: draft.forge,
+            previewAssetId,
+            createdAt: timestamp,
+          }
+        : {
+            id: definitionId,
+            kind: 'image',
+            source: {
+              assetId: sourceAssetId as string,
+              cutoutMode: draft.source.cutoutMode,
+              name: draft.source.name,
+            },
+            forge: draft.forge,
+            previewAssetId,
+            createdAt: timestamp,
+          }
+
+    const sourceAsset: StickerSourceAsset | null =
+      draft.kind === 'image'
+        ? {
+            id: sourceAssetId as string,
+            ...draft.source.asset,
+            createdAt: timestamp,
+          }
+        : null
     const asset = {
-      id: assetId,
+      id: previewAssetId,
       ...draft.preview,
       upstreamCommit: STICKER_FORGE_COMMIT,
     }
-    const instance: StickerInstance = {
+    const base = {
       id: instanceId,
       definitionId,
-      position: clampStickerPosition(position),
       rotationY: 0,
       createdAt: timestamp,
       updatedAt: timestamp,
     }
+    const instance: StickerInstance =
+      placement.surface === 'desk'
+        ? {
+            ...base,
+            surface: 'desk',
+            position: clampStickerPosition(placement.position),
+          }
+        : {
+            ...base,
+            surface: 'journal',
+            journalDate: placement.journalDate,
+            position: clampJournalStickerPosition(placement.position),
+          }
 
     await this.db.transaction(
       'rw',
       this.db.stickerDefinitions,
       this.db.stickerRenderAssets,
+      this.db.stickerSourceAssets,
       this.db.stickerInstances,
       async () => {
+        if (sourceAsset) await this.db.stickerSourceAssets.add(sourceAsset)
         await this.db.stickerDefinitions.add(definition)
         await this.db.stickerRenderAssets.add(asset)
         await this.db.stickerInstances.add(instance)
@@ -81,10 +142,27 @@ export class DexieStickerRepository implements StickerRepository {
 
   async move(
     instanceId: string,
-    position: StickerPosition,
+    position: StickerPosition | JournalStickerPosition,
   ): Promise<StickerInstance> {
-    return this.updateInstance(instanceId, {
-      position: clampStickerPosition(position),
+    return this.db.transaction('rw', this.db.stickerInstances, async () => {
+      const existing = await this.db.stickerInstances.get(instanceId)
+      if (!existing) throw new Error('找不到这张贴纸。')
+      const updated: StickerInstance =
+        existing.surface === 'desk'
+          ? {
+              ...existing,
+              position: clampStickerPosition(position as StickerPosition),
+              updatedAt: this.now().toISOString(),
+            }
+          : {
+              ...existing,
+              position: clampJournalStickerPosition(
+                position as JournalStickerPosition,
+              ),
+              updatedAt: this.now().toISOString(),
+            }
+      await this.db.stickerInstances.put(updated)
+      return updated
     })
   }
 
@@ -102,6 +180,7 @@ export class DexieStickerRepository implements StickerRepository {
       'rw',
       this.db.stickerDefinitions,
       this.db.stickerRenderAssets,
+      this.db.stickerSourceAssets,
       this.db.stickerInstances,
       async () => {
         const instance = await this.db.stickerInstances.get(instanceId)
@@ -111,8 +190,10 @@ export class DexieStickerRepository implements StickerRepository {
         )
         await this.db.stickerInstances.delete(instanceId)
         await this.db.stickerDefinitions.delete(instance.definitionId)
-        if (definition) {
-          await this.db.stickerRenderAssets.delete(definition.previewAssetId)
+        if (!definition) return
+        await this.db.stickerRenderAssets.delete(definition.previewAssetId)
+        if (definition.kind === 'image') {
+          await this.db.stickerSourceAssets.delete(definition.source.assetId)
         }
       },
     )
@@ -120,7 +201,7 @@ export class DexieStickerRepository implements StickerRepository {
 
   private async updateInstance(
     instanceId: string,
-    patch: Partial<Pick<StickerInstance, 'position' | 'rotationY'>>,
+    patch: Pick<StickerInstance, 'rotationY'>,
   ) {
     return this.db.transaction('rw', this.db.stickerInstances, async () => {
       const existing = await this.db.stickerInstances.get(instanceId)

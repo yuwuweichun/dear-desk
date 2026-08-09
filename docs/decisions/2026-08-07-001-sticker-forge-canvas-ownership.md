@@ -4,6 +4,8 @@
 
 已接受，2026-08-07 17:46 CST。本文整理编号 007 已批准并已实现的长期集成边界。
 
+> 2026-08-08 扩展：图片 source、本地抠图与桌面/日记双 surface 的长期边界见 `DD-ADR-20260808-001`。本文的固定 Forge commit、公开 API 和单活跃 WebGL Canvas 决策继续有效。
+
 ## 背景
 
 Dear Desk 的文字贴纸必须使用开源项目 `CatsJuice/sticker-forge`，不能用自研 Canvas 文字纹理或近似外观替代。上游公开 API 会创建并拥有独立的 Three.js WebGL renderer，但不会导出可直接加入 Dear Desk React Three Fiber 场景的 Mesh、Material 或 Texture。若同时常驻桌面 R3F 和 Sticker Forge renderer，应用会出现第二个活跃 WebGL Canvas；若访问上游私有场景对象，则会把集成绑在未承诺的内部实现上。
@@ -40,7 +42,7 @@ Dear Desk 的文字贴纸必须使用开源项目 `CatsJuice/sticker-forge`，�
 - 制作阶段不能与 3D 桌面同时可见；两种 Canvas 所有者之间需要严格的卸载顺序。
 - PNG 是确认时的平面结果，桌面上不能继续运行 peel 动画或无损修改 Forge 参数。
 - 上游升级必须重新核对公开 API、产物、许可证、快照行为和 Canvas 释放，不能只替换 bundle 文件。
-- 首个切片只支持文字；图片与 SVG 输入仍需独立处理容量、解码和资产生命周期。
+- 图片输入已由 `DD-ADR-20260808-001` 批准并实现；SVG 仍不支持。图片容量、解码、抠图和资产生命周期由新决策约束。
 
 ## 替代方案
 

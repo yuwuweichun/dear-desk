@@ -1,0 +1,337 @@
+.desk-actions {
+  position: absolute;
+  z-index: 5;
+  left: 28px;
+  bottom: 28px;
+  display: flex;
+  gap: 10px;
+}
+
+.desk-actions .notebook-button,
+.sticker-workbench-button {
+  position: static;
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 0 16px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: rgba(23, 32, 29, 0.9);
+  color: var(--ink);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.sticker-workbench-button:hover {
+  border-color: rgba(243, 197, 110, 0.66);
+  background: var(--dark-raised);
+}
+
+.source-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 22px;
+}
+
+.source-tabs button,
+.cutout-actions button,
+.manual-cutout-toolbar button,
+.manual-cutout-actions button {
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: 1px solid #c8bca9;
+  border-radius: 4px;
+  background: transparent;
+  color: #5f574c;
+  cursor: pointer;
+}
+
+.source-tabs button.is-active,
+.cutout-actions button.is-active,
+.manual-cutout-toolbar button.is-active {
+  border-color: #2f514d;
+  background: #2f514d;
+  color: #fffdf8;
+}
+
+.image-source-controls {
+  display: grid;
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.image-upload {
+  min-height: 92px;
+  display: grid;
+  place-items: center;
+  gap: 4px;
+  padding: 14px;
+  border: 1px dashed #aa9d88;
+  border-radius: 5px;
+  background: #fffaf1;
+  color: #4e493f;
+  cursor: pointer;
+  text-align: center;
+}
+
+.image-upload small {
+  color: #807565;
+  font-size: 11px;
+}
+
+.image-upload input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+}
+
+.cutout-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.cutout-actions button {
+  padding: 0 8px;
+  font-size: 12px;
+}
+
+.studio-target-actions {
+  display: grid;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 22px;
+}
+
+.studio-target-actions .studio-confirm {
+  margin-top: 0;
+}
+
+.studio-confirm.is-secondary {
+  border-color: #2f514d;
+  background: #2f514d;
+}
+
+.studio-confirm.is-secondary:hover:not(:disabled) {
+  background: #203d39;
+}
+
+.journal-paper {
+  position: relative;
+  min-height: 180px;
+  flex: 1;
+}
+
+.journal-form .journal-paper textarea {
+  position: absolute;
+  inset: 0;
+  min-height: 0;
+  height: 100%;
+}
+
+.journal-sticker-layer {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.journal-sticker-layer.is-placing {
+  border: 1px dashed rgba(181, 64, 73, 0.6);
+  background: rgba(181, 64, 73, 0.035);
+  cursor: crosshair;
+  pointer-events: auto;
+}
+
+.journal-sticker {
+  position: absolute;
+  z-index: 1;
+  display: block;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: grab;
+  pointer-events: auto;
+  touch-action: none;
+}
+
+.journal-sticker:active {
+  cursor: grabbing;
+}
+
+.journal-sticker.is-selected::after {
+  content: '';
+  position: absolute;
+  inset: -5px;
+  border: 2px solid #b54049;
+  border-radius: 4px;
+  pointer-events: none;
+}
+
+.journal-sticker img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+  user-select: none;
+}
+
+.journal-actions {
+  grid-template-columns: 1fr;
+}
+
+.sticker-mode-bar,
+.sticker-selection-bar {
+  z-index: 25;
+}
+
+.manual-cutout-shell {
+  display: block;
+  padding: 24px;
+  overflow: hidden;
+  background: #d4d0c7;
+}
+
+.manual-cutout {
+  height: 100%;
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr) auto auto;
+  gap: 14px;
+  padding: 20px;
+  background: #f2ede3;
+  color: #2b2925;
+}
+
+.manual-cutout > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.manual-cutout > header p {
+  margin: 0 0 4px;
+  color: #776e61;
+  font-size: 12px;
+}
+
+.manual-cutout > header button {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border: 1px solid #8d8272;
+  border-radius: 4px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.manual-cutout-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.manual-cutout-toolbar button {
+  min-height: 36px;
+  padding: 0 11px;
+}
+
+.manual-cutout-toolbar label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #5f574c;
+  font-size: 12px;
+}
+
+.manual-cutout-frame {
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  overflow: auto;
+  border: 1px solid #b9ad9d;
+  background-color: #d7d7d2;
+  background-image:
+    linear-gradient(45deg, #c5c5c0 25%, transparent 25%),
+    linear-gradient(-45deg, #c5c5c0 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #c5c5c0 75%),
+    linear-gradient(-45deg, transparent 75%, #c5c5c0 75%);
+  background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+  background-size: 16px 16px;
+}
+
+.manual-cutout-frame canvas {
+  display: block;
+  max-width: 88%;
+  max-height: 88%;
+  transform-origin: center;
+  cursor: crosshair;
+  touch-action: none;
+}
+
+.manual-cutout-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.manual-cutout-actions button {
+  min-width: 108px;
+  padding: 0 16px;
+}
+
+.manual-cutout-actions button:last-child {
+  border-color: #b54049;
+  background: #b54049;
+  color: #fffaf1;
+}
+
+@media (max-width: 700px) {
+  .desk-actions {
+    left: 18px;
+    right: 18px;
+    bottom: 18px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .desk-actions .notebook-button,
+  .sticker-workbench-button {
+    padding: 0 10px;
+  }
+
+  .journal-paper {
+    min-height: 120px;
+  }
+
+  .sticker-studio-controls {
+    overflow-y: auto;
+  }
+
+  .studio-target-actions {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .manual-cutout-shell {
+    padding: 8px;
+  }
+
+  .manual-cutout {
+    padding: 12px;
+  }
+
+  .manual-cutout-toolbar label {
+    width: 100%;
+  }
+}

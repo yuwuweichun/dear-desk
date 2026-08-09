@@ -248,7 +248,7 @@ interface DeskContentsProps {
     position: StickerPosition,
   ) => Promise<boolean>
   notebookPhase: NotebookPhase
-  placePendingSticker: (position: StickerPosition) => Promise<boolean>
+  placePendingDeskSticker: (position: StickerPosition) => Promise<boolean>
   previewStickerPosition: (instanceId: string, position: StickerPosition) => void
   reducedMotion: boolean
   requestNotebookOpen: () => void
@@ -262,7 +262,7 @@ function DeskContents({
   advanceNotebookPhase,
   commitStickerPosition,
   notebookPhase,
-  placePendingSticker,
+  placePendingDeskSticker,
   previewStickerPosition,
   reducedMotion,
   requestNotebookOpen,
@@ -299,18 +299,18 @@ function DeskContents({
         position={[0, 0.02, 0.2]}
         receiveShadow
         onClick={(event) => {
-          if (stickerWorkflow === 'placing') {
+          if (stickerWorkflow === 'placingDesk') {
             event.stopPropagation()
-            void placePendingSticker({ x: event.point.x, z: event.point.z })
+            void placePendingDeskSticker({ x: event.point.x, z: event.point.z })
             return
           }
           if (stickerWorkflow === 'idle') selectSticker(null)
         }}
         onPointerOver={() => {
-          if (stickerWorkflow === 'placing') document.body.style.cursor = 'crosshair'
+          if (stickerWorkflow === 'placingDesk') document.body.style.cursor = 'crosshair'
         }}
         onPointerOut={() => {
-          if (stickerWorkflow === 'placing') document.body.style.cursor = ''
+          if (stickerWorkflow === 'placingDesk') document.body.style.cursor = ''
         }}
       >
         <boxGeometry args={[8.7, 0.12, 6.25]} />
@@ -364,7 +364,7 @@ export function DeskScene({ fallback }: DeskSceneProps) {
     (state) => state.commitStickerPosition,
   )
   const notebookPhase = useAppStore((state) => state.notebookPhase)
-  const placePendingSticker = useAppStore((state) => state.placePendingSticker)
+  const placePendingDeskSticker = useAppStore((state) => state.placePendingDeskSticker)
   const previewStickerPosition = useAppStore(
     (state) => state.previewStickerPosition,
   )
@@ -377,7 +377,7 @@ export function DeskScene({ fallback }: DeskSceneProps) {
     advanceNotebookPhase,
     commitStickerPosition,
     notebookPhase,
-    placePendingSticker,
+    placePendingDeskSticker,
     previewStickerPosition,
     reducedMotion,
     requestNotebookOpen,
@@ -489,7 +489,7 @@ export function DeskScene({ fallback }: DeskSceneProps) {
       advanceNotebookPhase,
       commitStickerPosition,
       notebookPhase,
-      placePendingSticker,
+      placePendingDeskSticker,
       previewStickerPosition,
       reducedMotion,
       requestNotebookOpen,
@@ -505,7 +505,7 @@ export function DeskScene({ fallback }: DeskSceneProps) {
     advanceNotebookPhase,
     commitStickerPosition,
     notebookPhase,
-    placePendingSticker,
+    placePendingDeskSticker,
     previewStickerPosition,
     reducedMotion,
     requestNotebookOpen,

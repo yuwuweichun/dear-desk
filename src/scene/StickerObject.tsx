@@ -60,7 +60,7 @@ export function StickerObject({
     }
   }, [interactive, selected])
 
-  if (!texture) return null
+  if (!texture || sticker.instance.surface !== 'desk') return null
   const aspect = sticker.asset.width / sticker.asset.height
   const width = aspect >= 1 ? 1.72 : 1.72 * aspect
   const height = aspect >= 1 ? 1.72 / aspect : 1.72
