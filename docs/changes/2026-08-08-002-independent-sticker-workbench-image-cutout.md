@@ -4,13 +4,13 @@
 
 | 字段 | 内容 |
 | --- | --- |
-| 状态 | 实施中 |
+| 状态 | 已完成 |
 | 类型 | 功能 / 贴纸系统 / 图片处理 / 本地持久化 |
 | 创建时间 | 2026-08-08 22:01 CST |
-| 最后更新 | 2026-08-09 18:50 CST |
-| 当前阶段 | 业务源码、模型与 Markdown 事实已实现；等待指定 HTML 与浏览器工具恢复后完成最终验收 |
+| 最后更新 | 2026-08-09 19:40 CST |
+| 当前阶段 | HTML 当前事实已补齐，开发者（用户）已验收，任务完成 |
 | 源码基线 | `e97a596cb944d7eeb7d81002c3f8083bd8dd0654` |
-| 实现提交 | 当前提交 `feat(stickers): add independent sticker workbench` |
+| 实现提交 | `fe2fc89`：`feat(stickers): add independent sticker workbench` |
 | 关联任务 | 用户要求贴纸系统脱离日记成为独立工作台，新增图片贴纸与抠图，并支持放到桌面或日记 |
 
 > 用户已于 2026-08-08 22:24 CST 明确回复“按此执行”。本文所列八项建议均获批准，现进入实施阶段。
@@ -314,21 +314,26 @@ type StickerInstance =
 - `git diff --check`：通过。
 - `package-lock.json`：确认原工作区已有的 `libc` 元数据删除仍是删除，没有被安装依赖恢复；新增差异来自固定 Transformers 及其传递/可选依赖。
 
-尚未完成：
+实施会话结束时尚未完成：
 
 - 当前会话没有 `ego-browser` 工具或可执行文件，不能按项目规则进行桌面 `1440 × 900`、移动 `390 × 844`、自动模型真实推理和 IndexedDB 重开浏览器验收；没有用其他浏览器冒充结果。
 - 当前环境也找不到 `/Users/song/Desktop/docs-html/AGENTS.md`，且可用技能中没有并行任务正在要求的 `$bun-html-docs`；因此没有实质修改 `docs/index.html` 或 `docs/architecture/system-overview.html`。
 - `node scripts/check-doc-references.mjs` 被实施期间新增、与本任务无关的 `docs/changes/2026-08-08-001-require-bun-html-docs.md` 阻断；该文件缺模板章节，本任务未擅自修改。
 
+后续收口：
+
+- `d28772f` 已在双页日记任务中使用当时恢复的 `$bun-html-docs` 同步 `docs/index.html` 与 `docs/architecture/system-overview.html`，系统入口和架构长文现已覆盖独立工作台、图片抠图、双 surface 与 IndexedDB v3。
+- 2026-08-09 全仓 `node scripts/check-doc-references.mjs` 已通过；此前缺模板章节的独立记录已按完整结构补齐。
+- 项目指定浏览器工具在本次收口会话仍不可用，未补造自动浏览器证据；开发者（用户）明确确认当前工作区成果已验收，本任务据此关闭。
+
 ## 13. 文档同步检查
 
 - 产品文档：已更新 `docs/product/mvp.md`，把贴纸改为独立入口、文字/图片、矩形/本地抠图、桌面/日记双目标，并移除“透明轮廓非目标”冲突。
-- 架构文档：新增 `docs/architecture/sticker-system.md`，记录真实调用链、IndexedDB v3、worker/WASM/模型、日记 DOM 层、失败路径与源码地图。旧 `system-overview.html` 尚待 HTML 工具恢复后同步。
+- 架构文档：`docs/architecture/sticker-system.md` 记录真实调用链、IndexedDB v3、worker/WASM/模型、日记 DOM 层、失败路径与源码地图；后续 `d28772f` 已同步 `system-overview.html`。
 - 决策文档：新增 `DD-ADR-20260808-001`，并在既有 Sticker Forge ADR 中链接扩展边界。
-- 文档入口：`docs/index.html` 仍是 2026-08-07 的旧事实；因必读 HTML 规范和指定技能当前不可用而未修改。
-- 引用检查：本任务新增的 Markdown 路径有效；全仓检查被无关的新任务记录模板问题阻断，详见验证结果。
-
-任务保持“实施中”，而不是提前标记“待验收”。补齐指定浏览器证据、HTML 当前事实和全仓引用检查后，才能进入待验收。
+- 文档入口：后续 `d28772f` 已把独立工作台、图片抠图和双目标更新为当前源码事实。
+- 引用检查：2026-08-09 全仓检查通过。
+- 验收状态：开发者（用户）已明确验收；未执行的自动浏览器验证继续作为证据边界保留，不再阻塞任务关闭。
 
 ## 14. 审阅记录
 
@@ -342,3 +347,4 @@ type StickerInstance =
 | 2026-08-08 22:24 CST | Codex | 将任务推进为实施中，开始按最终执行清单修改源码、测试、依赖与同步文档。 |
 | 2026-08-08 23:01 CST | Codex | 业务源码、模型、自动测试、构建、产品 Markdown、贴纸架构 Markdown 与新 ADR 已完成；记录 ego-browser、HTML 规范/技能和无关文档检查三项外部阻断。 |
 | 2026-08-09 18:50 CST | 用户 / Codex | 用户要求先提交贴纸工作台相关文件；Codex 复核范围并重跑 lint、测试、构建、模型哈希与差异检查，准备以 `feat(stickers): add independent sticker workbench` 单独提交，排除双页日记与其他无关工作区文件。 |
+| 2026-08-09 19:40 CST | 开发者（用户） | 确认当前工作区成果已验收，同意在 HTML 当前事实和全仓引用检查已补齐后将本任务标记为已完成。 |
