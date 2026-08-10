@@ -1,19 +1,28 @@
 :root {
-  color: #f4f0e8;
-  background: #17201d;
+  color: #f7f1e5;
+  background: #151d1a;
   font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
-  --ink: #f4f0e8;
-  --muted: #b7c2bd;
-  --line: rgba(238, 232, 218, 0.22);
-  --dark: #17201d;
-  --dark-raised: #202b27;
-  --paper: #f4ecdc;
-  --paper-line: #d2c6b0;
-  --paper-ink: #292620;
-  --accent: #c1494f;
-  --accent-dark: #913139;
+  --ink: #f7f1e5;
+  --muted: #b9c4bd;
+  --line: rgba(230, 216, 190, 0.24);
+  --dark: #151d1a;
+  --dark-raised: #203029;
+  --walnut: #6b4934;
+  --walnut-highlight: #a7744f;
+  --moss: #314b43;
+  --moss-dark: #203730;
+  --paper: #f3e9d5;
+  --paper-soft: #f8f0df;
+  --paper-line: #d8c8ad;
+  --paper-ink: #2d2923;
+  --accent: #a4484f;
+  --accent-dark: #733239;
+  --brass: #c49a5a;
+  --brass-dark: #8e6938;
+  --shadow-warm: rgba(48, 30, 21, 0.24);
+  --paper-fibers: rgba(113, 88, 57, 0.035);
 }
 
 * {
@@ -50,7 +59,7 @@ button:focus-visible,
 a:focus-visible,
 input:focus-visible,
 textarea:focus-visible {
-  outline: 2px solid #f3c56e;
+  outline: 2px solid var(--brass);
   outline-offset: 3px;
 }
 
@@ -105,8 +114,10 @@ textarea:focus-visible {
   align-items: center;
   justify-content: space-between;
   padding: 0 28px;
-  border-bottom: 1px solid var(--line);
-  background: rgba(23, 32, 29, 0.88);
+  border-bottom: 1px solid rgba(196, 154, 90, 0.22);
+  background: rgba(21, 29, 26, 0.84);
+  box-shadow: 0 10px 34px rgba(7, 12, 10, 0.12);
+  backdrop-filter: blur(14px);
 }
 
 .app-brand {
@@ -124,8 +135,9 @@ textarea:focus-visible {
   width: 34px;
   height: 34px;
   place-items: center;
-  border: 1px solid var(--line);
-  color: #f3c56e;
+  border: 1px solid rgba(196, 154, 90, 0.5);
+  border-radius: 10px;
+  color: var(--brass);
   font-family: "SFMono-Regular", Consolas, monospace;
   font-size: 11px;
 }
@@ -144,7 +156,11 @@ textarea:focus-visible {
   top: 102px;
   left: 28px;
   display: grid;
-  gap: 4px;
+  gap: 5px;
+  padding: 12px 14px;
+  border-left: 2px solid rgba(196, 154, 90, 0.68);
+  border-radius: 0 10px 10px 0;
+  background: rgba(21, 29, 26, 0.34);
   pointer-events: none;
   transition: opacity 180ms ease;
 }
@@ -176,7 +192,7 @@ textarea:focus-visible {
   justify-content: center;
   gap: 9px;
   border: 1px solid transparent;
-  border-radius: 6px;
+  border-radius: 11px;
   cursor: pointer;
 }
 
@@ -187,15 +203,18 @@ textarea:focus-visible {
   bottom: 28px;
   padding: 0 16px;
   border-color: var(--line);
-  background: rgba(23, 32, 29, 0.9);
+  border-color: rgba(196, 154, 90, 0.34);
+  background: rgba(21, 29, 26, 0.9);
   color: var(--ink);
   font-size: 14px;
-  transition: background-color 150ms ease, border-color 150ms ease;
+  box-shadow: 0 10px 28px rgba(7, 12, 10, 0.2);
+  transition: background-color 150ms ease, border-color 150ms ease, transform 150ms ease;
 }
 
 .notebook-button:hover {
-  border-color: rgba(243, 197, 110, 0.66);
+  border-color: rgba(196, 154, 90, 0.78);
   background: var(--dark-raised);
+  transform: translateY(-1px);
 }
 
 .journal-panel {
@@ -204,7 +223,7 @@ textarea:focus-visible {
   top: 12%;
   left: 50%;
   bottom: 5%;
-  width: min(980px, 84vw);
+  width: min(1180px, calc(100vw - 180px));
   transform: translateX(-50%);
   display: flex;
   flex-direction: column;
@@ -229,9 +248,16 @@ textarea:focus-visible {
 }
 
 .journal-date {
-  margin: 0 0 4px;
-  color: #776f63;
-  font-size: 12px;
+  width: fit-content;
+  margin: 0 0 7px;
+  padding: 3px 7px;
+  border: 1px solid rgba(164, 72, 79, 0.42);
+  border-radius: 4px;
+  color: var(--accent-dark);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .journal-page-head h2 {
@@ -251,14 +277,15 @@ textarea:focus-visible {
   flex: 0 0 38px;
   place-items: center;
   border: 1px solid var(--paper-line);
-  border-radius: 50%;
+  border-radius: 10px;
   background: transparent;
   color: #625b50;
   cursor: pointer;
 }
 
 .icon-button:hover {
-  background: #ebe0cc;
+  border-color: rgba(196, 154, 90, 0.76);
+  background: #eee1c9;
   color: var(--paper-ink);
 }
 
@@ -272,28 +299,43 @@ textarea:focus-visible {
   z-index: 30;
   top: -48px;
   right: 0;
-  border-color: rgba(244, 236, 220, 0.4);
-  background: rgba(23, 32, 29, 0.88);
+  border-color: rgba(196, 154, 90, 0.4);
+  background: rgba(21, 29, 26, 0.9);
   color: var(--ink);
 }
 
 .journal-close-button:hover:not(:disabled) {
   background: var(--dark-raised);
-  color: #f3c56e;
+  color: var(--brass);
 }
 
 .journal-book {
   position: relative;
+  width: 100%;
+  height: 100%;
   min-height: 0;
-  flex: 1;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   transform-style: preserve-3d;
-  border: 10px solid #8f3239;
-  border-radius: 7px 7px 5px 5px;
-  background: #8f3239;
-  box-shadow: 0 28px 58px rgba(7, 12, 10, 0.34), 0 4px 0 #612329;
+  border: 14px solid #273e37;
+  border-radius: 30px 30px 23px 23px;
+  background-color: #273e37;
+  background-image:
+    repeating-linear-gradient(0deg, transparent 0 5px, rgba(238, 228, 207, 0.018) 5px 6px),
+    repeating-linear-gradient(90deg, transparent 0 4px, rgba(8, 20, 16, 0.045) 4px 5px),
+    linear-gradient(135deg, #314b43, #243a33 72%);
+  box-shadow:
+    0 32px 68px rgba(7, 12, 10, 0.4),
+    0 7px 0 #192d27,
+    0 0 0 1px rgba(196, 154, 90, 0.22),
+    inset 0 1px rgba(244, 233, 211, 0.08);
   overflow: hidden;
+}
+
+.journal-book-stage {
+  position: relative;
+  min-height: 0;
+  flex: 1;
 }
 
 .journal-page {
@@ -301,18 +343,83 @@ textarea:focus-visible {
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  background: #f5eddd;
-  box-shadow: inset 0 0 28px rgba(104, 79, 49, 0.08);
+  border: 1px solid rgba(126, 101, 68, 0.16);
+  background-color: #f3e7d1;
+  box-shadow:
+    inset 0 1px rgba(255, 252, 242, 0.86),
+    inset 0 -9px 18px rgba(98, 71, 40, 0.08);
+}
+
+.journal-page::before {
+  content: '';
+  position: absolute;
+  z-index: 0;
+  top: 94px;
+  right: 42px;
+  bottom: 34px;
+  left: 42px;
+  pointer-events: none;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 49px,
+    rgba(128, 104, 74, 0.105) 49px,
+    rgba(128, 104, 74, 0.105) 50px
+  );
 }
 
 .journal-page-left {
-  border-radius: 3px 0 0 3px;
-  background: linear-gradient(90deg, #eee3cf 0%, #f7efdf 12%, #f4ecdc 88%, #ded1bb 100%);
+  border-radius: 18px 3px 9px 20px;
+  background-image:
+    repeating-linear-gradient(2deg, transparent 0 17px, rgba(106, 80, 49, 0.018) 17px 18px),
+    repeating-linear-gradient(91deg, transparent 0 29px, rgba(255, 255, 255, 0.025) 29px 30px),
+    linear-gradient(90deg, #dfcfb4 0%, #f6ecd9 5%, #f5ead6 84%, #d4bf9f 100%);
+  box-shadow:
+    inset 10px 0 16px rgba(104, 78, 48, 0.07),
+    inset -25px 0 31px rgba(82, 57, 33, 0.14),
+    inset 0 -9px 18px rgba(98, 71, 40, 0.08);
 }
 
 .journal-page-right {
-  border-radius: 0 3px 3px 0;
-  background: linear-gradient(90deg, #ded1bb 0%, #f4ecdc 12%, #f7efdf 88%, #eee3cf 100%);
+  border-radius: 3px 18px 20px 9px;
+  background-image:
+    repeating-linear-gradient(2deg, transparent 0 17px, rgba(106, 80, 49, 0.018) 17px 18px),
+    repeating-linear-gradient(91deg, transparent 0 29px, rgba(255, 255, 255, 0.025) 29px 30px),
+    linear-gradient(90deg, #d4bf9f 0%, #f5ead6 16%, #f6ecd9 95%, #dfcfb4 100%);
+  box-shadow:
+    inset 25px 0 31px rgba(82, 57, 33, 0.14),
+    inset -10px 0 16px rgba(104, 78, 48, 0.07),
+    inset 0 -9px 18px rgba(98, 71, 40, 0.08);
+}
+
+.journal-page-left::after,
+.journal-page-right::after {
+  content: '';
+  position: absolute;
+  z-index: 1;
+  top: 13px;
+  bottom: 13px;
+  width: 9px;
+  pointer-events: none;
+  opacity: 0.68;
+  background: repeating-linear-gradient(
+    90deg,
+    #c7b18e 0,
+    #c7b18e 1px,
+    #eadcc2 1px,
+    #eadcc2 3px
+  );
+  box-shadow: 0 0 8px rgba(83, 59, 35, 0.11);
+}
+
+.journal-page-left::after {
+  left: 2px;
+  border-radius: 13px 0 0 13px;
+}
+
+.journal-page-right::after {
+  right: 2px;
+  border-radius: 0 13px 13px 0;
 }
 
 .journal-spine {
@@ -321,11 +428,40 @@ textarea:focus-visible {
   top: 0;
   bottom: 0;
   left: 50%;
-  width: 24px;
+  width: 30px;
   transform: translateX(-50%);
   pointer-events: none;
-  background: linear-gradient(90deg, rgba(59, 38, 27, 0.26), rgba(255, 255, 255, 0.1) 46%, rgba(54, 35, 25, 0.3));
-  box-shadow: 0 0 18px rgba(62, 40, 27, 0.22);
+  background: linear-gradient(
+    90deg,
+    rgba(66, 44, 28, 0.28),
+    rgba(44, 29, 19, 0.08) 24%,
+    rgba(255, 251, 238, 0.13) 49%,
+    rgba(45, 29, 19, 0.09) 76%,
+    rgba(64, 42, 27, 0.3)
+  );
+  box-shadow: 0 0 24px rgba(62, 40, 27, 0.26);
+}
+
+.journal-bookmark {
+  position: absolute;
+  z-index: 13;
+  top: 10px;
+  bottom: -26px;
+  left: 50%;
+  width: 30px;
+  transform: translateX(-50%);
+  pointer-events: none;
+  background-color: #6e242d;
+  background-image:
+    linear-gradient(90deg, rgba(42, 12, 17, 0.4), transparent 15% 78%, rgba(44, 13, 18, 0.34)),
+    repeating-linear-gradient(90deg, transparent 0 2px, rgba(244, 208, 198, 0.04) 2px 3px),
+    repeating-linear-gradient(0deg, transparent 0 7px, rgba(39, 10, 14, 0.055) 7px 8px),
+    linear-gradient(90deg, #5d1d25 0%, #762730 32%, #87323b 58%, #67212a 100%);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% calc(100% - 9px), 0 100%);
+  box-shadow:
+    0 3px 8px rgba(49, 14, 19, 0.42),
+    inset 1px 0 rgba(255, 221, 211, 0.07),
+    inset -1px 0 rgba(35, 9, 13, 0.18);
 }
 
 .journal-page-body,
@@ -341,7 +477,10 @@ textarea:focus-visible {
   display: flex;
   flex-direction: column;
   padding: 26px 30px 22px;
-  pointer-events: none;
+}
+
+.is-blank-page {
+  cursor: default;
 }
 
 .journal-page-head {
@@ -351,13 +490,18 @@ textarea:focus-visible {
   justify-content: space-between;
   gap: 16px;
   padding-bottom: 16px;
-  border-bottom: 1px solid var(--paper-line);
+  border-bottom: 1px solid rgba(164, 72, 79, 0.22);
 }
 
 .journal-page-head p {
   margin: 0;
   color: #776f63;
   font-size: 12px;
+}
+
+.journal-page-head .journal-date {
+  margin-bottom: 7px;
+  color: var(--accent-dark);
 }
 
 .journal-page-head > span,
@@ -373,6 +517,7 @@ textarea:focus-visible {
   padding: 24px 3px;
   overflow: auto;
   white-space: pre-wrap;
+  background: transparent;
 }
 
 .journal-page-copy > p {
@@ -406,13 +551,23 @@ textarea:focus-visible {
 .journal-page-navigation {
   position: absolute;
   z-index: 8;
-  inset: 0;
-  width: 100%;
+  top: 0;
+  bottom: 0;
   height: 100%;
   padding: 0;
   border: 0;
   background: transparent;
   cursor: pointer;
+}
+
+.journal-page-navigation.is-previous {
+  left: 0;
+  width: 100%;
+}
+
+.journal-page-navigation.is-next {
+  right: 0;
+  width: 52px;
 }
 
 .journal-page-navigation:hover:not(:disabled) {
@@ -428,14 +583,19 @@ textarea:focus-visible {
   cursor: wait;
 }
 
+.journal-page-navigation[aria-disabled='true'] {
+  cursor: not-allowed;
+}
+
 .journal-inside-cover-mark {
   width: 64px;
   height: 64px;
   display: grid;
   place-items: center;
   margin: auto auto 14px;
-  border: 1px solid rgba(119, 98, 72, 0.42);
-  color: #927c5e;
+  border: 1px solid rgba(196, 154, 90, 0.58);
+  border-radius: 12px;
+  color: var(--brass-dark);
   font-family: Georgia, serif;
   letter-spacing: 0.08em;
 }
@@ -448,6 +608,8 @@ textarea:focus-visible {
 }
 
 .journal-form {
+  width: 100%;
+  height: 100%;
   min-height: 0;
   flex: 1;
   display: flex;
@@ -474,10 +636,11 @@ textarea:focus-visible {
   flex: 0 0 auto;
 }
 
-.today-journal-form .journal-paper {
+.journal-form .journal-paper {
   min-height: 0;
   flex: 1;
   margin-top: 18px;
+  background: transparent;
 }
 
 .journal-form textarea::placeholder {
@@ -505,7 +668,7 @@ textarea:focus-visible {
 }
 
 .save-message {
-  color: #315b57;
+  color: var(--moss);
 }
 
 .journal-error {
@@ -518,6 +681,119 @@ textarea:focus-visible {
   grid-template-columns: 1fr 1fr;
   gap: 10px;
   margin-top: 16px;
+}
+
+.journal-mode-controls {
+  position: absolute;
+  z-index: 31;
+  top: 74px;
+  right: -64px;
+  width: 52px;
+  display: grid;
+  gap: 10px;
+}
+
+.journal-mode-toggle {
+  position: relative;
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  gap: 2px;
+  min-height: 120px;
+  padding: 4px;
+  border: 1px solid rgba(196, 154, 90, 0.4);
+  border-radius: 10px;
+  background: rgba(21, 29, 26, 0.94);
+  color: #d8cdb9;
+  box-shadow: 0 14px 30px rgba(7, 12, 10, 0.28);
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.journal-mode-toggle::before {
+  content: '';
+  position: absolute;
+  z-index: 0;
+  top: 4px;
+  height: calc(50% - 5px);
+  left: 4px;
+  right: 4px;
+  border: 1px solid rgba(196, 154, 90, 0.58);
+  border-radius: 7px;
+  background: #f2e7d1;
+  transition: transform 180ms ease;
+}
+
+.journal-mode-toggle[data-mode='editing']::before {
+  transform: translateY(calc(100% + 2px));
+}
+
+.journal-mode-label {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  min-height: 54px;
+  place-items: center;
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1.15;
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+  transition: color 180ms ease;
+}
+
+.journal-mode-toggle[data-mode='reading'] .is-reading,
+.journal-mode-toggle[data-mode='editing'] .is-editing {
+  color: var(--paper-ink);
+}
+
+.journal-mode-toggle,
+.journal-writing-button {
+  border-radius: 7px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.journal-mode-toggle:hover:not(:disabled),
+.journal-mode-toggle:focus-visible {
+  border-color: rgba(196, 154, 90, 0.72);
+}
+
+.journal-mode-toggle[aria-disabled='true'],
+.journal-writing-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+.journal-writing-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  min-height: 92px;
+  border: 1px solid rgba(164, 72, 79, 0.65);
+  background: var(--accent-dark);
+  color: #fffaf1;
+  box-shadow: 0 12px 24px rgba(70, 27, 31, 0.24);
+}
+
+.journal-writing-button span {
+  line-height: 1.15;
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+}
+
+.journal-writing-button:hover:not(:disabled) {
+  background: var(--accent);
+}
+
+.journal-mode-toggle:focus-visible,
+.journal-writing-button:focus-visible {
+  outline: 3px solid #d6a06e;
+  outline-offset: 2px;
 }
 
 .page-turn-sheet {
@@ -548,9 +824,11 @@ textarea:focus-visible {
   display: flex;
   align-items: flex-end;
   padding: 24px 28px;
-  border: 1px solid rgba(117, 91, 61, 0.14);
+  border: 1px solid rgba(117, 91, 61, 0.18);
   backface-visibility: hidden;
-  background: linear-gradient(90deg, #eadcc5, #faf3e5 16%, #f1e6d3 84%, #d4c3a8);
+  background:
+    repeating-linear-gradient(0deg, transparent 0 5px, var(--paper-fibers) 5px 6px),
+    linear-gradient(90deg, #e4d4b9, #faf2e1 16%, #f1e6d1 84%, #d4c1a2);
   color: #8a7b68;
   font-size: 11px;
   box-shadow: 0 0 34px rgba(54, 35, 24, 0.34);
@@ -559,7 +837,9 @@ textarea:focus-visible {
 .page-turn-back {
   transform: rotateY(180deg);
   justify-content: flex-end;
-  background: linear-gradient(90deg, #d4c3a8, #f1e6d3 16%, #faf3e5 84%, #eadcc5);
+  background:
+    repeating-linear-gradient(0deg, transparent 0 5px, var(--paper-fibers) 5px 6px),
+    linear-gradient(90deg, #d4c1a2, #f1e6d1 16%, #faf2e1 84%, #e4d4b9);
 }
 
 @keyframes journal-turn-previous {
@@ -608,7 +888,7 @@ textarea:focus-visible {
 }
 
 .sticker-button {
-  border-color: #b9a98f;
+  border-color: rgba(142, 105, 56, 0.5);
   background: transparent;
   color: #544b3f;
   font-size: 14px;
@@ -616,8 +896,8 @@ textarea:focus-visible {
 }
 
 .sticker-button:hover:not(:disabled) {
-  border-color: #8f7756;
-  background: #ebe0cc;
+  border-color: var(--brass-dark);
+  background: #eee1c9;
 }
 
 .sticker-button:disabled {
@@ -632,8 +912,8 @@ textarea:focus-visible {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 340px;
   min-height: 0;
-  background: #d4d0c7;
-  color: #252925;
+  background: var(--walnut);
+  color: var(--paper-ink);
 }
 
 .sticker-stage {
@@ -643,8 +923,15 @@ textarea:focus-visible {
   display: grid;
   place-items: center;
   padding: 58px;
-  border-right: 1px solid rgba(31, 39, 35, 0.18);
-  background: #cbc6bc;
+  border-right: 1px solid rgba(196, 154, 90, 0.28);
+  background-color: #2d463f;
+  background-image:
+    linear-gradient(rgba(226, 218, 198, 0.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(226, 218, 198, 0.055) 1px, transparent 1px),
+    linear-gradient(rgba(226, 218, 198, 0.022) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(226, 218, 198, 0.022) 1px, transparent 1px);
+  background-size: 48px 48px, 48px 48px, 12px 12px, 12px 12px;
+  box-shadow: inset 0 0 90px rgba(10, 21, 17, 0.24);
   overflow: hidden;
 }
 
@@ -655,7 +942,7 @@ textarea:focus-visible {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  color: #5a615d;
+  color: #e7ddc9;
   font-size: 12px;
   font-weight: 700;
 }
@@ -665,6 +952,11 @@ textarea:focus-visible {
   aspect-ratio: 1;
   min-width: 260px;
   min-height: 260px;
+  border: 1px solid rgba(229, 216, 189, 0.28);
+  border-radius: 24px;
+  background: rgba(15, 30, 25, 0.18);
+  box-shadow: 0 24px 58px rgba(9, 18, 15, 0.24);
+  overflow: hidden;
 }
 
 .sticker-forge-mount canvas {
@@ -678,7 +970,7 @@ textarea:focus-visible {
   position: absolute;
   left: 28px;
   bottom: 24px;
-  color: #5a615d;
+  color: #ddd3bf;
   font-size: 12px;
 }
 
@@ -688,8 +980,11 @@ textarea:focus-visible {
   flex-direction: column;
   padding: 28px;
   overflow-y: auto;
-  background: #f2ede3;
-  color: #2b2925;
+  border-left: 7px solid var(--walnut-highlight);
+  background-color: var(--paper);
+  background-image: repeating-linear-gradient(0deg, transparent 0 5px, var(--paper-fibers) 5px 6px);
+  color: var(--paper-ink);
+  box-shadow: -18px 0 45px rgba(31, 20, 14, 0.2);
 }
 
 .sticker-studio-controls header {
@@ -698,18 +993,19 @@ textarea:focus-visible {
   justify-content: space-between;
   gap: 16px;
   padding-bottom: 24px;
-  border-bottom: 1px solid #d5cbbc;
+  border-bottom: 1px solid rgba(164, 72, 79, 0.22);
 }
 
 .sticker-studio-controls header p {
   margin: 0 0 5px;
-  color: #776e61;
+  color: #766b5d;
   font-size: 12px;
 }
 
 .sticker-studio-controls h1 {
   margin: 0;
   font-family: Georgia, "Songti SC", serif;
+  color: var(--paper-ink);
   font-size: 30px;
   font-weight: 500;
   letter-spacing: 0;
@@ -725,7 +1021,7 @@ textarea:focus-visible {
   flex: 0 0 38px;
   place-items: center;
   border: 1px solid currentColor;
-  border-radius: 4px;
+  border-radius: 10px;
   background: transparent;
   color: inherit;
   cursor: pointer;
@@ -737,7 +1033,7 @@ textarea:focus-visible {
   margin: 24px 0 0;
   padding: 0;
   border: 0;
-  color: #5f574c;
+  color: #5f5548;
   font-size: 12px;
   font-weight: 700;
 }
@@ -746,9 +1042,9 @@ textarea:focus-visible {
   width: 100%;
   min-height: 44px;
   padding: 0 12px;
-  border: 1px solid #c8bca9;
-  border-radius: 4px;
-  background: #fffdf8;
+  border: 1px solid #c6b79e;
+  border-radius: 9px;
+  background: rgba(255, 252, 244, 0.72);
   color: #292620;
 }
 
@@ -769,22 +1065,22 @@ textarea:focus-visible {
 
 .color-swatch.is-active {
   border-color: #fffdf8;
-  box-shadow: 0 0 0 2px #8a6e42;
+  box-shadow: 0 0 0 2px var(--brass-dark);
 }
 
 .material-control {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  border: 1px solid #c8bca9;
-  border-radius: 4px;
+  border: 1px solid #c6b79e;
+  border-radius: 10px;
   overflow: hidden;
 }
 
 .material-control button {
   min-height: 38px;
   border: 0;
-  border-right: 1px solid #c8bca9;
-  border-bottom: 1px solid #c8bca9;
+  border-right: 1px solid #c6b79e;
+  border-bottom: 1px solid #c6b79e;
   background: transparent;
   color: #5f574c;
   cursor: pointer;
@@ -799,13 +1095,13 @@ textarea:focus-visible {
 }
 
 .material-control button.is-active {
-  background: #2f514d;
+  background: var(--moss);
   color: #fffdf8;
 }
 
 .studio-error {
   margin: 18px 0 0;
-  color: #913139;
+  color: var(--accent-dark);
   font-size: 13px;
   line-height: 1.5;
 }
@@ -814,14 +1110,14 @@ textarea:focus-visible {
   width: 100%;
   margin-top: auto;
   padding: 0 18px;
-  background: #b54049;
+  background: var(--accent);
   color: #fffaf1;
   font-size: 14px;
   font-weight: 700;
 }
 
 .studio-confirm:hover:not(:disabled) {
-  background: #913139;
+  background: var(--accent-dark);
 }
 
 .studio-confirm:disabled {
@@ -842,8 +1138,8 @@ textarea:focus-visible {
   gap: 10px;
   padding: 5px 6px 5px 14px;
   border: 1px solid var(--line);
-  border-radius: 5px;
-  background: rgba(23, 32, 29, 0.94);
+  border-radius: 12px;
+  background: rgba(21, 29, 26, 0.94);
   color: var(--ink);
   box-shadow: 0 10px 30px rgba(5, 10, 8, 0.24);
 }
@@ -933,7 +1229,7 @@ textarea:focus-visible {
   .journal-panel {
     top: 13%;
     left: 8px;
-    right: 8px;
+    right: 68px;
     bottom: 10px;
     width: auto;
     padding: 0;
@@ -963,7 +1259,22 @@ textarea:focus-visible {
   }
 
   .journal-book {
-    border-width: 6px;
+    border-width: 8px;
+    border-radius: 18px 18px 14px 14px;
+  }
+
+  .journal-page::before {
+    top: 74px;
+    right: 15px;
+    bottom: 22px;
+    left: 15px;
+    background-image: repeating-linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent 37px,
+      rgba(128, 104, 74, 0.1) 37px,
+      rgba(128, 104, 74, 0.1) 38px
+    );
   }
 
   .journal-page-body,
@@ -1003,7 +1314,7 @@ textarea:focus-visible {
     display: none;
   }
 
-  .today-journal-form .journal-paper {
+  .journal-form .journal-paper {
     margin-top: 10px;
   }
 
@@ -1021,12 +1332,32 @@ textarea:focus-visible {
     width: 14px;
   }
 
+  .journal-bookmark {
+    top: 7px;
+    bottom: -14px;
+    width: 14px;
+  }
+
   .page-turn-face {
     padding: 16px 12px;
   }
 
   .journal-actions {
     grid-template-columns: 1fr;
+  }
+
+  .journal-mode-controls {
+    top: 74px;
+    right: -60px;
+    bottom: auto;
+    width: 52px;
+    min-width: 0;
+    transform: none;
+    grid-template-columns: 1fr;
+  }
+
+  .journal-writing-button {
+    min-width: 0;
   }
 
   .sticker-studio {

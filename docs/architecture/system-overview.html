@@ -53,7 +53,7 @@
         <p class="lead">Dear Desk 是纯前端、本地优先的单页应用。IndexedDB v3 保存文字、贴纸 source、Forge PNG 与两种表面的位置；Zustand 协调本子开合、双页游标、仿真翻页和贴纸工作流；DOM 承担可读页面与表单，R3F 只负责需要空间关系的桌面和本子外形。</p>
         <div class="callout">
           <strong>当前事实</strong>
-          <p>当天记录、本子聚焦开合、独立 Sticker Forge 工作台、图片本地抠图、桌面/日记双目标和双页仿真翻页都已有源码。双页任务的 lint、自动测试与生产构建已通过；真实浏览器的桌面、移动与本地 HTML 交互验收仍需按任务记录补齐，不能从源码存在反推为已验收。</p>
+          <p>本子聚焦开合、独立 Sticker Forge 工作台、图片本地抠图、桌面/日记双目标、双页仿真翻页，以及左页留白、右页单日期、历史正文可编辑的阅读/书写流程都已有源码。DD-20260809-004 的 lint、33 个自动测试与生产构建已通过；当前执行环境未提供 <code>ego-browser</code>，桌面、移动和本地 HTML 视觉交互仍待用户手动验收，不能从源码存在反推为已验收。</p>
         </div>
       </header>
 
@@ -94,8 +94,9 @@
             │   ├── CameraRig + desk + NotebookObject
             │   └── StickerObject[] for desk surface
             ├── JournalPanel -> DOM double-page book
-            │   ├── HistoricalJournalPage
-            │   ├── today textarea + JournalStickerLayer
+            │   ├── BlankJournalPage -> previous-page intent
+            │   ├── JournalReadingPage -> current right-page text + stickers
+            │   ├── one vertical reading/editing slider + writing action
             │   └── PageTurnSheet -> CSS 3D animation
             └── StickerControls</code></pre>
         </div>
@@ -107,28 +108,39 @@
 
       <section id="journal-flow" data-search-title="双页日记链路">
         <p class="section-index">03 · 双页日记</p>
-        <h2>日期索引先确定页序，再按可见跨页读取内容</h2>
+        <h2>日期索引确定右页，局部会话再控制阅读、书写与保存</h2>
         <ol class="checks">
           <li><strong>加载今天</strong><span><code>App</code> 调用 <code>loadToday()</code> 和 <code>loadStickers()</code>，保持桌面摘要、当天编辑和贴纸目标兼容。</span></li>
-          <li><strong>打开本子</strong><span>3D 命中区或 DOM 按钮把 <code>NotebookPhase</code> 推进到 <code>editing</code>；<code>JournalPanel</code> 此时挂载。</span></li>
+          <li><strong>打开本子</strong><span>3D 命中区或 DOM 按钮把 <code>NotebookPhase</code> 推进到 <code>editing</code>；<code>JournalPanel</code> 此时挂载，并以 <code>reading + idle</code> 开始。</span></li>
           <li><strong>建立页序</strong><span><code>loadJournalPages()</code> 并行读取 <code>DailyEntryRepository.listDates()</code> 与 <code>StickerRepository.listJournalDates()</code>，合并今天、去重、排序并丢弃未来日期。</span></li>
-          <li><strong>按需读取</strong><span>首次只读取今天和相邻历史页的正文与贴纸 Blob；页序查询本身只读取日期/instance 字段，不加载全部历史 PNG。</span></li>
-          <li><strong>呈现跨页</strong><span>右页游标默认指向今天；左页显示最近历史页。没有历史内容时左页显示内封，不伪造空日期。</span></li>
-          <li><strong>请求翻页</strong><span>左页调用 <code>requestJournalTurn('previous')</code>，右侧历史页调用 <code>requestJournalTurn('next')</code>。边界或非 idle 请求直接返回 <code>false</code>。</span></li>
-          <li><strong>预读目标</strong><span>store 补齐目标跨页缺少的正文和贴纸，再把阶段从 <code>loading</code> 切到 <code>turning</code>；失败时复位并显示错误。</span></li>
-          <li><strong>动画后提交</strong><span><code>PageTurnSheet</code> 完成 CSS 动画后调用 <code>settleJournalTurn()</code>，游标才原子更新。动画中关闭和重复翻页被禁用。</span></li>
-          <li><strong>保持今天</strong><span><code>selectedDate</code> 始终是今天。历史页只读；浏览过去不会让随后“放到日记”的贴纸落到错误日期。</span></li>
+          <li><strong>按需读取</strong><span>首次读取当前右页和相邻上一日期的正文与贴纸 Blob；页序查询本身只读取日期/instance 字段，不加载全部历史 PNG。</span></li>
+          <li><strong>呈现当前日期</strong><span><code>journalCursor</code> 只代表右页日期。左页不显示日期、正文或贴纸，只保留上一页命中；右页统一投影今天或历史正文与贴纸。</span></li>
+          <li><strong>进入书写</strong><span>外置的单个竖向滑动按钮按“阅 / 读 / 编 / 辑”自上而下显示，选中块随 <code>journalMode</code> 上下移动；切到编辑只进入准备态。其下方动作按钮按“图标 / 书 / 写”竖排，被点击后 <code>JournalBook</code> 才以当前右页正文初始化 <code>draftDate</code> 与 <code>draft</code>，切换为 textarea 并聚焦；书写阶段动作变为“图标 / 收 / 笔”。</span></li>
+          <li><strong>按页保存</strong><span>“收笔”调用 <code>saveJournalEntry(rightDate, draft)</code>。repository 仍按显式日期写入；store 更新 <code>journalPageEntries[date]</code>，仅当日期是今天时同步 <code>entry</code> 别名。</span></li>
+          <li><strong>保护草稿</strong><span>正文有改动时，翻页、切回阅读和关闭只显示“请先收笔”，不会提交游标、关闭本子或自动写库；保存失败继续保留 textarea 与草稿。</span></li>
+          <li><strong>请求翻页</strong><span>空白左页调用 <code>requestJournalTurn('previous')</code>，右页窄页缘调用 <code>requestJournalTurn('next')</code>。书写中由组件拦截；边界或 store 非 idle 请求返回 <code>false</code>。</span></li>
+          <li><strong>预读并提交</strong><span>store 补齐目标右页缺少的正文和贴纸，再把阶段从 <code>loading</code> 切到 <code>turning</code>；<code>PageTurnSheet</code> 动画结束后调用 <code>settleJournalTurn()</code> 原子提交游标。</span></li>
+          <li><strong>保持今天</strong><span><code>selectedDate</code> 始终是今天，仍只决定贴纸工作台“放到日记”的目标；历史正文可编辑不会改变该贴纸 placement 语义。</span></li>
         </ol>
         <div class="code-block">
           <div class="code-head"><span>翻页状态协议</span><button class="copy-button" type="button" data-copy-target="page-turn-chain">复制</button></div>
           <pre id="page-turn-chain"><code>idle
   -> requestJournalTurn(direction)
-  -> loading: read target left/right page if cache misses
+  -> loading: read target right page and previous neighbor if cache misses
   -> turning: render PageTurnSheet and lock new intents
   -> CSS animationend
   -> settleJournalTurn()
   -> commit journalCursor
   -> idle</code></pre>
+        </div>
+        <div class="code-block">
+          <div class="code-head"><span>局部阅读与书写协议</span><button class="copy-button" type="button" data-copy-target="journal-mode-chain">复制</button></div>
+          <pre id="journal-mode-chain"><code>reading + idle
+  -> editing + idle
+  -> editing + writing (draftDate = current rightDate)
+  -> editing + saving
+  -> saveJournalEntry(rightDate, draft)
+  -> editing + idle (success) | editing + writing (failure)</code></pre>
         </div>
       </section>
 
@@ -148,7 +160,7 @@
   -> desk: StickerObject (R3F)
   -> journal: JournalStickerLayer (DOM, selectedDate = today)</code></pre>
         </div>
-        <p>日记历史页只投影贴纸，不允许选择或拖动；今天页继续支持放置、移动、<code>15°</code> 旋转和删除。历史只读避免整页翻页命中与对象编辑争夺 pointer ownership。</p>
+        <p>日记历史贴纸只投影，不允许选择或拖动；历史正文则通过统一的“编辑 → 书写 → 收笔”流程修改。今天页继续支持贴纸放置、移动、<code>15°</code> 旋转和删除。右页下一页命中缩到页缘，避免覆盖正文选择和 textarea。</p>
       </section>
 
       <section id="ownership" data-search-title="状态所有权">
@@ -162,7 +174,7 @@
               <tr><td>贴纸 source、Forge PNG、surface、位置与旋转</td><td>IndexedDB / <code>StickerRepository</code></td><td>跨页面重开</td><td>Texture、对象 URL</td></tr>
               <tr><td><code>selectedDate</code>、当天正文与贴纸</td><td>Zustand store</td><td>当前页面运行</td><td>未来日期、DOM Event</td></tr>
               <tr><td>页面日期、可见页缓存、游标和翻页阶段</td><td>Zustand store</td><td>打开本子期间；重开回今天</td><td>IndexedDB 阅读位置</td></tr>
-              <tr><td>未保存的今天草稿</td><td><code>JournalBook</code></td><td>本次本子面板</td><td>自动数据库写入</td></tr>
+              <tr><td><code>journalMode</code>、<code>writingPhase</code>、<code>draftDate</code> 与未保存草稿</td><td><code>JournalBook</code></td><td>本次本子面板；关闭后丢弃</td><td>Zustand、IndexedDB 与自动保存</td></tr>
               <tr><td>纸张正反面、角度、阴影</td><td><code>PageTurnSheet</code> + CSS</td><td>一次动画</td><td>store 与数据库</td></tr>
               <tr><td>本子开合、相机、几何体和桌面贴纸纹理</td><td>R3F / Three.js</td><td>DeskScene Canvas</td><td>IndexedDB runtime 对象</td></tr>
               <tr><td>抠图 worker、bitmap、Forge renderer 和 peel</td><td>制作 session</td><td>当前制作流程</td><td>持久化 peel 状态</td></tr>
@@ -174,7 +186,7 @@
       <section id="persistence" data-search-title="本地持久化">
         <p class="section-index">06 · 数据</p>
         <h2>IndexedDB v3 分离正文、图片 source、渲染资产和 placement</h2>
-        <p>数据库名为 <code>dear-desk</code>。v3 保留 <code>dailyEntries</code>，新增图片 source 表，并让实例使用 <code>desk | journal</code> 判别联合；日记实例通过 <code>[surface+journalDate]</code> 索引按日期查询。双页功能只增加日期查询方法和运行缓存，没有升级 schema，也不持久化阅读位置。</p>
+        <p>数据库名为 <code>dear-desk</code>。v3 保留 <code>dailyEntries</code>，新增图片 source 表，并让实例使用 <code>desk | journal</code> 判别联合；日记实例通过 <code>[surface+journalDate]</code> 索引按日期查询。阅读/书写改造只增加 <code>saveJournalEntry(date, text)</code> 应用 action 和局部界面状态，没有升级 schema，也不持久化阅读模式、游标或草稿。</p>
         <div class="code-block">
           <div class="code-head"><span>IndexedDB v3 schema</span><button class="copy-button" type="button" data-copy-target="database-schema">复制</button></div>
           <pre id="database-schema"><code>database.version(3).stores({
@@ -196,8 +208,8 @@
       <section id="rendering" data-search-title="DOM、R3F 与翻页渲染边界">
         <p class="section-index">07 · 渲染</p>
         <h2>R3F 给出空间本子，DOM 给出可读双页</h2>
-        <p><code>NotebookObject</code> 用透明命中几何发出打开意图，用封面铰链和内侧纸面表现打开后的双页轮廓；它不读取正文或 Blob。<code>JournalPanel</code> 对齐聚焦后的本子，提供两张 DOM 页面、书脊、历史只读内容、今天 textarea 和纸页贴纸。</p>
-        <p><code>JournalStickerLayer</code> 的坐标是纸页内 <code>0..1</code> 归一化值。今天模式保留 pointer capture、预览位置和 pointer up 提交；历史模式复用 PNG 投影但关闭 pointer events。桌面 <code>StickerObject</code> 仍创建对象 URL 和 Three.js Texture，并在卸载时释放两者。</p>
+        <p><code>NotebookObject</code> 用透明命中几何发出打开意图，用封面铰链和程序化布面/纸芯几何表现打开后的双页轮廓；它不读取正文或 Blob。<code>RoundedBox</code> 和 <code>scene-visuals</code> 只提供可释放的圆角几何、角色色与程序纹理，不拥有业务状态。<code>JournalPanel</code> 对齐聚焦后的本子，提供空白左页、统一右页、局部模式控件、按日期 textarea 和纸页贴纸。</p>
+        <p><code>JournalStickerLayer</code> 的坐标是纸页内 <code>0..1</code> 归一化值。今天页保留 pointer capture、预览位置和 pointer up 提交；历史页即使进入正文书写也只复用 PNG 投影并关闭贴纸 pointer events。桌面 <code>StickerObject</code> 仍创建对象 URL 和 Three.js Texture，并在卸载时释放两者。</p>
         <div class="note">
           <strong>为什么正文不进入 WebGL</strong>
           <p>textarea、键盘焦点、选择文本、错误反馈和屏幕阅读器语义都更适合 DOM。只有相机、光照、遮挡和桌面空间坐标进入 R3F；仿真翻页的视觉价值不需要牺牲表单质量。</p>
@@ -215,7 +227,8 @@
               <tr><td>历史日期索引或可见页读取失败</td><td><code>journalLoadStatus: error</code>，双页显示可见错误</td><td>今天正文和贴纸链路仍独立</td></tr>
               <tr><td>目标页预读失败</td><td>翻页从 loading 复位到 idle，不提交游标</td><td>原跨页保持不变</td></tr>
               <tr><td>快速重复点击</td><td>非 idle 请求返回 <code>false</code></td><td>只有一个 pending cursor</td></tr>
-              <tr><td>空文本、超长或写入失败</td><td>禁用/拒绝保存并显示错误</td><td><code>JournalBook</code> 局部草稿</td></tr>
+              <tr><td>dirty 书写时翻页、切回阅读或关闭</td><td>意图被组件拦截，live status 提示先收笔</td><td>当前右页、模式与局部草稿</td></tr>
+              <tr><td>空文本、超长或任意日期写入失败</td><td>禁用/拒绝收笔并显示错误，恢复 writing</td><td><code>JournalBook</code> 的 <code>draftDate</code> 与草稿</td></tr>
               <tr><td>贴纸创建事务失败</td><td>不加入内存集合并显示错误</td><td>不会留下部分 source/definition/render/instance</td></tr>
               <tr><td>贴纸移动提交失败</td><td>显示错误并重新加载持久化位置</td><td>最后一次成功位置</td></tr>
               <tr><td>WebGL 初始化失败</td><td>显示 DOM 降级入口</td><td>双页 DOM 与 IndexedDB 日记链路</td></tr>
@@ -233,9 +246,9 @@
           <div class="code-head"><span>页面序列与一次向前翻</span><button class="copy-button" type="button" data-copy-target="journal-example">复制</button></div>
           <pre id="journal-example"><code>journalPageDates = [2026-08-05, 2026-08-07, 2026-08-09]
 
-open:
-  left  = 2026-08-07 (sticker-only, read-only)
-  right = 2026-08-09 (today textarea)
+open (reading):
+  left  = blank (previous-page hit target -> 2026-08-07)
+  right = 2026-08-09 (today text + stickers)
 
 click left:
   preload 2026-08-05
@@ -243,19 +256,23 @@ click left:
   settle cursor
 
 result:
-  left  = 2026-08-05 (text, read-only)
-  right = 2026-08-07 (sticker-only, click for next)</code></pre>
+  left  = blank (previous-page hit target -> 2026-08-05)
+  right = 2026-08-07 (sticker-only, right edge -> next)
+
+edit historical text:
+  click 编辑 -> 书写 -> textarea for 2026-08-07
+  click 收笔 -> saveJournalEntry('2026-08-07', draft)</code></pre>
         </div>
-        <p>用户回到今天后，未保存草稿仍在同一个 <code>JournalBook</code> 组件中；只有显式保存成功才写 <code>dailyEntries</code>。关闭本子或刷新后，阅读游标回到今天，符合“不持久化阅读位置”的当前产品边界。</p>
+        <p>顶层编辑模式可以跨翻页保持，但每个日期都必须再次点击“书写”才创建该页草稿。只有“收笔”成功才写 <code>dailyEntries</code>；dirty 草稿会阻止关闭，页面刷新仍不提供草稿恢复。关闭并重新打开后，阅读游标和模式回到今天的阅读态。</p>
       </section>
 
       <section id="source-map" data-search-title="源码地图与阅读顺序">
         <p class="section-index">10 · 源码地图</p>
         <h2>先读状态协议，再沿 repository 和两种投影向下</h2>
         <div class="source-map">
-          <div><code><a href="../../src/state/app-store.ts">src/state/app-store.ts</a></code><span><code>loadJournalPages</code>、<code>requestJournalTurn</code>、<code>settleJournalTurn</code> 与贴纸工作流</span></div>
-          <div><code><a href="../../src/features/journal/JournalPanel.tsx">JournalPanel.tsx</a></code><span><code>JournalBook</code> 组合跨页、今天草稿和翻页状态</span></div>
-          <div><code><a href="../../src/features/journal/JournalPage.tsx">JournalPage.tsx</a></code><span>历史只读页、整页导航与内封页</span></div>
+          <div><code><a href="../../src/state/app-store.ts">src/state/app-store.ts</a></code><span><code>loadJournalPages</code>、<code>requestJournalTurn</code>、<code>saveJournalEntry</code> 与贴纸工作流</span></div>
+          <div><code><a href="../../src/features/journal/JournalPanel.tsx">JournalPanel.tsx</a></code><span><code>JournalBook</code> 组合竖排单按钮上下滑动模式切换、图标/文字竖排书写动作、dirty guard、按日期保存与翻页</span></div>
+          <div><code><a href="../../src/features/journal/JournalPage.tsx">JournalPage.tsx</a></code><span>空白左页、统一右页阅读内容与窄页缘导航</span></div>
           <div><code><a href="../../src/features/journal/PageTurnSheet.tsx">PageTurnSheet.tsx</a></code><span>CSS 动画完成后提交游标</span></div>
           <div><code><a href="../../src/features/journal/JournalStickerLayer.tsx">JournalStickerLayer.tsx</a></code><span>今天可交互、历史只投影的 DOM 贴纸层</span></div>
           <div><code><a href="../../src/domain/daily-entry.ts">src/domain/daily-entry.ts</a></code><span><code>LocalDate</code>、正文规则、日期去重排序和 repository 接口</span></div>
@@ -265,6 +282,8 @@ result:
           <div><code><a href="../../src/persistence/database.ts">src/persistence/database.ts</a></code><span>IndexedDB v1/v2/v3 schema 与旧实例迁移</span></div>
           <div><code><a href="../../src/scene/NotebookObject.tsx">NotebookObject.tsx</a></code><span>封面铰链、内侧纸面、空间轮廓和打开意图</span></div>
           <div><code><a href="../../src/scene/DeskScene.tsx">src/scene/DeskScene.tsx</a></code><span>R3F root、相机转场、桌面 placement 与单 Canvas 生命周期</span></div>
+          <div><code><a href="../../src/scene/RoundedBox.tsx">RoundedBox.tsx</a></code><span>复用并在卸载时释放的程序化圆角盒体</span></div>
+          <div><code><a href="../../src/scene/scene-visuals.ts">scene-visuals.ts</a></code><span>场景角色色与轻量木纹/布纹 CanvasTexture 工厂</span></div>
           <div><code><a href="../../src/features/stickers/StickerStudio.tsx">StickerStudio.tsx</a></code><span>文字/图片、抠图、Forge 预览和目标选择</span></div>
           <div><code><a href="../../src/integrations/sticker-forge.ts">sticker-forge.ts</a></code><span>固定上游公开 API、flat 捕获与 session 销毁</span></div>
         </div>
@@ -272,8 +291,8 @@ result:
 
       <section id="verification" data-search-title="验证证据与未覆盖边界">
         <p class="section-index">11 · 验证</p>
-        <h2>自动证据覆盖状态与 DOM 行为，开发者验收已单独记录</h2>
-        <p>当前自动测试覆盖日期排序、repository 日期查询、正文与贴纸日期并集、翻页边界、重入锁、动画前后游标提交、左右页组件行为、草稿保存、日记贴纸 StrictMode、v2→v3 迁移和双 surface 事务。ESLint 与生产构建通过；构建仍有主 bundle、worker 和 WASM 体积提示。</p>
+        <h2>自动证据覆盖状态与 DOM 行为，视觉结果仍待手动验收</h2>
+        <p>当前 33 个自动测试覆盖日期排序、repository 日期查询、正文与贴纸日期并集、翻页边界、重入锁、动画前后游标提交、左页留白、默认阅读、模式跨页、今天/历史保存、失败保稿、dirty 离开保护、日记贴纸 StrictMode、v2→v3 迁移和双 surface 事务。ESLint 与生产构建通过；构建仍有主 bundle、worker 和 WASM 体积提示。</p>
         <div class="table-wrap">
           <table>
             <thead><tr><th>能力</th><th>当前状态</th><th>证据边界</th></tr></thead>
@@ -281,7 +300,8 @@ result:
               <tr><td>当天正文与 IndexedDB 恢复</td><td><span class="status status-review">已实现</span></td><td>repository、store、DOM 自动测试</td></tr>
               <tr><td>独立贴纸工作台与双 surface</td><td><span class="status status-review">已完成</span></td><td>自动测试、构建与开发者验收；浏览器证据边界见 DD-20260808-002</td></tr>
               <tr><td>双页本子与仿真翻页</td><td><span class="status status-review">已完成</span></td><td>DD-20260809-001 自动测试、lint、build 与开发者验收</td></tr>
-              <tr><td>桌面/移动 CSS 3D 观感与本地 HTML 交互</td><td><span class="status status-review">开发者已验收</span></td><td>项目指定浏览器工具未注入实现会话，未生成自动浏览器证据</td></tr>
+              <tr><td>统一阅读与历史正文书写</td><td><span class="status status-review">待验收</span></td><td>DD-20260809-004 的 33 个自动测试、lint 与 build 通过；真实浏览器视觉与重开流程待手动验收</td></tr>
+              <tr><td>桌面/移动 CSS 3D 观感与本地 HTML 交互</td><td><span class="status status-review">待手动验收</span></td><td>当前执行环境没有可用 <code>ego-browser</code>，未生成桌面、移动或本地 HTML 自动浏览器证据</td></tr>
             </tbody>
           </table>
         </div>
@@ -291,7 +311,7 @@ result:
         </div>
       </section>
 
-      <footer>Dear Desk 当前系统架构 · 基于可运行源码、自动测试与 DD-20260809-001 实施结果 · 2026-08-09</footer>
+      <footer>Dear Desk 当前系统架构 · 基于可运行源码、33 个自动测试与 DD-20260809-004 实施结果 · 2026-08-09</footer>
     </main>
   </div>
 

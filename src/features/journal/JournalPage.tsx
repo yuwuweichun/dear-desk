@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronRight } from 'lucide-react'
 import type { ReactNode } from 'react'
 
 import { formatLocalDate, type DailyEntry, type LocalDate } from '../../domain/daily-entry'
@@ -22,48 +22,109 @@ export function JournalPageFrame({
   return (
     <section
       className={`journal-page journal-page-${side} ${className}`.trim()}
-      data-page-date={date ?? 'inside-cover'}
+      data-page-date={date ?? 'blank'}
     >
       {children}
     </section>
   )
 }
 
-interface HistoricalJournalPageProps {
+interface JournalPageNavigationProps {
+  blocked: boolean
   date: LocalDate
   direction: JournalTurnDirection
   disabled: boolean
-  entry: DailyEntry | null
   onNavigate: (direction: JournalTurnDirection) => void
-  side: 'left' | 'right'
-  stickers: PlacedSticker[]
 }
 
-export function HistoricalJournalPage({
+function JournalPageNavigation({
+  blocked,
   date,
   direction,
   disabled,
-  entry,
   onNavigate,
-  side,
-  stickers,
-}: HistoricalJournalPageProps) {
+}: JournalPageNavigationProps) {
   const label = direction === 'previous' ? '上一页' : '下一页'
-  const Icon = direction === 'previous' ? ChevronLeft : ChevronRight
 
   return (
-    <JournalPageFrame date={date} side={side} className="is-historical">
-      <button
-        className="journal-page-navigation"
-        type="button"
-        aria-label={`${label}，${formatLocalDate(date)}`}
-        disabled={disabled}
-        onClick={() => onNavigate(direction)}
-      />
+    <button
+      className={`journal-page-navigation is-${direction}`}
+      type="button"
+      aria-disabled={blocked || undefined}
+      aria-label={`${label}，${formatLocalDate(date)}`}
+      disabled={disabled}
+      onClick={() => onNavigate(direction)}
+    />
+  )
+}
+
+interface BlankJournalPageProps {
+  blocked: boolean
+  disabled: boolean
+  onNavigate: (direction: JournalTurnDirection) => void
+  previousDate: LocalDate | null
+}
+
+export function BlankJournalPage({
+  blocked,
+  disabled,
+  onNavigate,
+  previousDate,
+}: BlankJournalPageProps) {
+  return (
+    <JournalPageFrame date={null} side="left" className="is-blank-page">
+      {previousDate ? (
+        <JournalPageNavigation
+          blocked={blocked}
+          date={previousDate}
+          direction="previous"
+          disabled={disabled}
+          onNavigate={onNavigate}
+        />
+      ) : null}
+    </JournalPageFrame>
+  )
+}
+
+interface JournalReadingPageProps {
+  date: LocalDate
+  disabled: boolean
+  entry: DailyEntry | null
+  interactiveStickers: boolean
+  isToday: boolean
+  nextDate: LocalDate | null
+  onNavigate: (direction: JournalTurnDirection) => void
+  stickers: PlacedSticker[]
+}
+
+export function JournalReadingPage({
+  date,
+  disabled,
+  entry,
+  interactiveStickers,
+  isToday,
+  nextDate,
+  onNavigate,
+  stickers,
+}: JournalReadingPageProps) {
+  return (
+    <JournalPageFrame date={date} side="right" className="is-current-page">
+      {nextDate ? (
+        <JournalPageNavigation
+          blocked={false}
+          date={nextDate}
+          direction="next"
+          disabled={disabled}
+          onNavigate={onNavigate}
+        />
+      ) : null}
       <div className="journal-page-body">
         <header className="journal-page-head">
-          <p>{formatLocalDate(date)}</p>
-          <span>{label}</span>
+          <div>
+            <p className="journal-date">{formatLocalDate(date)}</p>
+            <h2>{isToday ? '今天' : '日记'}</h2>
+          </div>
+          <span>{isToday ? '当前日期' : '旧日记录'}</span>
         </header>
         <div className="journal-page-copy">
           {entry?.text ? (
@@ -73,23 +134,17 @@ export function HistoricalJournalPage({
           ) : (
             <p className="journal-page-empty">这一页是空白的。</p>
           )}
-          <JournalStickerLayer stickers={stickers} interactive={false} />
+          <JournalStickerLayer
+            stickers={stickers}
+            interactive={interactiveStickers}
+          />
         </div>
-        <footer className="journal-page-foot">
-          <Icon aria-hidden="true" size={15} />
-          <span>点击{side === 'left' ? '左' : '右'}页 · {label}</span>
-        </footer>
-      </div>
-    </JournalPageFrame>
-  )
-}
-
-export function InsideCoverPage() {
-  return (
-    <JournalPageFrame date={null} side="left" className="is-inside-cover">
-      <div className="journal-page-body">
-        <div className="journal-inside-cover-mark" aria-hidden="true">DD</div>
-        <p>这是本子的第一页</p>
+        {nextDate ? (
+          <footer className="journal-page-foot">
+            <span>右页边缘 · 下一页</span>
+            <ChevronRight aria-hidden="true" size={15} />
+          </footer>
+        ) : null}
       </div>
     </JournalPageFrame>
   )

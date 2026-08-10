@@ -242,4 +242,28 @@ describe('app store', () => {
       errorMessage: '存储空间不足',
     })
   })
+
+  it('saves an explicit historical date without replacing the today alias', async () => {
+    const todayEntry: DailyEntry = {
+      date,
+      text: '今天的记录',
+      createdAt: '2026-08-06T01:00:00.000Z',
+      updatedAt: '2026-08-06T01:00:00.000Z',
+    }
+    const historicalDate = '2026-08-05' as LocalDate
+    const repository = createRepository(todayEntry)
+    const store = createAppStore(repository, date)
+    await store.getState().loadToday()
+
+    await expect(
+      store.getState().saveJournalEntry(historicalDate, '改过的历史记录'),
+    ).resolves.toBe(true)
+
+    expect(repository.save).toHaveBeenCalledWith(historicalDate, '改过的历史记录')
+    expect(store.getState().entry).toEqual(todayEntry)
+    expect(store.getState().journalPageEntries[historicalDate]).toMatchObject({
+      date: historicalDate,
+      text: '改过的历史记录',
+    })
+  })
 })
