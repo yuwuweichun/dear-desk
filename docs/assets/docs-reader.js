@@ -104,9 +104,11 @@
   document.addEventListener('keydown', (event) => {
     const target = event.target;
     const isTyping = target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement || target.isContentEditable;
-    if (event.key === '/' && !isTyping) {
+    const commandSearch = (event.metaKey || event.ctrlKey) && event.key.toLocaleLowerCase() === 'k';
+    if ((event.key === '/' && !isTyping) || commandSearch) {
       event.preventDefault();
       searchInput.focus();
+      searchInput.select();
     }
   });
 

@@ -1,4 +1,4 @@
-import { BookOpen, Database } from 'lucide-react'
+import { BookOpen, Database, Sticker } from 'lucide-react'
 import { useEffect } from 'react'
 
 import { formatLocalDate } from '../domain/daily-entry'
@@ -32,6 +32,7 @@ export function App() {
   const loadStickers = useAppStore((state) => state.loadStickers)
   const notebookPhase = useAppStore((state) => state.notebookPhase)
   const requestNotebookOpen = useAppStore((state) => state.requestNotebookOpen)
+  const openStickerStudio = useAppStore((state) => state.openStickerStudio)
   const settleNotebookTransition = useAppStore(
     (state) => state.settleNotebookTransition,
   )
@@ -60,6 +61,11 @@ export function App() {
           ? '今天有一页'
           : '今天还是空白'
 
+  const showDeskActions =
+    notebookPhase === 'desk' &&
+    stickerWorkflow === 'idle' &&
+    !selectedStickerId
+
   return (
     <main
       className="app-shell"
@@ -86,28 +92,32 @@ export function App() {
       </header>
 
       <div
-        className={
-          notebookPhase === 'desk' && stickerWorkflow === 'idle'
-            ? 'date-block'
-            : 'date-block is-hidden'
-        }
+        className={showDeskActions ? 'date-block' : 'date-block is-hidden'}
         aria-live="polite"
       >
         <span>{formatLocalDate(selectedDate)}</span>
         <strong>{entryState}</strong>
       </div>
 
-      {notebookPhase === 'desk' &&
-      stickerWorkflow === 'idle' &&
-      !selectedStickerId ? (
-        <button
-          className="notebook-button"
-          type="button"
-          onClick={requestNotebookOpen}
-        >
-          <BookOpen aria-hidden="true" size={19} strokeWidth={1.8} />
-          <span>打开本子</span>
-        </button>
+      {showDeskActions ? (
+        <div className="desk-actions">
+          <button
+            className="notebook-button"
+            type="button"
+            onClick={requestNotebookOpen}
+          >
+            <BookOpen aria-hidden="true" size={19} strokeWidth={1.8} />
+            <span>打开本子</span>
+          </button>
+          <button
+            className="sticker-workbench-button"
+            type="button"
+            onClick={openStickerStudio}
+          >
+            <Sticker aria-hidden="true" size={19} strokeWidth={1.8} />
+            <span>贴纸工作台</span>
+          </button>
+        </div>
       ) : null}
 
       <JournalPanel />

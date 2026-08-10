@@ -6,13 +6,21 @@ const browserImport = new Function(
   'return import(url)',
 ) as (url: string) => Promise<unknown>
 
-interface ForgeSource {
+export interface ForgeTextSource {
   type: 'text'
   text: string
   color: string
   fontFamily: string
   fontWeight: number
 }
+
+export interface ForgeImageSource {
+  type: 'image'
+  src: string
+  name?: string
+}
+
+export type ForgeSource = ForgeTextSource | ForgeImageSource
 
 export interface ForgeAppearance {
   material: StickerMaterial
@@ -59,7 +67,7 @@ export interface StickerForgeSession {
   capture(): Promise<StickerForgeSnapshot>
   destroy(): void
   setAppearance(appearance: ForgeAppearance): void
-  setText(source: ForgeSource): Promise<void>
+  setSource(source: ForgeSource): Promise<void>
 }
 
 const nextFrame = () =>
@@ -202,6 +210,6 @@ export async function createStickerForgeSession(
         },
       })
     },
-    setText: (nextSource) => instance.setSource(nextSource),
+    setSource: (nextSource) => instance.setSource(nextSource),
   }
 }

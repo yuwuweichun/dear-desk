@@ -1,4 +1,5 @@
 import {
+  clampJournalStickerPosition,
   clampStickerPosition,
   MAX_STICKER_TEXT_LENGTH,
   normalizeStickerRotation,
@@ -17,6 +18,7 @@ describe('sticker domain', () => {
   })
 
   it('clamps positions and wraps rotations into one full turn', () => {
+    expect(clampJournalStickerPosition({ x: -1, y: 2 })).toEqual({ x: 0, y: 1 })
     expect(clampStickerPosition({ x: 99, z: -99 })).toEqual({
       x: STICKER_BOUNDS.maxX,
       z: STICKER_BOUNDS.minZ,

@@ -5,10 +5,12 @@ import type {
   DailyEntryRepository,
   LocalDate,
 } from '../domain/daily-entry'
+import { sortLocalDates } from '../domain/daily-entry'
 import {
+  clampJournalStickerPosition,
   clampStickerPosition,
-  normalizeStickerText,
   STICKER_ROTATION_STEP,
+  type JournalStickerPosition,
   type PlacedSticker,
   type StickerDraft,
   type StickerPosition,
@@ -18,8 +20,16 @@ import {
 type LoadStatus = 'idle' | 'loading' | 'ready' | 'error'
 type SaveStatus = 'idle' | 'saving' | 'saved' | 'error'
 type StickerStatus = 'idle' | 'loading' | 'saving' | 'error'
+type JournalLoadStatus = 'idle' | 'loading' | 'ready' | 'error'
 
-export type StickerWorkflow = 'idle' | 'composing' | 'placing'
+export type JournalTurnDirection = 'previous' | 'next'
+export type JournalTurnPhase = 'idle' | 'loading' | 'turning'
+
+export type StickerWorkflow =
+  | 'idle'
+  | 'composing'
+  | 'placingDesk'
+  | 'placingJournal'
 
 export type NotebookPhase =
   | 'desk'
@@ -44,31 +54,58 @@ export interface AppState {
   saveStatus: SaveStatus
   errorMessage: string | null
   stickers: PlacedSticker[]
+  journalStickers: PlacedSticker[]
+  journalPageDates: LocalDate[]
+  journalPageEntries: Record<string, DailyEntry | null>
+  journalPageStickers: Record<string, PlacedSticker[]>
+  journalCursor: number
+  journalLoadStatus: JournalLoadStatus
+  journalErrorMessage: string | null
+  journalTurnDirection: JournalTurnDirection | null
+  journalTurnPhase: JournalTurnPhase
+  journalPendingCursor: number | null
   stickerWorkflow: StickerWorkflow
   stickerStatus: StickerStatus
   stickerErrorMessage: string | null
-  stickerDraftText: string | null
   pendingSticker: StickerDraft | null
   selectedStickerId: string | null
   loadToday: () => Promise<void>
   loadStickers: () => Promise<void>
+  loadJournalPages: () => Promise<void>
+  requestJournalTurn: (direction: JournalTurnDirection) => Promise<boolean>
+  settleJournalTurn: () => void
   requestNotebookOpen: () => void
   advanceNotebookPhase: (from: NotebookPhase) => void
   requestNotebookClose: () => void
   openNotebookWithoutScene: () => void
   settleNotebookTransition: () => void
   saveEntry: (text: string) => Promise<boolean>
+  saveJournalEntry: (date: LocalDate, text: string) => Promise<boolean>
   resetSaveStatus: () => void
-  startStickerComposer: (text: string) => boolean
+  openStickerStudio: () => void
   cancelStickerComposer: () => void
-  prepareStickerPlacement: (draft: StickerDraft) => void
+  prepareStickerPlacement: (
+    draft: StickerDraft,
+    target: 'desk' | 'journal',
+  ) => void
   cancelStickerPlacement: () => void
-  placePendingSticker: (position: StickerPosition) => Promise<boolean>
+  placePendingDeskSticker: (position: StickerPosition) => Promise<boolean>
+  placePendingJournalSticker: (
+    position: JournalStickerPosition,
+  ) => Promise<boolean>
   selectSticker: (instanceId: string | null) => void
   previewStickerPosition: (instanceId: string, position: StickerPosition) => void
+  previewJournalStickerPosition: (
+    instanceId: string,
+    position: JournalStickerPosition,
+  ) => void
   commitStickerPosition: (
     instanceId: string,
     position: StickerPosition,
+  ) => Promise<boolean>
+  commitJournalStickerPosition: (
+    instanceId: string,
+    position: JournalStickerPosition,
   ) => Promise<boolean>
   rotateSelectedSticker: (direction: -1 | 1) => Promise<boolean>
   deleteSelectedSticker: () => Promise<boolean>
@@ -78,22 +115,26 @@ export interface AppState {
 const messageFromError = (error: unknown, fallback: string) =>
   error instanceof Error && error.message ? error.message : fallback
 
+const unavailableStickerRepository: StickerRepository = {
+  create: async () => {
+    throw new Error('贴纸存储不可用。')
+  },
+  delete: async () => undefined,
+  listDesk: async () => [],
+  listJournal: async () => [],
+  listJournalDates: async () => [],
+  move: async () => {
+    throw new Error('贴纸存储不可用。')
+  },
+  rotate: async () => {
+    throw new Error('贴纸存储不可用。')
+  },
+}
+
 export const createAppStore = (
   repository: DailyEntryRepository,
   selectedDate: LocalDate,
-  stickerRepository: StickerRepository = {
-    create: async () => {
-      throw new Error('贴纸存储不可用。')
-    },
-    delete: async () => undefined,
-    list: async () => [],
-    move: async () => {
-      throw new Error('贴纸存储不可用。')
-    },
-    rotate: async () => {
-      throw new Error('贴纸存储不可用。')
-    },
-  },
+  stickerRepository: StickerRepository = unavailableStickerRepository,
 ) =>
   createStore<AppState>()((set, get) => ({
     selectedDate,
@@ -103,10 +144,19 @@ export const createAppStore = (
     saveStatus: 'idle',
     errorMessage: null,
     stickers: [],
+    journalStickers: [],
+    journalPageDates: [selectedDate],
+    journalPageEntries: {},
+    journalPageStickers: {},
+    journalCursor: 0,
+    journalLoadStatus: 'idle',
+    journalErrorMessage: null,
+    journalTurnDirection: null,
+    journalTurnPhase: 'idle',
+    journalPendingCursor: null,
     stickerWorkflow: 'idle',
     stickerStatus: 'idle',
     stickerErrorMessage: null,
-    stickerDraftText: null,
     pendingSticker: null,
     selectedStickerId: null,
 
@@ -114,7 +164,14 @@ export const createAppStore = (
       set({ loadStatus: 'loading', errorMessage: null })
       try {
         const entry = await repository.getByDate(get().selectedDate)
-        set({ entry, loadStatus: 'ready' })
+        set((state) => ({
+          entry,
+          journalPageEntries: {
+            ...state.journalPageEntries,
+            [state.selectedDate]: entry,
+          },
+          loadStatus: 'ready',
+        }))
       } catch (error) {
         set({
           loadStatus: 'error',
@@ -126,22 +183,151 @@ export const createAppStore = (
     loadStickers: async () => {
       set({ stickerStatus: 'loading', stickerErrorMessage: null })
       try {
-        set({ stickers: await stickerRepository.list(), stickerStatus: 'idle' })
+        const [stickers, journalStickers] = await Promise.all([
+          stickerRepository.listDesk(),
+          stickerRepository.listJournal(get().selectedDate),
+        ])
+        set((state) => ({
+          stickers,
+          journalStickers,
+          journalPageStickers: {
+            ...state.journalPageStickers,
+            [state.selectedDate]: journalStickers,
+          },
+          stickerStatus: 'idle',
+        }))
       } catch (error) {
         set({
           stickerStatus: 'error',
           stickerErrorMessage: messageFromError(
             error,
-            '桌面贴纸暂时无法读取。',
+            '贴纸暂时无法读取。',
           ),
         })
       }
     },
 
+    loadJournalPages: async () => {
+      set({ journalLoadStatus: 'loading', journalErrorMessage: null })
+      try {
+        const [entryDates, stickerDates] = await Promise.all([
+          repository.listDates(),
+          stickerRepository.listJournalDates(),
+        ])
+        const dates = sortLocalDates([
+          ...entryDates,
+          ...stickerDates,
+          get().selectedDate,
+        ]).filter((date) => date <= get().selectedDate)
+        const cursor = Math.max(0, dates.indexOf(get().selectedDate))
+        const visibleDates = dates.slice(Math.max(0, cursor - 1), cursor + 1)
+        const pages = await Promise.all(
+          visibleDates.map(async (date) => ({
+            date,
+            entry: await repository.getByDate(date),
+            stickers: await stickerRepository.listJournal(date),
+          })),
+        )
+        const journalPageEntries: Record<string, DailyEntry | null> = {}
+        const journalPageStickers: Record<string, PlacedSticker[]> = {}
+        for (const page of pages) {
+          journalPageEntries[page.date] = page.entry
+          journalPageStickers[page.date] = page.stickers
+        }
+        set({
+          journalPageDates: dates,
+          journalPageEntries,
+          journalPageStickers,
+          journalCursor: cursor,
+          journalLoadStatus: 'ready',
+          journalTurnDirection: null,
+          journalTurnPhase: 'idle',
+          journalPendingCursor: null,
+        })
+      } catch (error) {
+        set({
+          journalLoadStatus: 'error',
+          journalErrorMessage: messageFromError(
+            error,
+            '过去的日记页暂时无法读取。',
+          ),
+        })
+      }
+    },
+
+    requestJournalTurn: async (direction) => {
+      const state = get()
+      if (state.journalTurnPhase !== 'idle' || state.journalLoadStatus !== 'ready') {
+        return false
+      }
+      const targetCursor = state.journalCursor + (direction === 'previous' ? -1 : 1)
+      if (targetCursor < 0 || targetCursor >= state.journalPageDates.length) {
+        return false
+      }
+      set({
+        journalErrorMessage: null,
+        journalTurnDirection: direction,
+        journalTurnPhase: 'loading',
+        journalPendingCursor: targetCursor,
+      })
+      try {
+        const targetDates = [targetCursor - 1, targetCursor]
+          .map((index) => state.journalPageDates[index])
+          .filter((date): date is LocalDate => Boolean(date))
+        const pages = await Promise.all(
+          targetDates.map(async (date) => ({
+            date,
+            entry: Object.prototype.hasOwnProperty.call(state.journalPageEntries, date)
+              ? state.journalPageEntries[date] ?? null
+              : await repository.getByDate(date),
+            stickers: Object.prototype.hasOwnProperty.call(state.journalPageStickers, date)
+              ? state.journalPageStickers[date] ?? []
+              : await stickerRepository.listJournal(date),
+          })),
+        )
+        set((current) => ({
+          journalPageEntries: pages.reduce<Record<string, DailyEntry | null>>(
+            (entries, page) => ({ ...entries, [page.date]: page.entry }),
+            current.journalPageEntries,
+          ),
+          journalPageStickers: pages.reduce<Record<string, PlacedSticker[]>>(
+            (stickers, page) => ({ ...stickers, [page.date]: page.stickers }),
+            current.journalPageStickers,
+          ),
+          journalTurnPhase: 'turning',
+        }))
+        return true
+      } catch (error) {
+        set({
+          journalErrorMessage: messageFromError(
+            error,
+            '这一页暂时翻不开，请再试一次。',
+          ),
+          journalTurnDirection: null,
+          journalTurnPhase: 'idle',
+          journalPendingCursor: null,
+        })
+        return false
+      }
+    },
+
+    settleJournalTurn: () =>
+      set((state) =>
+        state.journalTurnPhase === 'turning' && state.journalPendingCursor !== null
+          ? {
+              journalCursor: state.journalPendingCursor,
+              journalTurnDirection: null,
+              journalTurnPhase: 'idle',
+              journalPendingCursor: null,
+              selectedStickerId: null,
+            }
+          : state,
+      ),
+
     requestNotebookOpen: () =>
       set((state) =>
-        state.notebookPhase === 'desk'
-          ? { notebookPhase: 'approaching' }
+        state.notebookPhase === 'desk' && state.stickerWorkflow === 'idle'
+          ? { notebookPhase: 'approaching', selectedStickerId: null }
           : state,
       ),
 
@@ -156,7 +342,12 @@ export const createAppStore = (
     requestNotebookClose: () =>
       set((state) =>
         state.notebookPhase === 'editing'
-          ? { notebookPhase: 'closing', stickerDraftText: null }
+          ? {
+              notebookPhase: 'closing',
+              pendingSticker: null,
+              selectedStickerId: null,
+              stickerWorkflow: 'idle',
+            }
           : state,
       ),
 
@@ -178,11 +369,20 @@ export const createAppStore = (
         return state
       }),
 
-    saveEntry: async (text) => {
+    saveEntry: async (text) => get().saveJournalEntry(get().selectedDate, text),
+
+    saveJournalEntry: async (date, text) => {
       set({ saveStatus: 'saving', errorMessage: null })
       try {
-        const entry = await repository.save(get().selectedDate, text)
-        set({ entry, saveStatus: 'saved', stickerDraftText: null })
+        const savedEntry = await repository.save(date, text)
+        set((state) => ({
+          ...(date === state.selectedDate ? { entry: savedEntry } : {}),
+          journalPageEntries: {
+            ...state.journalPageEntries,
+            [date]: savedEntry,
+          },
+          saveStatus: 'saved',
+        }))
         return true
       } catch (error) {
         set({
@@ -195,65 +395,86 @@ export const createAppStore = (
 
     resetSaveStatus: () => set({ saveStatus: 'idle', errorMessage: null }),
 
-    startStickerComposer: (text) => {
+    openStickerStudio: () =>
+      set((state) =>
+        state.notebookPhase === 'desk' && state.stickerWorkflow === 'idle'
+          ? {
+              stickerErrorMessage: null,
+              stickerWorkflow: 'composing',
+              selectedStickerId: null,
+            }
+          : state,
+      ),
+
+    cancelStickerComposer: () =>
+      set({
+        notebookPhase: 'desk',
+        stickerErrorMessage: null,
+        stickerWorkflow: 'idle',
+      }),
+
+    prepareStickerPlacement: (draft, target) =>
+      set({
+        notebookPhase: target === 'desk' ? 'desk' : 'editing',
+        pendingSticker: draft,
+        selectedStickerId: null,
+        stickerErrorMessage: null,
+        stickerWorkflow: target === 'desk' ? 'placingDesk' : 'placingJournal',
+      }),
+
+    cancelStickerPlacement: () =>
+      set((state) => ({
+        notebookPhase:
+          state.stickerWorkflow === 'placingJournal' ? 'editing' : 'desk',
+        pendingSticker: null,
+        stickerErrorMessage: null,
+        stickerWorkflow: 'idle',
+      })),
+
+    placePendingDeskSticker: async (position) => {
+      const draft = get().pendingSticker
+      if (!draft || get().stickerWorkflow !== 'placingDesk') return false
+      set({ stickerStatus: 'saving', stickerErrorMessage: null })
       try {
-        const normalized = normalizeStickerText(text)
-        if (get().notebookPhase !== 'editing') return false
-        set({
-          notebookPhase: 'desk',
-          stickerDraftText: normalized,
-          stickerErrorMessage: null,
-          stickerWorkflow: 'composing',
-          selectedStickerId: null,
+        const sticker = await stickerRepository.create(draft, {
+          surface: 'desk',
+          position: clampStickerPosition(position),
         })
+        set((state) => ({
+          pendingSticker: null,
+          selectedStickerId: sticker.instance.id,
+          stickers: [...state.stickers, sticker],
+          stickerStatus: 'idle',
+          stickerWorkflow: 'idle',
+        }))
         return true
       } catch (error) {
         set({
-          stickerErrorMessage: messageFromError(
-            error,
-            '这段文字暂时不能制作成贴纸。',
-          ),
+          stickerStatus: 'error',
+          stickerErrorMessage: messageFromError(error, '贴纸没有保存成功。'),
         })
         return false
       }
     },
 
-    cancelStickerComposer: () =>
-      set({
-        notebookPhase: 'editing',
-        stickerErrorMessage: null,
-        stickerWorkflow: 'idle',
-      }),
-
-    prepareStickerPlacement: (draft) =>
-      set({
-        notebookPhase: 'desk',
-        pendingSticker: draft,
-        stickerDraftText: null,
-        stickerErrorMessage: null,
-        stickerWorkflow: 'placing',
-      }),
-
-    cancelStickerPlacement: () =>
-      set({
-        pendingSticker: null,
-        stickerErrorMessage: null,
-        stickerWorkflow: 'idle',
-      }),
-
-    placePendingSticker: async (position) => {
+    placePendingJournalSticker: async (position) => {
       const draft = get().pendingSticker
-      if (!draft) return false
+      if (!draft || get().stickerWorkflow !== 'placingJournal') return false
       set({ stickerStatus: 'saving', stickerErrorMessage: null })
       try {
-        const sticker = await stickerRepository.create(
-          draft,
-          clampStickerPosition(position),
-        )
+        const sticker = await stickerRepository.create(draft, {
+          surface: 'journal',
+          journalDate: get().selectedDate,
+          position: clampJournalStickerPosition(position),
+        })
         set((state) => ({
           pendingSticker: null,
           selectedStickerId: sticker.instance.id,
-          stickers: [...state.stickers, sticker],
+          journalStickers: [...state.journalStickers, sticker],
+          journalPageStickers: {
+            ...state.journalPageStickers,
+            [state.selectedDate]: [...state.journalStickers, sticker],
+          },
           stickerStatus: 'idle',
           stickerWorkflow: 'idle',
         }))
@@ -276,12 +497,28 @@ export const createAppStore = (
     previewStickerPosition: (instanceId, position) =>
       set((state) => ({
         stickers: state.stickers.map((sticker) =>
-          sticker.instance.id === instanceId
+          sticker.instance.id === instanceId && sticker.instance.surface === 'desk'
             ? {
                 ...sticker,
                 instance: {
                   ...sticker.instance,
                   position: clampStickerPosition(position),
+                },
+              }
+            : sticker,
+        ),
+      })),
+
+    previewJournalStickerPosition: (instanceId, position) =>
+      set((state) => ({
+        journalStickers: state.journalStickers.map((sticker) =>
+          sticker.instance.id === instanceId &&
+          sticker.instance.surface === 'journal'
+            ? {
+                ...sticker,
+                instance: {
+                  ...sticker.instance,
+                  position: clampJournalStickerPosition(position),
                 },
               }
             : sticker,
@@ -309,8 +546,29 @@ export const createAppStore = (
       }
     },
 
+    commitJournalStickerPosition: async (instanceId, position) => {
+      set({ stickerStatus: 'saving', stickerErrorMessage: null })
+      try {
+        const instance = await stickerRepository.move(instanceId, position)
+        set((state) => ({
+          journalStickers: state.journalStickers.map((sticker) =>
+            sticker.instance.id === instanceId ? { ...sticker, instance } : sticker,
+          ),
+          stickerStatus: 'idle',
+        }))
+        return true
+      } catch (error) {
+        set({
+          stickerStatus: 'error',
+          stickerErrorMessage: messageFromError(error, '贴纸位置没有保存成功。'),
+        })
+        void get().loadStickers()
+        return false
+      }
+    },
+
     rotateSelectedSticker: async (direction) => {
-      const selected = get().stickers.find(
+      const selected = [...get().stickers, ...get().journalStickers].find(
         (sticker) => sticker.instance.id === get().selectedStickerId,
       )
       if (!selected) return false
@@ -322,6 +580,9 @@ export const createAppStore = (
         )
         set((state) => ({
           stickers: state.stickers.map((sticker) =>
+            sticker.instance.id === instance.id ? { ...sticker, instance } : sticker,
+          ),
+          journalStickers: state.journalStickers.map((sticker) =>
             sticker.instance.id === instance.id ? { ...sticker, instance } : sticker,
           ),
           stickerStatus: 'idle',
@@ -345,6 +606,9 @@ export const createAppStore = (
         set((state) => ({
           selectedStickerId: null,
           stickers: state.stickers.filter(
+            (sticker) => sticker.instance.id !== instanceId,
+          ),
+          journalStickers: state.journalStickers.filter(
             (sticker) => sticker.instance.id !== instanceId,
           ),
           stickerStatus: 'idle',

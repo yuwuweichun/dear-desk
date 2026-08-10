@@ -2,6 +2,7 @@ import {
   DailyEntryValidationError,
   MAX_ENTRY_LENGTH,
   normalizeEntryText,
+  sortLocalDates,
   toLocalDate,
 } from './daily-entry'
 
@@ -19,5 +20,14 @@ describe('daily entry domain', () => {
     expect(() => normalizeEntryText('a'.repeat(MAX_ENTRY_LENGTH + 1))).toThrow(
       `内容不能超过 ${MAX_ENTRY_LENGTH} 个字符。`,
     )
+  })
+
+  it('sorts and deduplicates local dates for journal pages', () => {
+    expect(sortLocalDates([
+      '2026-08-08',
+      '2026-08-06',
+      '2026-08-08',
+      '2026-08-07',
+    ])).toEqual(['2026-08-06', '2026-08-07', '2026-08-08'])
   })
 })

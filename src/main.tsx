@@ -8,6 +8,7 @@ import { stickerRepository } from './persistence/sticker-repository'
 import { createAppStore } from './state/app-store'
 import { AppStoreProvider } from './state/app-store-context'
 import './styles.css'
+import './sticker-workbench.css'
 
 const appStore = createAppStore(
   dailyEntryRepository,

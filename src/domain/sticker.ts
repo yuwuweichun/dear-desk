@@ -1,6 +1,8 @@
 import type { LocalDate } from './daily-entry'
 
 export const MAX_STICKER_TEXT_LENGTH = 60
+export const MAX_STICKER_IMAGE_BYTES = 15 * 1024 * 1024
+export const MAX_STICKER_IMAGE_SIDE = 4096
 export const STICKER_ROTATION_STEP = Math.PI / 12
 export const STICKER_FORGE_COMMIT =
   '068caa49eef69745564a5debbc01bab3fcd31042' as const
@@ -23,15 +25,31 @@ export interface StickerPosition {
   z: number
 }
 
-export interface StickerDefinition {
+export interface JournalStickerPosition {
+  x: number
+  y: number
+}
+
+export interface TextStickerSource {
+  text: string
+  color: string
+  fontFamily: string
+  fontWeight: number
+}
+
+export type ImageCutoutMode = 'rectangle' | 'automatic' | 'manual'
+
+export interface StickerSourceAsset {
   id: string
-  kind: 'text'
-  source: {
-    text: string
-    color: string
-    fontFamily: string
-    fontWeight: number
-  }
+  blob: Blob
+  mimeType: 'image/png'
+  width: number
+  height: number
+  createdAt: string
+}
+
+interface StickerDefinitionBase {
+  id: string
   forge: {
     material: StickerMaterial
     materialIntensity: number
@@ -39,9 +57,24 @@ export interface StickerDefinition {
     outlineColor: string
   }
   previewAssetId: string
-  sourceEntryDate: LocalDate
   createdAt: string
 }
+
+export interface TextStickerDefinition extends StickerDefinitionBase {
+  kind: 'text'
+  source: TextStickerSource
+}
+
+export interface ImageStickerDefinition extends StickerDefinitionBase {
+  kind: 'image'
+  source: {
+    assetId: string
+    cutoutMode: ImageCutoutMode
+    name: string
+  }
+}
+
+export type StickerDefinition = TextStickerDefinition | ImageStickerDefinition
 
 export interface StickerRenderAsset {
   id: string
@@ -52,14 +85,26 @@ export interface StickerRenderAsset {
   upstreamCommit: typeof STICKER_FORGE_COMMIT
 }
 
-export interface StickerInstance {
+interface StickerInstanceBase {
   id: string
   definitionId: string
-  position: StickerPosition
   rotationY: number
   createdAt: string
   updatedAt: string
 }
+
+export interface DeskStickerInstance extends StickerInstanceBase {
+  surface: 'desk'
+  position: StickerPosition
+}
+
+export interface JournalStickerInstance extends StickerInstanceBase {
+  surface: 'journal'
+  journalDate: LocalDate
+  position: JournalStickerPosition
+}
+
+export type StickerInstance = DeskStickerInstance | JournalStickerInstance
 
 export interface PlacedSticker {
   definition: StickerDefinition
@@ -67,18 +112,42 @@ export interface PlacedSticker {
   instance: StickerInstance
 }
 
-export interface StickerDraft {
-  source: StickerDefinition['source']
+interface StickerDraftBase {
   forge: StickerDefinition['forge']
   preview: Pick<StickerRenderAsset, 'blob' | 'height' | 'mimeType' | 'width'>
-  sourceEntryDate: LocalDate
 }
 
+export interface TextStickerDraft extends StickerDraftBase {
+  kind: 'text'
+  source: TextStickerSource
+}
+
+export interface ImageStickerDraft extends StickerDraftBase {
+  kind: 'image'
+  source: {
+    asset: Pick<StickerSourceAsset, 'blob' | 'height' | 'mimeType' | 'width'>
+    cutoutMode: ImageCutoutMode
+    name: string
+  }
+}
+
+export type StickerDraft = TextStickerDraft | ImageStickerDraft
+
+export type StickerPlacement =
+  | { surface: 'desk'; position: StickerPosition }
+  | {
+      surface: 'journal'
+      journalDate: LocalDate
+      position: JournalStickerPosition
+    }
+
 export interface StickerRepository {
-  create(draft: StickerDraft, position: StickerPosition): Promise<PlacedSticker>
+  create(draft: StickerDraft, placement: StickerPlacement): Promise<PlacedSticker>
   delete(instanceId: string): Promise<void>
-  list(): Promise<PlacedSticker[]>
-  move(instanceId: string, position: StickerPosition): Promise<StickerInstance>
+  listDesk(): Promise<PlacedSticker[]>
+  listJournal(date: LocalDate): Promise<PlacedSticker[]>
+  listJournalDates(): Promise<LocalDate[]>
+  move(instanceId: string, position: StickerInstance['position']): Promise<StickerInstance>
   rotate(instanceId: string, rotationY: number): Promise<StickerInstance>
 }
 
@@ -110,8 +179,18 @@ export const clampStickerPosition = (
   z: clamp(position.z, STICKER_BOUNDS.minZ, STICKER_BOUNDS.maxZ),
 })
 
+export const clampJournalStickerPosition = (
+  position: JournalStickerPosition,
+): JournalStickerPosition => ({
+  x: clamp(position.x, 0, 1),
+  y: clamp(position.y, 0, 1),
+})
+
 export const normalizeStickerRotation = (rotationY: number) => {
   if (!Number.isFinite(rotationY)) return 0
   const fullTurn = Math.PI * 2
   return ((rotationY % fullTurn) + fullTurn) % fullTurn
 }
+
+export const stickerLabel = (definition: StickerDefinition) =>
+  definition.kind === 'text' ? definition.source.text : definition.source.name

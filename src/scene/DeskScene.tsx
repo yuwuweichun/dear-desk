@@ -1,5 +1,5 @@
 import { createRoot, events, extend, useFrame, useThree } from '@react-three/fiber'
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import type { ReconcilerRoot } from '@react-three/fiber'
 import * as THREE from 'three'
 
@@ -7,6 +7,8 @@ import type { PlacedSticker, StickerPosition } from '../domain/sticker'
 import { useAppStore } from '../state/app-store-context'
 import type { NotebookPhase, StickerWorkflow } from '../state/app-store'
 import { NotebookObject } from './NotebookObject'
+import { RoundedBox } from './RoundedBox'
+import { createSurfaceTexture, SCENE_PALETTE } from './scene-visuals'
 import { StickerObject } from './StickerObject'
 import {
   easeInOutCubic,
@@ -18,7 +20,6 @@ extend({
   AmbientLight: THREE.AmbientLight,
   BoxGeometry: THREE.BoxGeometry,
   Color: THREE.Color,
-  ConeGeometry: THREE.ConeGeometry,
   CylinderGeometry: THREE.CylinderGeometry,
   DirectionalLight: THREE.DirectionalLight,
   Fog: THREE.Fog,
@@ -27,7 +28,6 @@ extend({
   MeshBasicMaterial: THREE.MeshBasicMaterial,
   MeshStandardMaterial: THREE.MeshStandardMaterial,
   PlaneGeometry: THREE.PlaneGeometry,
-  TorusGeometry: THREE.TorusGeometry,
 })
 
 interface ManagedRoot {
@@ -37,6 +37,13 @@ interface ManagedRoot {
 }
 
 const managedRoots = new WeakMap<HTMLCanvasElement, ManagedRoot>()
+const DESK_DRAWER_CENTERS = [-3.25, 0, 3.25]
+const DESK_LEG_POSITIONS: Array<[number, number, number]> = [
+  [-5.05, -2.08, -3.02],
+  [5.05, -2.08, -3.02],
+  [-5.05, -2.08, 3.02],
+  [5.05, -2.08, 3.02],
+]
 
 const acquireRoot = (canvas: HTMLCanvasElement) => {
   const existing = managedRoots.get(canvas)
@@ -203,40 +210,48 @@ function CameraRig({ notebookPhase, onAdvance, reducedMotion }: CameraRigProps) 
   return null
 }
 
-function Pencil() {
+function DeskBody({ woodTexture }: { woodTexture: THREE.Texture }) {
   return (
-    <group position={[1.72, 0.33, 0.3]} rotation={[0, -0.28, -0.08]}>
-      <mesh castShadow rotation={[0, 0, Math.PI / 2]}>
-        <cylinderGeometry args={[0.085, 0.085, 3.1, 6]} />
-        <meshStandardMaterial color="#d5a142" roughness={0.62} />
-      </mesh>
-      <mesh position={[-1.6, 0, 0]} castShadow rotation={[0, 0, Math.PI / 2]}>
-        <coneGeometry args={[0.09, 0.28, 6]} />
-        <meshStandardMaterial color="#d8c49f" roughness={0.9} />
-      </mesh>
-      <mesh position={[1.63, 0, 0]} castShadow rotation={[0, 0, Math.PI / 2]}>
-        <cylinderGeometry args={[0.09, 0.09, 0.2, 8]} />
-        <meshStandardMaterial color="#b55a58" roughness={0.7} />
-      </mesh>
-    </group>
-  )
-}
-
-function Mug() {
-  return (
-    <group position={[3.15, 0.58, -1.65]}>
-      <mesh castShadow receiveShadow>
-        <cylinderGeometry args={[0.58, 0.5, 1.1, 28]} />
-        <meshStandardMaterial color="#d9d0bd" roughness={0.68} />
-      </mesh>
-      <mesh position={[0.58, 0, 0]} rotation={[Math.PI / 2, 0, 0]} castShadow>
-        <torusGeometry args={[0.34, 0.1, 12, 24]} />
-        <meshStandardMaterial color="#d9d0bd" roughness={0.68} />
-      </mesh>
-      <mesh position={[0, 0.56, 0]}>
-        <cylinderGeometry args={[0.48, 0.48, 0.025, 28]} />
-        <meshStandardMaterial color="#3a2420" roughness={0.5} />
-      </mesh>
+    <group>
+      <RoundedBox
+        size={[12, 0.78, 8]}
+        radius={0.18}
+        segments={4}
+        position={[0, -0.43, 0]}
+        castShadow
+        receiveShadow
+      >
+        <meshStandardMaterial map={woodTexture} roughness={0.79} />
+      </RoundedBox>
+      <RoundedBox
+        size={[11.3, 0.34, 0.3]}
+        radius={0.08}
+        position={[0, -0.84, 3.65]}
+        castShadow
+      >
+        <meshStandardMaterial color={SCENE_PALETTE.walnutDark} roughness={0.82} />
+      </RoundedBox>
+      {DESK_DRAWER_CENTERS.map((x) => (
+        <group key={x} position={[x, -0.49, 3.86]}>
+          <RoundedBox size={[2.62, 0.42, 0.14]} radius={0.06} castShadow>
+            <meshStandardMaterial color={SCENE_PALETTE.honeyWood} roughness={0.8} />
+          </RoundedBox>
+          <mesh position={[0, 0, 0.12]} rotation={[Math.PI / 2, 0, 0]} castShadow>
+            <cylinderGeometry args={[0.09, 0.09, 0.14, 16]} />
+            <meshStandardMaterial
+              color={SCENE_PALETTE.brass}
+              metalness={0.56}
+              roughness={0.44}
+            />
+          </mesh>
+        </group>
+      ))}
+      {DESK_LEG_POSITIONS.map(([x, y, z]) => (
+        <mesh key={`${x}-${z}`} position={[x, y, z]} rotation={[0, Math.PI / 4, 0]} castShadow>
+          <cylinderGeometry args={[0.29, 0.42, 2.65, 4]} />
+          <meshStandardMaterial color={SCENE_PALETTE.walnutDark} roughness={0.84} />
+        </mesh>
+      ))}
     </group>
   )
 }
@@ -248,7 +263,7 @@ interface DeskContentsProps {
     position: StickerPosition,
   ) => Promise<boolean>
   notebookPhase: NotebookPhase
-  placePendingSticker: (position: StickerPosition) => Promise<boolean>
+  placePendingDeskSticker: (position: StickerPosition) => Promise<boolean>
   previewStickerPosition: (instanceId: string, position: StickerPosition) => void
   reducedMotion: boolean
   requestNotebookOpen: () => void
@@ -262,7 +277,7 @@ function DeskContents({
   advanceNotebookPhase,
   commitStickerPosition,
   notebookPhase,
-  placePendingSticker,
+  placePendingDeskSticker,
   previewStickerPosition,
   reducedMotion,
   requestNotebookOpen,
@@ -271,51 +286,85 @@ function DeskContents({
   stickers,
   stickerWorkflow,
 }: DeskContentsProps) {
+  const woodTexture = useMemo(() => createSurfaceTexture('wood'), [])
+
+  useEffect(() => () => woodTexture.dispose(), [woodTexture])
+
   return (
     <>
-      <color attach="background" args={['#17201d']} />
-      <fog attach="fog" args={['#17201d', 10, 20]} />
-      <ambientLight intensity={1.25} color="#d9e3dc" />
+      <color attach="background" args={[SCENE_PALETTE.background]} />
+      <fog attach="fog" args={[SCENE_PALETTE.background, 10, 21]} />
+      <ambientLight intensity={1.15} color="#d9dfd7" />
       <directionalLight
         castShadow
-        color="#ffe4b8"
-        intensity={3.1}
+        color="#ffe0ad"
+        intensity={2.75}
         position={[-4, 9, 5]}
         shadow-mapSize={[1024, 1024]}
         shadow-bias={-0.0002}
       />
-      <directionalLight color="#9ab8bd" intensity={0.7} position={[7, 4, -5]} />
+      <directionalLight color="#9fb5ad" intensity={0.62} position={[7, 4, -5]} />
       <CameraRig
         notebookPhase={notebookPhase}
         onAdvance={advanceNotebookPhase}
         reducedMotion={reducedMotion}
       />
 
-      <mesh position={[0, -0.46, 0]} castShadow receiveShadow>
-        <boxGeometry args={[12, 0.8, 8]} />
-        <meshStandardMaterial color="#75543f" roughness={0.82} />
-      </mesh>
-      <mesh
-        position={[0, 0.02, 0.2]}
-        receiveShadow
+      <DeskBody woodTexture={woodTexture} />
+      <group
         onClick={(event) => {
-          if (stickerWorkflow === 'placing') {
+          if (stickerWorkflow === 'placingDesk') {
             event.stopPropagation()
-            void placePendingSticker({ x: event.point.x, z: event.point.z })
+            void placePendingDeskSticker({ x: event.point.x, z: event.point.z })
             return
           }
           if (stickerWorkflow === 'idle') selectSticker(null)
         }}
         onPointerOver={() => {
-          if (stickerWorkflow === 'placing') document.body.style.cursor = 'crosshair'
+          if (stickerWorkflow === 'placingDesk') document.body.style.cursor = 'crosshair'
         }}
         onPointerOut={() => {
-          if (stickerWorkflow === 'placing') document.body.style.cursor = ''
+          if (stickerWorkflow === 'placingDesk') document.body.style.cursor = ''
         }}
       >
-        <boxGeometry args={[8.7, 0.12, 6.25]} />
-        <meshStandardMaterial color="#315b57" roughness={0.92} />
-      </mesh>
+        <RoundedBox
+          size={[8.7, 0.13, 6.25]}
+          radius={0.18}
+          segments={4}
+          position={[0, 0.025, 0.2]}
+          receiveShadow
+        >
+          <meshStandardMaterial color={SCENE_PALETTE.cloth} roughness={0.96} />
+        </RoundedBox>
+        <RoundedBox
+          size={[8.32, 0.018, 0.025]}
+          radius={0.01}
+          position={[0, 0.102, -2.69]}
+        >
+          <meshStandardMaterial color="#718077" roughness={0.92} />
+        </RoundedBox>
+        <RoundedBox
+          size={[8.32, 0.018, 0.025]}
+          radius={0.01}
+          position={[0, 0.102, 3.09]}
+        >
+          <meshStandardMaterial color="#718077" roughness={0.92} />
+        </RoundedBox>
+        <RoundedBox
+          size={[0.025, 0.018, 5.78]}
+          radius={0.01}
+          position={[-4.15, 0.102, 0.2]}
+        >
+          <meshStandardMaterial color="#718077" roughness={0.92} />
+        </RoundedBox>
+        <RoundedBox
+          size={[0.025, 0.018, 5.78]}
+          radius={0.01}
+          position={[4.15, 0.102, 0.2]}
+        >
+          <meshStandardMaterial color="#718077" roughness={0.92} />
+        </RoundedBox>
+      </group>
       {stickers.map((sticker) => (
         <StickerObject
           key={sticker.instance.id}
@@ -329,22 +378,12 @@ function DeskContents({
           }}
         />
       ))}
-      <mesh position={[-4.55, 0.13, -2.1]} castShadow>
-        <boxGeometry args={[1.7, 0.24, 1.4]} />
-        <meshStandardMaterial color="#b5a57f" roughness={0.9} />
-      </mesh>
-      <mesh position={[-4.55, 0.27, -2.1]}>
-        <boxGeometry args={[1.5, 0.04, 1.18]} />
-        <meshStandardMaterial color="#d2c69f" roughness={1} />
-      </mesh>
       <NotebookObject
         notebookPhase={notebookPhase}
         onAdvance={advanceNotebookPhase}
         onOpen={requestNotebookOpen}
         reducedMotion={reducedMotion}
       />
-      <Pencil />
-      <Mug />
     </>
   )
 }
@@ -364,7 +403,7 @@ export function DeskScene({ fallback }: DeskSceneProps) {
     (state) => state.commitStickerPosition,
   )
   const notebookPhase = useAppStore((state) => state.notebookPhase)
-  const placePendingSticker = useAppStore((state) => state.placePendingSticker)
+  const placePendingDeskSticker = useAppStore((state) => state.placePendingDeskSticker)
   const previewStickerPosition = useAppStore(
     (state) => state.previewStickerPosition,
   )
@@ -377,7 +416,7 @@ export function DeskScene({ fallback }: DeskSceneProps) {
     advanceNotebookPhase,
     commitStickerPosition,
     notebookPhase,
-    placePendingSticker,
+    placePendingDeskSticker,
     previewStickerPosition,
     reducedMotion,
     requestNotebookOpen,
@@ -489,7 +528,7 @@ export function DeskScene({ fallback }: DeskSceneProps) {
       advanceNotebookPhase,
       commitStickerPosition,
       notebookPhase,
-      placePendingSticker,
+      placePendingDeskSticker,
       previewStickerPosition,
       reducedMotion,
       requestNotebookOpen,
@@ -505,7 +544,7 @@ export function DeskScene({ fallback }: DeskSceneProps) {
     advanceNotebookPhase,
     commitStickerPosition,
     notebookPhase,
-    placePendingSticker,
+    placePendingDeskSticker,
     previewStickerPosition,
     reducedMotion,
     requestNotebookOpen,
