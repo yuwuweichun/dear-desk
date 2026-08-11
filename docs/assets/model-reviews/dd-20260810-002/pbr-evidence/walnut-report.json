@@ -1,0 +1,87 @@
+{
+  "ok": true,
+  "verdict": "pass",
+  "confidence": 0.774,
+  "estimatedFidelity": 0.774,
+  "targetThreshold": 0.7,
+  "materialId": "walnut",
+  "sourceImage": "/Users/song/Desktop/dear-desk/docs/assets/model-reviews/dd-20260810-002/pbr-crops/walnut.png",
+  "outDir": "/Users/song/Desktop/dear-desk/docs/assets/model-reviews/dd-20260810-002/pbr-evidence/walnut",
+  "palette": [
+    "#4D2D17",
+    "#10130D",
+    "#3B2312",
+    "#64381C",
+    "#884C24"
+  ],
+  "maps": {
+    "albedo": {
+      "path": "/Users/song/Desktop/dear-desk/docs/assets/model-reviews/dd-20260810-002/pbr-evidence/walnut/walnut_albedo.png",
+      "url": "walnut_albedo.png",
+      "channel": "albedo",
+      "source": "reference-pixel-extraction"
+    },
+    "roughness": {
+      "path": "/Users/song/Desktop/dear-desk/docs/assets/model-reviews/dd-20260810-002/pbr-evidence/walnut/walnut_roughness.png",
+      "url": "walnut_roughness.png",
+      "channel": "roughness",
+      "source": "reference-pixel-extraction"
+    },
+    "height": {
+      "path": "/Users/song/Desktop/dear-desk/docs/assets/model-reviews/dd-20260810-002/pbr-evidence/walnut/walnut_height.png",
+      "url": "walnut_height.png",
+      "channel": "height",
+      "source": "reference-pixel-extraction"
+    },
+    "normal": {
+      "path": "/Users/song/Desktop/dear-desk/docs/assets/model-reviews/dd-20260810-002/pbr-evidence/walnut/walnut_normal.png",
+      "url": "walnut_normal.png",
+      "channel": "normal",
+      "source": "reference-pixel-extraction"
+    },
+    "ao": {
+      "path": "/Users/song/Desktop/dear-desk/docs/assets/model-reviews/dd-20260810-002/pbr-evidence/walnut/walnut_ao.png",
+      "url": "walnut_ao.png",
+      "channel": "ao",
+      "source": "reference-pixel-extraction"
+    }
+  },
+  "diagnostics": {
+    "sourceWidth": 930,
+    "sourceHeight": 230,
+    "mapSize": 256,
+    "cropBBoxPixels": {
+      "x": 0,
+      "y": 0,
+      "width": 930,
+      "height": 230
+    },
+    "mask": {
+      "backgroundColor": "#221E0E",
+      "backgroundNoise": 24.597,
+      "transparentPixelFraction": 0.0,
+      "foregroundCoverage": 0.9999
+    },
+    "mapStats": {
+      "valueRange": 0.2578,
+      "heightP90Gradient": 0.12061,
+      "roughnessBase": 0.781,
+      "roughnessVariation": 0.188,
+      "normalStrength": 0.298,
+      "blurRadius": 5
+    },
+    "palette": [
+      "#4D2D17",
+      "#10130D",
+      "#3B2312",
+      "#64381C",
+      "#884C24"
+    ]
+  },
+  "warnings": [
+    "image is not clearly isolated from background; using most pixels as material evidence",
+    "object/background separation is weak",
+    "single-image inverse rendering cannot prove true physical PBR; confidence is capped"
+  ],
+  "limitation": "single-image PBR extraction is an estimate; 70%+ extraction confidence still needs render screenshot review"
+}

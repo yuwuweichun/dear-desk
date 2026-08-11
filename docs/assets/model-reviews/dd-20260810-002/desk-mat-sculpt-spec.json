@@ -1,0 +1,2785 @@
+{
+  "targetName": "Warm Paper Atelier Desk Mat",
+  "targetId": "warm-paper-atelier-desk-mat",
+  "schemaVersion": "2.0",
+  "terminologyProfile": {
+    "domain": "real-time procedural Three.js asset",
+    "geometryTerms": [
+      "silhouette",
+      "topology",
+      "primitive",
+      "bevel",
+      "chamfer",
+      "taper",
+      "bend",
+      "boolean cut",
+      "edge loop",
+      "surface normal",
+      "displacement"
+    ],
+    "materialTerms": [
+      "albedo",
+      "baseColor",
+      "roughness",
+      "metalness",
+      "normal map",
+      "bump map",
+      "ambient occlusion",
+      "cavity dirt",
+      "edge wear",
+      "clearcoat"
+    ],
+    "lightingTerms": [
+      "key light",
+      "fill light",
+      "rim light",
+      "HDRI/environment reflection",
+      "contact shadow"
+    ],
+    "descriptionRule": "Use measurable 3D graphics terms. Avoid vague words unless they are paired with concrete geometry/material/shader parameters."
+  },
+  "sourceImage": "/Users/song/Desktop/dear-desk/docs/assets/concepts/warm-paper-atelier-desk-mat.png",
+  "referenceCamera": {
+    "solved": false,
+    "fovDegrees": 34.0,
+    "aspect": 1.7779,
+    "orientation": {
+      "yaw": 0.0,
+      "pitch": -0.82,
+      "roll": 0.0
+    },
+    "positionHint": [
+      0.0,
+      7.2,
+      8.8
+    ],
+    "note": "Approximate review camera inferred from the dominant upper panel: centered, elevated, and pitched down so the preserved 8.7 by 6.25 footprint compresses in depth like the reference. Exact lens metadata is unavailable; compare by silhouette overlay rather than claiming a solved camera."
+  },
+  "suitability": "pass",
+  "scores": {
+    "object_isolation": 3,
+    "silhouette_readability": 3,
+    "depth_inference": 2,
+    "primitive_decomposition": 3,
+    "material_procedurality": 3,
+    "occlusion_risk": 1,
+    "interaction_fit": 3
+  },
+  "preSpecAssessment": {
+    "objectClass": {
+      "primaryType": "upholstered rounded-rectangle desk mat",
+      "primaryDomain": "object",
+      "formLanguage": [
+        "fabric-like",
+        "soft hard-surface hybrid",
+        "low-profile planar silhouette",
+        "stylized tactile prop"
+      ],
+      "structureKind": [
+        "layered shell",
+        "compound object",
+        "continuous perimeter assembly",
+        "repeated stitch path"
+      ],
+      "motionPotential": [
+        "static prop",
+        "whole-object transform"
+      ],
+      "materialFamilies": [
+        "woven cloth",
+        "wrapped textile binding",
+        "rubberized underside"
+      ],
+      "notes": "Direct visual inspection shows one low padded moss-green mat with a broad rounded-rectangle plan, a darker wrapped perimeter, an inset continuous seam, and evenly segmented stitches. The unseen underside is inferred only as a thin non-slip support required for stable placement; no manufacturing-grade construction is claimed."
+    },
+    "complexity": {
+      "tier": "moderate",
+      "scores": {
+        "silhouetteComplexity": 1,
+        "componentCount": 1,
+        "hierarchyDepth": 1,
+        "repetitionDensity": 2,
+        "materialLayerCount": 2,
+        "localDetailDensity": 2,
+        "occlusionRisk": 1,
+        "actionReadinessNeed": 1
+      },
+      "estimatedCounts": {
+        "macroComponents": 2,
+        "mesoComponents": 4,
+        "microFeatureGroups": 4,
+        "materialLayers": 3,
+        "repetitionSystems": 1
+      },
+      "reasoning": [
+        "The outer silhouette is geometrically simple, but the reference identity depends on a multi-part perimeter profile rather than a flat rounded box.",
+        "The evenly spaced stitch dashes form one dense curve-following repetition system around four sides and four large-radius corners.",
+        "Close-up insets expose distinct macro mottling, meso woven strands, and micro fiber/roughness breakup on both the field and binding.",
+        "The hidden underside and exact thickness are not visible, so those dimensions stay conservative and are reviewed through placement and contact-shadow behavior rather than claimed as reference fact."
+      ]
+    },
+    "specDepthDecision": {
+      "requiredDepth": "moderate",
+      "minimumComponentLevels": [
+        "macro",
+        "meso",
+        "micro"
+      ],
+      "needsRepetitionSystems": true,
+      "needsMaterialLocalOverrides": true,
+      "needsMultipleReviewViews": true,
+      "needsActionReadyHierarchy": true,
+      "rationale": "Moderate depth is sufficient for the simple massing, but strict fidelity requires explicit binding, seam and stitch systems plus independent three-frequency material response, a stable contact layer, and a rounded hit boundary."
+    },
+    "unknownsToResolveBeforeImplementation": [],
+    "detailInventory": {
+      "scanMethod": "grid-3x3",
+      "targetMinDetails": 8,
+      "note": "Nine reference-observed or explicitly inferred implementation details are mapped to concrete localFeatures/localOverrides. Absolute underside thickness remains an inference, not a measured fact.",
+      "details": [
+        {
+          "id": "rounded-plan-corners",
+          "kind": "bevel",
+          "description": "The outer plan uses four broad quarter-circle corners rather than a thin edge-radius clamp; corner radius is about 9 percent of mat depth.",
+          "region": {
+            "x": 0.04,
+            "y": 0.11,
+            "width": 0.91,
+            "height": 0.57,
+            "units": "normalized"
+          },
+          "scale": "macro; radius approximately 0.55 world units for the preserved 6.25-unit depth",
+          "affects": "outer silhouette geometry",
+          "mapsTo": {
+            "type": "component.localFeatures",
+            "ref": "mat-body/plan-corner-radius"
+          },
+          "evidenceRef": "mat-full",
+          "confidence": 0.96
+        },
+        {
+          "id": "soft-crowned-field",
+          "kind": "contour",
+          "description": "The central field is low and padded with a restrained convex crown, remaining nearly planar enough for desk use.",
+          "region": {
+            "x": 0.12,
+            "y": 0.13,
+            "width": 0.76,
+            "height": 0.51,
+            "units": "normalized"
+          },
+          "scale": "meso; crown under 0.015 mat units above the edge datum",
+          "affects": "top-surface form and grazing highlight",
+          "mapsTo": {
+            "type": "component.localFeatures",
+            "ref": "mat-body/low-padded-crown"
+          },
+          "evidenceRef": "mat-field",
+          "confidence": 0.84
+        },
+        {
+          "id": "rolled-perimeter-binding",
+          "kind": "ridge",
+          "description": "A darker continuous wrapped binding creates a rounded raised perimeter with a softly bulged cross-section.",
+          "region": {
+            "x": 0.04,
+            "y": 0.11,
+            "width": 0.91,
+            "height": 0.57,
+            "units": "normalized"
+          },
+          "scale": "meso; approximately 0.055 mat units wide and 0.025 high",
+          "affects": "perimeter profile, silhouette thickness, and edge highlight",
+          "mapsTo": {
+            "type": "component.localFeatures",
+            "ref": "binding-ring/rolled-binding-profile"
+          },
+          "evidenceRef": "mat-edge-closeup",
+          "confidence": 0.95
+        },
+        {
+          "id": "inset-binding-seam",
+          "kind": "seam",
+          "description": "A narrow recessed line separates the woven field from the wrapped binding around the complete inset perimeter.",
+          "region": {
+            "x": 0.055,
+            "y": 0.115,
+            "width": 0.89,
+            "height": 0.555,
+            "units": "normalized"
+          },
+          "scale": "micro; groove width approximately 0.008 mat units",
+          "affects": "edge construction line and cavity occlusion",
+          "mapsTo": {
+            "type": "component.localFeatures",
+            "ref": "seam-channel/inset-recessed-seam"
+          },
+          "evidenceRef": "mat-edge-closeup",
+          "confidence": 0.94
+        },
+        {
+          "id": "segmented-perimeter-stitches",
+          "kind": "stitch",
+          "description": "Short moss thread dashes repeat at even spacing along all four sides and turn continuously through each corner.",
+          "region": {
+            "x": 0.055,
+            "y": 0.115,
+            "width": 0.89,
+            "height": 0.555,
+            "units": "normalized"
+          },
+          "scale": "micro; dash length approximately 0.018 mat units with 0.028 spacing",
+          "affects": "curve-following repeated geometry and thread-color contrast",
+          "mapsTo": {
+            "type": "component.localFeatures",
+            "ref": "stitch-system/perimeter-stitch-path"
+          },
+          "evidenceRef": "mat-edge-closeup",
+          "confidence": 0.97
+        },
+        {
+          "id": "field-woven-crosshatch",
+          "kind": "linework",
+          "description": "Fine interlaced fibers form a dense directional crosshatch that remains visible in both the full view and close-up.",
+          "region": {
+            "x": 0.18,
+            "y": 0.18,
+            "width": 0.64,
+            "height": 0.4,
+            "units": "normalized"
+          },
+          "scale": "micro; high-frequency weave repeated about 80 times per mat unit",
+          "affects": "independent normal, roughness, and albedo channels",
+          "mapsTo": {
+            "type": "material.localOverrides",
+            "ref": "field-cloth/woven-crosshatch"
+          },
+          "evidenceRef": "mat-field",
+          "confidence": 0.93
+        },
+        {
+          "id": "field-tonal-mottling",
+          "kind": "stain",
+          "description": "Broad low-contrast olive tonal variation prevents the field from reading as a uniform flat color without suggesting dirt.",
+          "region": {
+            "x": 0.1,
+            "y": 0.12,
+            "width": 0.8,
+            "height": 0.53,
+            "units": "normalized"
+          },
+          "scale": "macro and meso; irregular variation over 0.12 to 0.45 mat units",
+          "affects": "albedo and roughness locality",
+          "mapsTo": {
+            "type": "material.localOverrides",
+            "ref": "field-cloth/olive-tonal-mottle"
+          },
+          "evidenceRef": "mat-field",
+          "confidence": 0.86
+        },
+        {
+          "id": "binding-fiber-grain",
+          "kind": "linework",
+          "description": "The wrapped edge shows fine curved and longitudinal fiber marks following the perimeter instead of planar UV stretching.",
+          "region": {
+            "x": 0.18,
+            "y": 0.75,
+            "width": 0.65,
+            "height": 0.2,
+            "units": "normalized"
+          },
+          "scale": "micro; fiber width below 0.003 mat units",
+          "affects": "binding tangent-space normal and roughness direction",
+          "mapsTo": {
+            "type": "material.localOverrides",
+            "ref": "binding-textile/perimeter-fiber-grain"
+          },
+          "evidenceRef": "mat-edge-closeup",
+          "confidence": 0.91
+        },
+        {
+          "id": "binding-worn-highlight",
+          "kind": "gloss",
+          "description": "The outer crest of the rounded binding carries a restrained smoother highlight, strongest in the low grazing close-up.",
+          "region": {
+            "x": 0.18,
+            "y": 0.75,
+            "width": 0.65,
+            "height": 0.2,
+            "units": "normalized"
+          },
+          "scale": "micro local mask over the outer 20 percent of binding width",
+          "affects": "localized roughness and grazing-light response",
+          "mapsTo": {
+            "type": "material.localOverrides",
+            "ref": "binding-textile/crest-wear-highlight"
+          },
+          "evidenceRef": "mat-edge-closeup",
+          "confidence": 0.84
+        }
+      ]
+    },
+    "anatomy": {
+      "applies": false,
+      "styleHeads": 0.0,
+      "proportions": {
+        "headUnit": 0.0,
+        "torso": 0.0,
+        "legs": 0.0,
+        "shoulderWidth": 0.0,
+        "hipWidth": 0.0
+      },
+      "pose": {
+        "type": "unassessed",
+        "jointAngles": {}
+      },
+      "faceLandmarks": {
+        "eyeLine": 0.0,
+        "eyeSpacing": 0.0,
+        "noseBase": 0.0,
+        "mouthLine": 0.0,
+        "hairline": 0.0
+      },
+      "features": [],
+      "confidence": 0.0,
+      "note": "Only meaningful when objectClass.primaryDomain is character or hybrid. Set applies=true and fill from forge/stage1_intake/extract_landmarks.py. See grimoire/character/reconstruction.md and grimoire/character/likeness_maximization.md."
+    },
+    "sourceImage": "docs/assets/concepts/warm-paper-atelier-desk-mat.png"
+  },
+  "qualityContract": {
+    "qualityBar": "reference-fidelity",
+    "definitionOfDone": [
+      "At the reference three-quarter camera the preserved 8.7 by 6.25 world-unit footprint reads as a broad moss-green desk pad with large plan-view corner radii, never as a thin-radius rounded box.",
+      "The field, rolled binding, inset seam, and segmented perimeter stitches remain distinct from full-object distance and in a grazing edge close-up.",
+      "The field and binding each retain independently generated albedo, roughness, normal/height, and AO responses with macro, meso, and micro frequency bands.",
+      "The model rests without visible floating or wood intersection, uses one conservative rounded-rectangle collider/hit boundary, and does not alter the application's approved desk-mat interaction bounds."
+    ],
+    "minimumSpecDepth": {
+      "macroComponents": 2,
+      "mesoComponents": 4,
+      "microFeatureGroups": 4,
+      "materialLayers": 3,
+      "repetitionSystems": 1,
+      "reviewViewpoints": 4
+    },
+    "featureGroups": [
+      {
+        "id": "overall-silhouette",
+        "name": "Broad rounded plan silhouette and low profile",
+        "required": true,
+        "qualityCriteria": [
+          "The approved 8.7 by 6.25 world-unit footprint and z=0.2 center stay unchanged; all four plan corners use a radius near 0.55 world units.",
+          "Side profile remains low and subtly padded; neither field nor binding balloons into a cushion."
+        ],
+        "evidenceRefs": [
+          "mat-full"
+        ],
+        "failureModes": [
+          "corner radius collapses because it is clamped by the thin vertical dimension",
+          "mat reads as a sharp slab, a pill, or a thick cushion"
+        ]
+      },
+      {
+        "id": "primary-structure",
+        "name": "Layered field, binding, seam, and support structure",
+        "required": true,
+        "qualityCriteria": [
+          "The central field, rolled binding, inset seam channel, repeated stitches, and thin non-slip underside have separate geometry/material ownership.",
+          "All layers share one root and a common rounded footprint so their boundaries stay registered."
+        ],
+        "evidenceRefs": [
+          "mat-full"
+        ],
+        "failureModes": [
+          "binding is painted onto the top surface instead of forming the reference edge profile",
+          "layers z-fight, separate, or produce an unintended gap at the corners"
+        ]
+      },
+      {
+        "id": "perimeter-stitch-system",
+        "name": "Inset segmented perimeter stitch system",
+        "required": true,
+        "qualityCriteria": [
+          "Stitches are short raised thread segments instanced at even arc-length spacing around the complete inset rounded rectangle.",
+          "Corner orientation follows the path tangent with no bunching, straight-line shortcut, or missing quadrant."
+        ],
+        "evidenceRefs": [
+          "mat-full"
+        ],
+        "failureModes": [
+          "stitching is represented as one continuous painted outline",
+          "stitch spacing or tangent direction breaks visibly at the four corners",
+          "stitches float above the field or sink below the seam channel"
+        ]
+      },
+      {
+        "id": "surface-material-response",
+        "name": "Three-frequency woven field and wrapped binding response",
+        "required": true,
+        "qualityCriteria": [
+          "Field and binding define independent albedo, roughness, normal/height, and AO maps; no channel aliases albedo.",
+          "Macro olive mottling, meso yarn variation, and micro crosshatch/fiber normal detail remain distinct under neutral and grazing light.",
+          "The binding crest has a localized smoother wear highlight while the inset seam and stitch contacts carry coherent AO."
+        ],
+        "evidenceRefs": [
+          "mat-full"
+        ],
+        "failureModes": [
+          "field reads as flat plastic or noisy stone rather than woven cloth",
+          "binding uses the field's planar texture and stretches around corners",
+          "normal detail is baked into albedo or disappears when relit"
+        ]
+      },
+      {
+        "id": "reference-lookdev",
+        "name": "Grounded reference look-development and hit boundary",
+        "required": true,
+        "qualityCriteria": [
+          "Reference-derived moss/olive palette and tactile response are verified in neutral, grazing, top, and reference-matched views.",
+          "One warm directional key plus restrained fill/environment preserves edge relief without flattening the mat.",
+          "The underside contact shadow anchors the model without a visible gap or intersection, and the rounded collider matches the outer footprint."
+        ],
+        "evidenceRefs": [
+          "mat-full"
+        ],
+        "failureModes": [
+          "the mat floats above or clips into the wooden desktop",
+          "lighting is evenly ambient and loses seam, stitch, and edge relief",
+          "hit boundary is a sharp rectangle or extends beyond the visible rounded footprint"
+        ]
+      }
+    ],
+    "visualDeltaChecks": [
+      "preserved 8.7 by 6.25 footprint, 0.55 corner-radius, and low side-profile delta",
+      "field-to-binding width, height, and registration delta",
+      "inset seam path and stitch arc-length distribution delta",
+      "woven field and wrapped-edge macro/meso/micro response delta",
+      "localized binding crest highlight and contact AO delta",
+      "rounded collider-to-visible-footprint and desktop contact delta"
+    ],
+    "antiShallowSpecRules": [
+      "Do not proceed to code if qualityContract.qualityBar is unassessed.",
+      "Do not proceed to code if the spec only contains a root component for a moderate or complex object.",
+      "Do not proceed to code if required featureGroups are not represented by componentTree, materials, or repetitionSystems.",
+      "Do not proceed to code if visible local features are described only in prose and not attached to components/materials/evidenceRefs.",
+      "Do not proceed past structural-pass if attached child parts lack attachment.parentSocket, localStart, localEnd, embedDepth/overlap, and gapTolerance.",
+      "Do not pass material look-dev when albedo is reused as roughness, height, normal, or AO.",
+      "Do not pass material look-dev without macro, meso, and micro surface frequency bands for close-up materials.",
+      "Do not pass reference-fidelity material look-dev from a source image without usable referencePbr maps or an explicit documented limitation.",
+      "Do not patch a spec with extracted PBR maps when extraction confidence is below the target threshold unless the user explicitly accepts lower fidelity."
+    ]
+  },
+  "qualityTargets": {
+    "targetFidelity": 0.85,
+    "mustMatch": [
+      "preserved 8.7 by 6.25 footprint with four 0.55-radius plan corners",
+      "low padded field plus darker continuous rolled binding and inset seam",
+      "even segmented stitches following the complete rounded perimeter",
+      "moss cloth macro mottling, meso yarn breakup, and micro weave response",
+      "stable desktop contact and unchanged x/z sticker placement contract"
+    ],
+    "niceToHave": [
+      "subtle corner compression in the wrapped binding",
+      "restrained crest wear variation without visible dirt"
+    ],
+    "fpsTarget": 60,
+    "reviewViewpoints": [
+      "reference-match elevated three-quarter full object",
+      "orthographic top footprint and corner-radius check",
+      "low grazing front-left edge close-up",
+      "neutral-light material close-up"
+    ]
+  },
+  "selfCorrectLoop": {
+    "enabled": true,
+    "visualAcceptance": {
+      "reviewer": "ai-vision",
+      "threshold": 0.85,
+      "comparisonArtifactRequired": true,
+      "layerScoresRequired": true,
+      "codePixelDiffIsAcceptanceAuthority": false,
+      "scoringRule": "AI vision must inspect a side-by-side reference/render sheet and score the current pass from 0 to 1. Pixel-diff code may assist diagnostics but cannot approve a pass.",
+      "requiredLayerScores": [
+        "silhouetteProportion",
+        "componentStructure",
+        "formDetail",
+        "materialSurface",
+        "lightingCamera"
+      ],
+      "featureReviewPolicy": {
+        "enabled": true,
+        "reviewUnit": "semantic-subsystem",
+        "maxCriticalFeaturesPerPass": 5,
+        "maxImportantFeaturesPerPass": 3,
+        "criticalDefaultThreshold": 0.82,
+        "importantAverageThreshold": 0.76,
+        "adaptiveEscalation": true,
+        "singleImagePairOnly": true,
+        "selectionRule": "Choose only the most visually salient, identity-defining, user-prioritized, or high-risk semantic systems. Group repeated parts instead of reviewing every mesh. AI vision scores every selected feature from the same full reference/render pair."
+      }
+    },
+    "reviewAfterPasses": [
+      "blockout",
+      "structural-pass",
+      "form-refinement",
+      "material-pass",
+      "surface-pass",
+      "lighting-pass",
+      "interaction-pass",
+      "optimization-pass"
+    ],
+    "allowedActions": [
+      "continue",
+      "refine-spec",
+      "refine-code",
+      "request-input",
+      "stop"
+    ],
+    "specRefineTriggers": [
+      "missing component",
+      "wrong primitive family",
+      "wrong proportions",
+      "material layer under-specified",
+      "local feature not traceable to viewEvidence",
+      "reference ambiguity discovered during implementation"
+    ],
+    "codeRefineTriggers": [
+      "spec is adequate but generated geometry/material does not match",
+      "browser render differs from reference",
+      "performance budget exceeded",
+      "lighting hides geometry or material response"
+    ],
+    "stopCriteria": [
+      "target fidelity reached or user accepts current approximation",
+      "remaining gaps require new reference images or manual art"
+    ],
+    "screenshotPolicy": {
+      "requiredForPasses": [
+        "blockout",
+        "structural-pass",
+        "form-refinement",
+        "material-pass",
+        "surface-pass",
+        "lighting-pass",
+        "interaction-pass"
+      ],
+      "preferredCapture": "in-app-browser-screenshot",
+      "fallbackCapture": "user-supplied-screenshot-path",
+      "minimumEvidence": "Each visual pass needs a reference image, rendered screenshot, side-by-side comparison sheet, AI vision score, layer scores, and critique before choosing continue.",
+      "reviewPairRule": "Compare the same camera/viewpoint whenever possible; do not judge a front reference against a random render angle.",
+      "acceptanceAuthority": "AI vision review of the comparison sheet. Code-generated pixel similarity is not sufficient evidence."
+    }
+  },
+  "featureReviewTargets": [
+    {
+      "id": "mat-rounded-footprint",
+      "name": "Preserved footprint and broad plan-corner silhouette",
+      "tier": "critical",
+      "passIds": [
+        "blockout",
+        "form-refinement"
+      ],
+      "minimumScore": 0.82,
+      "mustPass": true,
+      "componentRefs": [
+        "mat-body"
+      ],
+      "evidenceRefs": [
+        "mat-full"
+      ]
+    },
+    {
+      "id": "mat-layered-edge-profile",
+      "name": "Low field, rolled binding, seam, and underside profile",
+      "tier": "critical",
+      "passIds": [
+        "structural-pass",
+        "form-refinement"
+      ],
+      "minimumScore": 0.82,
+      "mustPass": true,
+      "componentRefs": [
+        "field-top",
+        "binding-ring",
+        "seam-channel",
+        "underside-support"
+      ],
+      "evidenceRefs": [
+        "mat-full",
+        "mat-edge-closeup"
+      ]
+    },
+    {
+      "id": "mat-segmented-stitch-path",
+      "name": "Arc-length perimeter stitches with corner tangent continuity",
+      "tier": "critical",
+      "passIds": [
+        "structural-pass",
+        "form-refinement",
+        "surface-pass"
+      ],
+      "minimumScore": 0.82,
+      "mustPass": true,
+      "componentRefs": [
+        "stitch-system"
+      ],
+      "evidenceRefs": [
+        "mat-full",
+        "mat-edge-closeup"
+      ]
+    },
+    {
+      "id": "mat-three-frequency-cloth",
+      "name": "Independent moss-cloth macro, meso, and micro PBR response",
+      "tier": "critical",
+      "passIds": [
+        "material-pass",
+        "surface-pass",
+        "lighting-pass"
+      ],
+      "minimumScore": 0.82,
+      "mustPass": true,
+      "componentRefs": [
+        "field-top",
+        "binding-ring"
+      ],
+      "evidenceRefs": [
+        "mat-field",
+        "mat-edge-closeup",
+        "moss-cloth-pbr"
+      ]
+    },
+    {
+      "id": "mat-contact-and-hit-contract",
+      "name": "Desktop grounding and unchanged rounded hit contract",
+      "tier": "critical",
+      "passIds": [
+        "lighting-pass",
+        "interaction-pass"
+      ],
+      "minimumScore": 0.82,
+      "mustPass": true,
+      "componentRefs": [
+        "root",
+        "underside-support"
+      ],
+      "evidenceRefs": [
+        "mat-edge-closeup"
+      ]
+    }
+  ],
+  "sculptPipeline": {
+    "passGateMode": "locked-sequential",
+    "passOrder": [
+      "blockout",
+      "structural-pass",
+      "form-refinement",
+      "material-pass",
+      "surface-pass",
+      "lighting-pass",
+      "interaction-pass",
+      "optimization-pass"
+    ],
+    "currentPass": "complete",
+    "completedPasses": [
+      "blockout",
+      "structural-pass",
+      "form-refinement",
+      "material-pass",
+      "surface-pass",
+      "lighting-pass",
+      "interaction-pass",
+      "optimization-pass"
+    ],
+    "lastCompletedPass": "optimization-pass",
+    "blockedReason": "all build passes completed",
+    "nextRequiredEvidence": []
+  },
+  "lookDevTargets": {
+    "qualityPriority": "reference-fidelity",
+    "materialPass": {
+      "albedoPaletteRequired": true,
+      "roughnessVariationRequired": true,
+      "normalOrBumpRequired": true,
+      "localOverridesRequired": true,
+      "minimumTextureResolution": 1024,
+      "preferredTextureResolution": 2048,
+      "independentMapChannels": [
+        "albedo",
+        "roughness",
+        "height",
+        "normal",
+        "ambient-occlusion"
+      ],
+      "requiredSurfaceFrequencyBands": [
+        "macro",
+        "meso",
+        "micro"
+      ],
+      "geometryReliefRequiredWhenSilhouetteAffected": true,
+      "referencePbrExtraction": {
+        "requiredWhenSourceImagePresent": true,
+        "targetThreshold": 0.7,
+        "stopOnLowConfidence": true,
+        "script": "forge/stage1_intake/extract_pbr_evidence.py",
+        "acceptedLimitation": "single-image extraction is reference-derived inference, not exact photogrammetry"
+      },
+      "mustAvoid": [
+        "single flat albedo per material",
+        "uniform roughness",
+        "albedo texture reused as roughness/height/normal/AO",
+        "single-frequency random noise",
+        "plastic-looking smooth bark, stone, cloth, foliage, or aged material",
+        "local color/detail described only in prose without material masks",
+        "claiming exact PBR recovery when confidence is below the target threshold"
+      ]
+    },
+    "lightingPass": {
+      "requiredTerms": [
+        "key light",
+        "fill light",
+        "rim or environment light",
+        "exposure",
+        "tone mapping",
+        "background",
+        "contact shadow"
+      ],
+      "mustAvoid": [
+        "ambient-only lighting",
+        "flat value range",
+        "missing contact shadow",
+        "reference lighting copied without separating material readability"
+      ]
+    },
+    "screenshotReview": [
+      "Compare albedo palette and local color zones.",
+      "Compare roughness/normal/bump response under light.",
+      "Compare cavity dirt, edge wear, stains, moss, scratches, or other local masks.",
+      "Compare key/fill/rim structure, exposure, tone mapping, background, and contact shadows.",
+      "Capture a neutral-light render to verify material readability without reference lighting.",
+      "Capture a grazing-light close-up to expose flat normals, uniform roughness, tiling, and plastic highlights.",
+      "Capture a reference-matched render from the same camera framing as the source."
+    ]
+  },
+  "actionReadiness": {
+    "contract": "Generate one stable named root Group at scene position [0, 0.025, 0.2]. Expose visual layers separately, one rounded-rectangle hit proxy, the unchanged sticker placement plane y=0.11 and bounds x=[-4.05,4.05], z=[-2.72,2.72], plus deterministic resource disposal metadata.",
+    "defaultRigType": "static layered prop with whole-object transform and interaction proxy",
+    "rootMotionNode": "root",
+    "requiredComponentFields": [
+      "id",
+      "parent",
+      "transform",
+      "attachment for child appendages, connectors, limbs, tubes, handles, legs, horns, wings, branches, or cables",
+      "actionProfile.animationRole",
+      "actionProfile.pivot",
+      "actionProfile.collider",
+      "actionProfile.destruction"
+    ],
+    "transformChannels": [
+      "translate",
+      "rotate",
+      "scale",
+      "bend",
+      "twist",
+      "detach",
+      "visibility",
+      "material-state"
+    ],
+    "authoringRules": [
+      "Keep field, binding, seam, underside, and stitch instance system as named children so material and LOD passes remain independently adjustable.",
+      "Use a 2D rounded-rectangle Shape plus ExtrudeGeometry or custom planar rings; never use RoundedBoxGeometry for the plan radius because its thin y dimension clamps the corner radius.",
+      "Keep the hit proxy independent from dense stitch geometry and expose it through root.userData.sculptRuntime.colliders.",
+      "Preserve the existing single-canvas R3F event owner and do not change sticker persistence coordinates.",
+      "Dispose every generated geometry, material, texture, and instance buffer exactly once when the wrapping R3F component unmounts."
+    ],
+    "destructionPolicy": {
+      "defaultBreakable": false,
+      "fractureGroupNaming": "Not applicable to this non-breakable desk mat; retain stable layer ids only.",
+      "debrisStrategy": "No destruction behavior is required or permitted for the approved static prop."
+    }
+  },
+  "assumptions": [
+    "The concept image does not reveal the underside; a 0.012-unit rubberized support layer is inferred solely to prevent floating and z-fighting.",
+    "The preserved application footprint is 8.7 by 6.25 world units centered at z=0.2; reference perspective, not geometric stretching, creates the wide apparent silhouette.",
+    "The moss-cloth extraction is single-image evidence with confidence 0.761, not exact inverse rendering; neutral and grazing screenshots remain mandatory.",
+    "Binding and field share a moss textile family, but use different curve/planar projections and independent local roughness masks."
+  ],
+  "coordinateFrame": {
+    "front": "+Z toward the user/front desk edge",
+    "up": "+Y away from the desktop",
+    "right": "+X across the long mat edge",
+    "origin": "center of the visible footprint at scene [0, 0.025, 0.2]",
+    "scaleReference": "Three.js world units; preserve current 8.7 width, 6.25 depth, 0.13 maximum visible thickness"
+  },
+  "silhouette": {
+    "boundingShape": "Low rounded-rectangle prism built from a plan-view Shape with 0.55-unit quarter-circle corners and a subtly crowned top surface",
+    "aspectRatios": [
+      "width:depth = 8.7:6.25 (1.392:1) preserved runtime footprint",
+      "maximum thickness:depth = 0.13:6.25",
+      "binding width:depth approximately 0.15:6.25"
+    ],
+    "symmetry": "bilateral across local X and Z axes; only procedural weave noise and wear masks may break symmetry",
+    "dominantCurves": [
+      "four tangent-continuous 0.55-unit outer plan corners",
+      "four approximately 0.43-unit inset field/seam corners",
+      "soft 0.012-unit top crown tapering to the seam datum",
+      "rolled binding cross-section with a restrained outer crest"
+    ],
+    "negativeSpaces": [
+      "thin recessed channel between the field and binding",
+      "small shadow gap beneath the binding crest and desktop contact"
+    ],
+    "landmarks": [
+      "outer binding ring",
+      "inset recessed seam",
+      "continuous segmented stitch path",
+      "flat stable underside datum"
+    ]
+  },
+  "viewEvidence": [
+    {
+      "id": "mat-full",
+      "view": "upper-panel elevated three-quarter full object",
+      "imageRegion": {
+        "x": 0.04,
+        "y": 0.105,
+        "width": 0.915,
+        "height": 0.58,
+        "units": "normalized"
+      },
+      "observations": [
+        "complete rounded footprint and all four corner radii",
+        "low padded field, darker binding, inset seam, and stitch continuity",
+        "warm key from upper-left with grounded desktop contact shadow"
+      ],
+      "confidence": 0.96
+    },
+    {
+      "id": "mat-field",
+      "view": "central field material crop",
+      "imageRegion": {
+        "x": 0.18,
+        "y": 0.18,
+        "width": 0.64,
+        "height": 0.4,
+        "units": "normalized"
+      },
+      "observations": [
+        "dark moss and olive low-frequency tonal variation",
+        "fine interlaced weave and irregular fiber breakup",
+        "matte high-roughness response without flat-color plastic appearance"
+      ],
+      "confidence": 0.93
+    },
+    {
+      "id": "mat-edge-closeup",
+      "view": "two lower grazing edge insets",
+      "imageRegion": {
+        "x": 0.17,
+        "y": 0.755,
+        "width": 0.66,
+        "height": 0.2,
+        "units": "normalized"
+      },
+      "observations": [
+        "rolled binding profile, corner compression, and localized crest highlight",
+        "recessed inner seam with short evenly spaced thread dashes",
+        "binding-aligned fiber grain and stable desktop contact"
+      ],
+      "confidence": 0.95
+    },
+    {
+      "id": "moss-cloth-pbr",
+      "view": "reference-derived material evidence",
+      "imageRegion": {
+        "x": 0.0,
+        "y": 0.0,
+        "width": 1.0,
+        "height": 1.0,
+        "units": "normalized"
+      },
+      "observations": [
+        "extract_pbr_evidence.py verdict pass at confidence 0.761",
+        "independent albedo, roughness, height, normal, and AO maps",
+        "single-image inverse-rendering limitation remains mandatory in material review"
+      ],
+      "confidence": 0.761,
+      "report": "docs/assets/model-reviews/dd-20260810-002/pbr-evidence/moss-cloth-report.json"
+    }
+  ],
+  "componentTree": [
+    {
+      "id": "root",
+      "name": "Warm Paper Atelier Desk Mat",
+      "level": "macro",
+      "role": "body",
+      "importance": 1.0,
+      "confidence": 0.5,
+      "primitive": "box",
+      "geometryDescriptor": {
+        "topologyIntent": "low-poly blockout with bevel-ready edges",
+        "edgeTreatment": {
+          "type": "none",
+          "bevelRadius": 0.0,
+          "segments": 1
+        },
+        "deformationStack": [],
+        "uvStrategy": "generated procedural coordinates",
+        "normalStrategy": "vertex normals from generated geometry"
+      },
+      "parent": null,
+      "attachment": null,
+      "dimensions": {
+        "width": 8.7,
+        "height": 0.13,
+        "depth": 6.25,
+        "units": "Three.js world units",
+        "confidence": 1.0
+      },
+      "transform": {
+        "position": [
+          0,
+          0.025,
+          0.2
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "root",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            1,
+            0
+          ],
+          "confidence": 1.0
+        },
+        "transformChannels": {
+          "translate": true,
+          "rotate": true,
+          "scale": true,
+          "bend": false,
+          "twist": false,
+          "detach": false,
+          "visibility": true,
+          "materialState": true
+        },
+        "sockets": [],
+        "collider": {
+          "type": "rounded-rectangle-prism",
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            8.7,
+            0.13,
+            6.25
+          ],
+          "isTrigger": false,
+          "notes": "Plan radius 0.55. Preserve sticker hit plane y=0.11 and placement bounds x=[-4.05,4.05], z=[-2.72,2.72]."
+        },
+        "constraints": [],
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "root",
+          "seamRefs": [],
+          "detachableFragments": [],
+          "breakImpulse": 0.0,
+          "debrisMaterial": "utility-dark"
+        }
+      },
+      "material": "utility-dark",
+      "materialLayers": [
+        "utility-dark"
+      ],
+      "deformations": [],
+      "joints": [],
+      "seams": [],
+      "localFeatures": [
+        {
+          "id": "rounded-hit-proxy",
+          "type": "collider",
+          "shape": "rounded rectangle",
+          "radius": 0.55
+        }
+      ],
+      "surfaceDetail": {
+        "macroRoughness": 0.0,
+        "microRoughness": 0.0,
+        "bumpAmplitude": 0.0,
+        "normalPattern": "",
+        "displacementPattern": "",
+        "occlusionPattern": "",
+        "edgeWearPattern": "",
+        "notes": ""
+      },
+      "evidenceRefs": [
+        "mat-full"
+      ],
+      "details": [],
+      "fidelityTier": "contract"
+    },
+    {
+      "id": "mat-body",
+      "name": "Rounded extruded mat body",
+      "level": "macro",
+      "role": "body",
+      "importance": 1.0,
+      "confidence": 0.96,
+      "primitive": "extrude",
+      "geometryDescriptor": {
+        "topologyIntent": "2D rounded-rectangle Shape extruded along Y; do not use RoundedBoxGeometry because thin height clamps plan radius",
+        "edgeTreatment": {
+          "type": "rounded plan profile",
+          "bevelRadius": 0.55,
+          "segments": 12
+        },
+        "deformationStack": [
+          "0.012-unit low padded crown in the inset field"
+        ],
+        "uvStrategy": "planar XZ projection with stable world-space texel density",
+        "normalStrategy": "smooth side normals and independent tangent-space cloth normal"
+      },
+      "parent": "root",
+      "attachment": null,
+      "dimensions": {
+        "width": 8.7,
+        "height": 0.1,
+        "depth": 6.25,
+        "units": "world",
+        "confidence": 0.96
+      },
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "static",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            1,
+            0
+          ],
+          "confidence": 1.0
+        },
+        "transformChannels": {
+          "translate": false,
+          "rotate": false,
+          "scale": false,
+          "bend": false,
+          "twist": false,
+          "detach": false,
+          "visibility": true,
+          "materialState": true
+        },
+        "sockets": [],
+        "collider": null,
+        "constraints": []
+      },
+      "material": "field-cloth",
+      "materialLayers": [
+        "field-cloth"
+      ],
+      "deformations": [
+        "subtle crown only; preserve planar usability"
+      ],
+      "joints": [],
+      "seams": [
+        "seam-channel"
+      ],
+      "localFeatures": [
+        {
+          "id": "plan-corner-radius",
+          "type": "plan silhouette",
+          "radius": 0.55,
+          "segments": 12
+        },
+        {
+          "id": "low-padded-crown",
+          "type": "local deformation",
+          "height": 0.012,
+          "falloff": "to inset seam datum"
+        }
+      ],
+      "surfaceDetail": {
+        "macroRoughness": 0.08,
+        "microRoughness": 0.18,
+        "bumpAmplitude": 0.004,
+        "normalPattern": "woven crosshatch",
+        "displacementPattern": "low crown only",
+        "occlusionPattern": "binding and seam contacts",
+        "edgeWearPattern": "none",
+        "notes": "Keep the field low and nearly planar."
+      },
+      "evidenceRefs": [
+        "mat-full",
+        "mat-field"
+      ],
+      "fidelityTier": "hero"
+    },
+    {
+      "id": "field-top",
+      "name": "Inset woven top field",
+      "level": "meso",
+      "role": "panel",
+      "importance": 0.92,
+      "confidence": 0.93,
+      "primitive": "extrude",
+      "parent": "mat-body",
+      "attachment": null,
+      "dimensions": {
+        "width": 8.4,
+        "height": 0.018,
+        "depth": 5.95,
+        "units": "world",
+        "confidence": 0.9
+      },
+      "transform": {
+        "position": [
+          0,
+          0.058,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "static",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            1,
+            0
+          ],
+          "confidence": 1.0
+        },
+        "transformChannels": {
+          "translate": false,
+          "rotate": false,
+          "scale": false,
+          "bend": false,
+          "twist": false,
+          "detach": false,
+          "visibility": true,
+          "materialState": true
+        },
+        "sockets": [],
+        "collider": null,
+        "constraints": []
+      },
+      "material": "field-cloth",
+      "materialLayers": [
+        "field-cloth"
+      ],
+      "localFeatures": [
+        {
+          "id": "field-inset-profile",
+          "type": "rounded rectangle",
+          "radius": 0.42
+        },
+        {
+          "id": "field-independent-uv",
+          "type": "planar projection",
+          "repeat": [
+            18,
+            13
+          ]
+        }
+      ],
+      "evidenceRefs": [
+        "mat-field",
+        "mat-edge-closeup"
+      ]
+    },
+    {
+      "id": "binding-ring",
+      "name": "Continuous rolled binding ring",
+      "level": "meso",
+      "role": "shell",
+      "importance": 0.98,
+      "confidence": 0.95,
+      "primitive": "extrude",
+      "parent": "mat-body",
+      "attachment": null,
+      "dimensions": {
+        "width": 8.7,
+        "height": 0.13,
+        "depth": 6.25,
+        "units": "world",
+        "confidence": 0.94
+      },
+      "transform": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "static",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            1,
+            0
+          ],
+          "confidence": 1.0
+        },
+        "transformChannels": {
+          "translate": false,
+          "rotate": false,
+          "scale": false,
+          "bend": false,
+          "twist": false,
+          "detach": false,
+          "visibility": true,
+          "materialState": true
+        },
+        "sockets": [],
+        "collider": null,
+        "constraints": []
+      },
+      "material": "binding-textile",
+      "materialLayers": [
+        "binding-textile"
+      ],
+      "localFeatures": [
+        {
+          "id": "rolled-binding-profile",
+          "type": "raised perimeter ridge",
+          "width": 0.15,
+          "height": 0.035
+        },
+        {
+          "id": "corner-compression",
+          "type": "curve-aligned local deformation",
+          "amplitude": 0.006
+        }
+      ],
+      "evidenceRefs": [
+        "mat-full",
+        "mat-edge-closeup"
+      ]
+    },
+    {
+      "id": "seam-channel",
+      "name": "Inset recessed seam channel",
+      "level": "meso",
+      "role": "detail",
+      "importance": 0.9,
+      "confidence": 0.94,
+      "primitive": "extrude",
+      "parent": "mat-body",
+      "attachment": null,
+      "dimensions": {
+        "width": 8.42,
+        "height": 0.006,
+        "depth": 5.97,
+        "units": "world",
+        "confidence": 0.9
+      },
+      "transform": {
+        "position": [
+          0,
+          0.074,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "static",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            1,
+            0
+          ],
+          "confidence": 1.0
+        },
+        "transformChannels": {
+          "translate": false,
+          "rotate": false,
+          "scale": false,
+          "bend": false,
+          "twist": false,
+          "detach": false,
+          "visibility": true,
+          "materialState": false
+        },
+        "sockets": [],
+        "collider": null,
+        "constraints": []
+      },
+      "material": "utility-dark",
+      "materialLayers": [
+        "utility-dark"
+      ],
+      "localFeatures": [
+        {
+          "id": "inset-recessed-seam",
+          "type": "recessed groove",
+          "width": 0.018,
+          "depth": 0.006
+        },
+        {
+          "id": "seam-cavity-ao",
+          "type": "ambient-occlusion strip",
+          "strength": 0.38
+        }
+      ],
+      "evidenceRefs": [
+        "mat-full",
+        "mat-edge-closeup"
+      ]
+    },
+    {
+      "id": "underside-support",
+      "name": "Underside non-slip pad",
+      "level": "meso",
+      "role": "base-layer",
+      "importance": 0.65,
+      "confidence": 0.62,
+      "primitive": "extrude",
+      "parent": "root",
+      "attachment": null,
+      "dimensions": {
+        "width": 8.58,
+        "height": 0.012,
+        "depth": 6.13,
+        "units": "world",
+        "confidence": 0.62
+      },
+      "transform": {
+        "position": [
+          0,
+          -0.059,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "static",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            1,
+            0
+          ],
+          "confidence": 0.9
+        },
+        "transformChannels": {
+          "translate": false,
+          "rotate": false,
+          "scale": false,
+          "bend": false,
+          "twist": false,
+          "detach": false,
+          "visibility": true,
+          "materialState": false
+        },
+        "sockets": [],
+        "collider": null,
+        "constraints": [
+          "bottom datum remains at world y=-0.04"
+        ]
+      },
+      "material": "utility-dark",
+      "materialLayers": [
+        "utility-dark"
+      ],
+      "localFeatures": [
+        {
+          "id": "stable-contact-datum",
+          "type": "planar contact surface",
+          "worldY": -0.04
+        }
+      ],
+      "evidenceRefs": [
+        "mat-edge-closeup"
+      ]
+    },
+    {
+      "id": "stitch-system",
+      "name": "Instanced perimeter stitch dashes",
+      "level": "micro",
+      "role": "detail",
+      "importance": 0.96,
+      "confidence": 0.97,
+      "primitive": "instanced-cluster",
+      "parent": "mat-body",
+      "attachment": null,
+      "dimensions": {
+        "width": 0.036,
+        "height": 0.006,
+        "depth": 0.012,
+        "units": "per stitch",
+        "confidence": 0.88
+      },
+      "transform": {
+        "position": [
+          0,
+          0.083,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "static",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            1,
+            0
+          ],
+          "confidence": 1.0
+        },
+        "transformChannels": {
+          "translate": false,
+          "rotate": false,
+          "scale": false,
+          "bend": false,
+          "twist": false,
+          "detach": false,
+          "visibility": true,
+          "materialState": true
+        },
+        "sockets": [],
+        "collider": null,
+        "constraints": []
+      },
+      "material": "stitch-thread",
+      "materialLayers": [
+        "stitch-thread"
+      ],
+      "localFeatures": [
+        {
+          "id": "perimeter-stitch-path",
+          "type": "arc-length rounded-rectangle distribution",
+          "spacing": 0.105,
+          "dashLength": 0.055,
+          "cornerRadius": 0.43
+        }
+      ],
+      "evidenceRefs": [
+        "mat-full",
+        "mat-edge-closeup"
+      ]
+    }
+  ],
+  "materials": [
+    {
+      "id": "field-cloth",
+      "name": "Moss woven field cloth",
+      "type": "standard",
+      "shaderModel": "MeshStandardMaterial / PBR approximation",
+      "qualityTier": "hero",
+      "baseColor": "#3E3B29",
+      "color": "#3E3B29",
+      "albedo": {
+        "dominant": "#3E3B29",
+        "secondary": [
+          "#373524",
+          "#46422E",
+          "#2D2C1E",
+          "#504B34"
+        ],
+        "samplingNotes": "Palette sampled by moss-cloth PBR evidence; preserve low-contrast olive variation without importing baked highlights."
+      },
+      "colorVariation": {
+        "palette": [
+          "#3E3B29",
+          "#373524",
+          "#46422E",
+          "#2D2C1E",
+          "#504B34"
+        ],
+        "pattern": "mottled",
+        "amplitude": 0.08,
+        "heightCorrelation": 0.16
+      },
+      "textureResolution": 2048,
+      "textureProjection": {
+        "mode": "planar XZ generated UV",
+        "repeat": [
+          18.0,
+          13.0
+        ],
+        "anisotropy": 8,
+        "texelDensityIntent": "Preserve stable world/object-scale detail; do not stretch micro detail with component scale."
+      },
+      "surfaceFrequencyBands": [
+        {
+          "id": "macro",
+          "frequency": 1.5,
+          "amplitude": 0.028,
+          "role": "broad olive tonal mottling over 0.4 to 1.2 world units"
+        },
+        {
+          "id": "meso",
+          "frequency": 18.0,
+          "amplitude": 0.009,
+          "role": "irregular yarn bundles and compressed fiber patches"
+        },
+        {
+          "id": "micro",
+          "frequency": 96.0,
+          "amplitude": 0.0025,
+          "role": "interlaced crosshatch normal and roughness breakup under grazing light"
+        }
+      ],
+      "roughness": {
+        "base": 0.888,
+        "variation": 0.12,
+        "map": "docs/assets/model-reviews/dd-20260810-002/pbr-evidence/moss-cloth/moss-cloth_roughness.png",
+        "localResponse": "slightly higher roughness in compressed yarn cavities; no plastic clearcoat"
+      },
+      "metalness": {
+        "base": 0.0,
+        "variation": 0.0
+      },
+      "normal": {
+        "pattern": "independent woven crosshatch normal",
+        "map": "docs/assets/model-reviews/dd-20260810-002/pbr-evidence/moss-cloth/moss-cloth_normal.png",
+        "strength": 0.347,
+        "scale": 96.0,
+        "space": "tangent"
+      },
+      "bump": {
+        "pattern": "none",
+        "amplitude": 0.0,
+        "scale": 1.0
+      },
+      "displacement": {
+        "pattern": "none",
+        "amplitude": 0.0,
+        "scale": 1.0,
+        "silhouetteAffects": false
+      },
+      "ambientOcclusion": {
+        "map": "docs/assets/model-reviews/dd-20260810-002/pbr-evidence/moss-cloth/moss-cloth_ao.png",
+        "cavityStrength": 0.25,
+        "contactShadowBias": 0.35,
+        "notes": "Darken creases, seams, intersections, and recessed local features."
+      },
+      "wear": {
+        "edgeWear": 0.0,
+        "scratches": [],
+        "chips": []
+      },
+      "dirt": {
+        "amount": 0.0,
+        "cavityBias": 0.0,
+        "color": "#2F2A22"
+      },
+      "localOverrides": [
+        {
+          "id": "woven-crosshatch",
+          "region": "complete inset top field",
+          "normalStrength": 0.347,
+          "roughnessVariation": 0.12,
+          "evidenceRefs": [
+            "mat-field",
+            "moss-cloth-pbr"
+          ]
+        },
+        {
+          "id": "olive-tonal-mottle",
+          "region": "broad irregular field patches",
+          "fadedMask": 0.06,
+          "dirtAmount": 0.0,
+          "roughnessVariation": 0.05,
+          "evidenceRefs": [
+            "mat-field"
+          ]
+        }
+      ],
+      "referencePbr": {
+        "version": "1.0",
+        "sourceImage": "docs/assets/model-reviews/dd-20260810-002/pbr-crops/moss-cloth.png",
+        "extractor": "forge/stage1_intake/extract_pbr_evidence.py",
+        "method": "single-image reference-derived material evidence",
+        "verdict": "pass",
+        "usable": true,
+        "confidence": 0.761,
+        "estimatedFidelity": 0.761,
+        "targetThreshold": 0.7,
+        "hardLimit": "Single-image inverse rendering cannot prove physical PBR; neutral and grazing render review remains required.",
+        "report": "docs/assets/model-reviews/dd-20260810-002/pbr-evidence/moss-cloth-report.json",
+        "maps": {
+          "albedo": {
+            "path": "docs/assets/model-reviews/dd-20260810-002/pbr-evidence/moss-cloth/moss-cloth_albedo.png",
+            "channel": "albedo"
+          },
+          "roughness": {
+            "path": "docs/assets/model-reviews/dd-20260810-002/pbr-evidence/moss-cloth/moss-cloth_roughness.png",
+            "channel": "roughness"
+          },
+          "height": {
+            "path": "docs/assets/model-reviews/dd-20260810-002/pbr-evidence/moss-cloth/moss-cloth_height.png",
+            "channel": "height"
+          },
+          "normal": {
+            "path": "docs/assets/model-reviews/dd-20260810-002/pbr-evidence/moss-cloth/moss-cloth_normal.png",
+            "channel": "normal"
+          },
+          "ao": {
+            "path": "docs/assets/model-reviews/dd-20260810-002/pbr-evidence/moss-cloth/moss-cloth_ao.png",
+            "channel": "ao"
+          }
+        }
+      },
+      "shaderNotes": [
+        "Prefer MeshPhysicalMaterial when clearcoat, sheen, transmission, or thin-surface response is observed; otherwise use MeshStandardMaterial-compatible PBR channels.",
+        "Generate albedo, roughness, height/normal, and AO independently; never alias albedo into roughness.",
+        "Use normal/bump/displacement only when they map to observed surface relief.",
+        "Use displacement geometry when the observed relief changes the close-up silhouette; texture-only relief is insufficient there."
+      ],
+      "notes": "Reference-fidelity field material. Generate independent 2048px albedo, roughness, height/normal, and AO channels; never alias albedo into another channel."
+    },
+    {
+      "id": "binding-textile",
+      "name": "Dark wrapped moss binding",
+      "type": "physical",
+      "shaderModel": "MeshPhysicalMaterial",
+      "qualityTier": "hero",
+      "baseColor": "#2D3022",
+      "color": "#2D3022",
+      "albedo": {
+        "dominant": "#2D3022",
+        "secondary": [
+          "#353727",
+          "#25271B",
+          "#414230"
+        ],
+        "samplingNotes": "Same moss textile family as the field, darkened at the wrapped perimeter and relit without baked source highlight."
+      },
+      "colorVariation": {
+        "palette": [
+          "#2D3022",
+          "#353727",
+          "#25271B",
+          "#414230"
+        ],
+        "pattern": "curve-aligned fiber modulation",
+        "amplitude": 0.07,
+        "heightCorrelation": 0.18
+      },
+      "textureResolution": 2048,
+      "textureProjection": {
+        "mode": "perimeter arc-length UV",
+        "repeat": [
+          30.0,
+          3.0
+        ],
+        "anisotropy": 8,
+        "texelDensityIntent": "Map U by rounded-path length and V around the rolled cross-section so fibers do not stretch at corners."
+      },
+      "surfaceFrequencyBands": [
+        {
+          "id": "macro",
+          "frequency": 1.3,
+          "amplitude": 0.02,
+          "role": "subtle dark olive variation along long perimeter runs"
+        },
+        {
+          "id": "meso",
+          "frequency": 22.0,
+          "amplitude": 0.007,
+          "role": "wrapped yarn compression and corner-direction changes"
+        },
+        {
+          "id": "micro",
+          "frequency": 110.0,
+          "amplitude": 0.002,
+          "role": "longitudinal and curved fiber highlight breakup"
+        }
+      ],
+      "roughness": {
+        "base": 0.82,
+        "variation": 0.14,
+        "map": "docs/assets/model-reviews/dd-20260810-002/pbr-evidence/moss-cloth/moss-cloth_roughness.png",
+        "localResponse": "crest wear locally lowers roughness to 0.28; seam-facing cavity remains rough"
+      },
+      "metalness": {
+        "base": 0.0,
+        "variation": 0.0
+      },
+      "normal": {
+        "pattern": "curve-aligned independent textile normal",
+        "map": "docs/assets/model-reviews/dd-20260810-002/pbr-evidence/moss-cloth/moss-cloth_normal.png",
+        "strength": 0.31,
+        "scale": 110.0,
+        "space": "tangent"
+      },
+      "bump": {
+        "pattern": "independent wrapped-fiber height",
+        "amplitude": 0.002,
+        "scale": 110.0
+      },
+      "displacement": {
+        "pattern": "rolled geometry supplies silhouette relief",
+        "amplitude": 0.0,
+        "scale": 1.0,
+        "silhouetteAffects": false
+      },
+      "ambientOcclusion": {
+        "map": "docs/assets/model-reviews/dd-20260810-002/pbr-evidence/moss-cloth/moss-cloth_ao.png",
+        "cavityStrength": 0.34,
+        "contactShadowBias": 0.42,
+        "notes": "Concentrate AO at seam-facing groove and desktop contact, never as uniform dark noise."
+      },
+      "wear": {
+        "edgeWear": 0.08,
+        "scratches": [],
+        "chips": []
+      },
+      "dirt": {
+        "amount": 0.0,
+        "cavityBias": 0.0,
+        "color": "#202218"
+      },
+      "localOverrides": [
+        {
+          "id": "perimeter-fiber-grain",
+          "region": "complete wrapped binding",
+          "normalDirection": "rounded-path tangent",
+          "normalStrength": 0.31,
+          "evidenceRefs": [
+            "mat-edge-closeup",
+            "moss-cloth-pbr"
+          ]
+        },
+        {
+          "id": "crest-wear-highlight",
+          "region": "outer 20 percent of rolled crest",
+          "roughness": 0.28,
+          "clearcoat": 0.04,
+          "clearcoatRoughness": 0.32,
+          "evidenceRefs": [
+            "mat-edge-closeup"
+          ]
+        }
+      ],
+      "referencePbr": {
+        "version": "1.0",
+        "sourceImage": "docs/assets/model-reviews/dd-20260810-002/pbr-crops/moss-cloth.png",
+        "extractor": "forge/stage1_intake/extract_pbr_evidence.py",
+        "method": "single-image evidence remapped along perimeter arc length",
+        "verdict": "pass",
+        "usable": true,
+        "confidence": 0.761,
+        "estimatedFidelity": 0.761,
+        "targetThreshold": 0.7,
+        "hardLimit": "The crop supports textile response but not exact wrapped-edge inverse rendering; grazing review must verify the remapping.",
+        "report": "docs/assets/model-reviews/dd-20260810-002/pbr-evidence/moss-cloth-report.json",
+        "maps": {
+          "albedo": {
+            "path": "docs/assets/model-reviews/dd-20260810-002/pbr-evidence/moss-cloth/moss-cloth_albedo.png",
+            "channel": "albedo"
+          },
+          "roughness": {
+            "path": "docs/assets/model-reviews/dd-20260810-002/pbr-evidence/moss-cloth/moss-cloth_roughness.png",
+            "channel": "roughness"
+          },
+          "height": {
+            "path": "docs/assets/model-reviews/dd-20260810-002/pbr-evidence/moss-cloth/moss-cloth_height.png",
+            "channel": "height"
+          },
+          "normal": {
+            "path": "docs/assets/model-reviews/dd-20260810-002/pbr-evidence/moss-cloth/moss-cloth_normal.png",
+            "channel": "normal"
+          },
+          "ao": {
+            "path": "docs/assets/model-reviews/dd-20260810-002/pbr-evidence/moss-cloth/moss-cloth_ao.png",
+            "channel": "ao"
+          }
+        }
+      },
+      "shaderNotes": [
+        "Use a curve-length coordinate for the long direction and a rolled-profile coordinate across the binding.",
+        "Do not reuse albedo as roughness, height, normal, or AO."
+      ],
+      "notes": "The reference shows a restrained grazing highlight on the binding crest, not a uniformly glossy plastic tube."
+    },
+    {
+      "id": "utility-dark",
+      "name": "Hidden root, seam cavity, and non-slip utility material",
+      "type": "standard",
+      "shaderModel": "MeshStandardMaterial",
+      "qualityTier": "utility",
+      "baseColor": "#202218",
+      "color": "#202218",
+      "albedo": {
+        "dominant": "#202218",
+        "secondary": [
+          "#292B20"
+        ],
+        "samplingNotes": "Utility support only."
+      },
+      "colorVariation": {
+        "palette": [
+          "#202218",
+          "#292B20"
+        ],
+        "pattern": "none",
+        "amplitude": 0.01,
+        "heightCorrelation": 0.0
+      },
+      "roughness": {
+        "base": 0.96,
+        "variation": 0.03,
+        "map": "independent-procedural-utility-roughness"
+      },
+      "metalness": {
+        "base": 0.0,
+        "variation": 0.0
+      },
+      "normal": {
+        "pattern": "fine rubber grain",
+        "strength": 0.08,
+        "scale": 48.0
+      },
+      "ambientOcclusion": {
+        "cavityStrength": 0.4,
+        "contactShadowBias": 0.5
+      },
+      "localOverrides": [
+        {
+          "id": "contact-ao-band",
+          "region": "desktop contact perimeter",
+          "roughness": 0.98,
+          "evidenceRefs": [
+            "mat-edge-closeup"
+          ]
+        }
+      ],
+      "notes": "Root geometry should be invisible; only seam and underlay meshes use visible instances of this utility material."
+    },
+    {
+      "id": "stitch-thread",
+      "name": "Muted olive stitch thread",
+      "type": "standard",
+      "shaderModel": "MeshStandardMaterial",
+      "qualityTier": "utility",
+      "baseColor": "#73745A",
+      "color": "#73745A",
+      "albedo": {
+        "dominant": "#73745A",
+        "secondary": [
+          "#62644C"
+        ],
+        "samplingNotes": "Low-contrast thread visible against the darker seam."
+      },
+      "colorVariation": {
+        "palette": [
+          "#73745A",
+          "#62644C"
+        ],
+        "pattern": "per-instance deterministic variation",
+        "amplitude": 0.04,
+        "heightCorrelation": 0.0
+      },
+      "roughness": {
+        "base": 0.78,
+        "variation": 0.08,
+        "map": "independent-procedural-thread-roughness"
+      },
+      "metalness": {
+        "base": 0.0,
+        "variation": 0.0
+      },
+      "normal": {
+        "pattern": "thread twist",
+        "strength": 0.12,
+        "scale": 80.0
+      },
+      "ambientOcclusion": {
+        "cavityStrength": 0.24,
+        "contactShadowBias": 0.32
+      },
+      "localOverrides": [
+        {
+          "id": "thread-contact-shadow",
+          "region": "base of each raised dash",
+          "roughness": 0.82,
+          "evidenceRefs": [
+            "mat-edge-closeup"
+          ]
+        }
+      ],
+      "notes": "One shared material and one instanced geometry; no per-stitch draw calls."
+    }
+  ],
+  "repetitionSystems": [
+    {
+      "id": "perimeter-stitches",
+      "componentRef": "stitch-system",
+      "primitive": "instanced-cluster",
+      "implementation": "one InstancedMesh of short rounded thread dashes",
+      "distribution": "sample a 0.43-radius inset rounded-rectangle path at constant 0.105-unit arc length; orient each dash to the path tangent and lift its center to local y=0.083",
+      "countTarget": 274,
+      "variation": "deterministic seed dd-20260810-002; plus/minus 3 percent dash length and 2 percent olive value, no spacing jitter",
+      "qualityRule": "All four corner quadrants remain evenly spaced with no tangent flips, bunching, gaps, or straight-line corner shortcuts.",
+      "evidenceRefs": [
+        "mat-full",
+        "mat-edge-closeup"
+      ]
+    }
+  ],
+  "buildPasses": [
+    {
+      "id": "blockout",
+      "goal": "Match macro silhouette and proportions.",
+      "componentRefs": [
+        "root"
+      ],
+      "acceptance": [
+        "Silhouette reads correctly without materials.",
+        "Quality contract has named all required macro feature groups before code generation.",
+        "AI vision comparison score meets selfCorrectLoop.visualAcceptance.threshold."
+      ]
+    },
+    {
+      "id": "structural-pass",
+      "goal": "Build the component hierarchy implied by the pre-spec complexity assessment.",
+      "componentRefs": [
+        "root"
+      ],
+      "acceptance": [
+        "Macro, meso, and repeated structures meet qualityContract.minimumSpecDepth.",
+        "Parent-child relations, joints, seams, sockets, and contact points are explicit.",
+        "Every attached child appendage/connector has parentSocket, localStart/localEnd, contactType, embedDepth or overlap, and gapTolerance.",
+        "AI vision comparison score meets selfCorrectLoop.visualAcceptance.threshold."
+      ]
+    },
+    {
+      "id": "form-refinement",
+      "goal": "Refine shape, deformation, bevels, tapers, curves, asymmetry, and visible local geometry.",
+      "componentRefs": [
+        "root"
+      ],
+      "acceptance": [
+        "Important visible forms are represented in component geometryDescriptor, deformations, localFeatures, or repetitionSystems.",
+        "Endpoint-based child parts are rooted at their attachment sockets and do not visibly float away from parents.",
+        "AI vision comparison score meets selfCorrectLoop.visualAcceptance.threshold."
+      ]
+    },
+    {
+      "id": "material-pass",
+      "goal": "Match material color, roughness, bump, and local variation.",
+      "componentRefs": [
+        "root"
+      ],
+      "acceptance": [
+        "Reference-derived albedo palette records dominant, secondary, and accent colors per visible material.",
+        "Each important material defines roughness variation and at least one normal/bump/displacement response.",
+        "Local material overrides, dirt/wear/stains/moss/chips/scratches or equivalent masks are tied to evidenceRefs.",
+        "Thin, transparent, reflective, wet, or fibrous materials document alpha/transmission/clearcoat/metalness/fiber response when relevant.",
+        "Generated preview uses procedural albedo/roughness/bump texture or vertex color variation instead of one flat color.",
+        "Generated preview uses independent PBR maps at 1024px or higher for the quality-first tier.",
+        "If source pixels are available, referencePbr extraction passed at confidence >= 0.7 or the pass is stopped/requesting better references.",
+        "Macro, meso, and micro surface frequency bands are visible at the intended review distance without obvious tiling.",
+        "AI vision comparison score meets selfCorrectLoop.visualAcceptance.threshold."
+      ]
+    },
+    {
+      "id": "surface-pass",
+      "goal": "Add procedural surface locality such as normal/bump/displacement, AO, dirt, stains, chips, grain, moss, scratches, and wear.",
+      "componentRefs": [
+        "root"
+      ],
+      "acceptance": [
+        "Every required material feature group has local overrides or surfaceDetail tied to evidenceRefs.",
+        "A grazing-angle close-up proves that normal/height detail breaks highlights naturally and does not read as smooth plastic.",
+        "AI vision comparison score meets selfCorrectLoop.visualAcceptance.threshold."
+      ]
+    },
+    {
+      "id": "lighting-pass",
+      "goal": "Make material and form readable under neutral turntable lighting plus optional reference lighting.",
+      "componentRefs": [
+        "root"
+      ],
+      "acceptance": [
+        "lightingFromPhoto identifies key light direction/color/intensity, fill light, rim or environment light, and ambient color.",
+        "Exposure, tone mapping, background color/gradient, shadow softness, and contact shadow behavior are specified.",
+        "Lighting does not hide geometry/material gaps and screenshots can be compared fairly to the reference.",
+        "Neutral, grazing, and reference-matched lighting checks distinguish material errors from lighting errors.",
+        "AI vision comparison score meets selfCorrectLoop.visualAcceptance.threshold."
+      ]
+    },
+    {
+      "id": "interaction-pass",
+      "goal": "Make the model ready for future animation, transformation, physics, or destruction.",
+      "componentRefs": [
+        "root"
+      ],
+      "acceptance": [
+        "Macro and movable meso components have stable pivot nodes.",
+        "Sockets, collider proxies, and destruction metadata are present for future runtime actions.",
+        "AI vision comparison score meets selfCorrectLoop.visualAcceptance.threshold."
+      ]
+    },
+    {
+      "id": "optimization-pass",
+      "goal": "Protect runtime performance after visual fidelity is accepted.",
+      "componentRefs": [
+        "root"
+      ],
+      "acceptance": [
+        "Triangle count, draw calls, instancing, LOD strategy, and FPS target are documented or verified.",
+        "Repeated detail is instanced or simplified where possible without breaking silhouette/material believability."
+      ]
+    }
+  ],
+  "visualEvidence": [
+    {
+      "timestamp": "2026-08-11T09:40:10.887254+00:00",
+      "passId": "blockout",
+      "estimatedFidelity": 0.88,
+      "aiVisionScore": 0.88,
+      "visualAcceptanceThreshold": 0.85,
+      "layerScores": {
+        "silhouetteProportion": 0.89,
+        "componentStructure": 0.86,
+        "formDetail": 0.84,
+        "materialSurface": 0.7,
+        "lightingCamera": 0.84
+      },
+      "featureReviews": [
+        {
+          "id": "mat-rounded-footprint",
+          "score": 0.88,
+          "visible": true,
+          "notes": "Visible in the shared comparison pair and assessed against the named subsystem."
+        }
+      ],
+      "referenceScreenshot": "docs/assets/concepts/warm-paper-atelier-desk-mat.png",
+      "renderScreenshot": "docs/assets/model-reviews/dd-20260810-002/renders/passes/mat/blockout.png",
+      "comparisonImage": "docs/assets/model-reviews/dd-20260810-002/comparisons/passes/mat/blockout.png",
+      "cameraView": "top-or-grazing",
+      "notes": "",
+      "aiVisionNotes": "Broad rounded footprint and aspect ratio closely match the desk-mat reference. Residual mismatch: The review isolates the mat instead of showing its wood contact context."
+    },
+    {
+      "timestamp": "2026-08-11T09:42:00.463606+00:00",
+      "passId": "structural-pass",
+      "estimatedFidelity": 0.86,
+      "aiVisionScore": 0.86,
+      "visualAcceptanceThreshold": 0.85,
+      "layerScores": {
+        "silhouetteProportion": 0.88,
+        "componentStructure": 0.86,
+        "formDetail": 0.84,
+        "materialSurface": 0.7,
+        "lightingCamera": 0.84
+      },
+      "featureReviews": [
+        {
+          "id": "mat-layered-edge-profile",
+          "score": 0.85
+        },
+        {
+          "id": "mat-segmented-stitch-path",
+          "score": 0.84
+        }
+      ],
+      "referenceScreenshot": "docs/assets/concepts/warm-paper-atelier-desk-mat.png",
+      "renderScreenshot": "docs/assets/model-reviews/dd-20260810-002/renders/passes/mat/structural-pass.png",
+      "comparisonImage": "docs/assets/model-reviews/dd-20260810-002/comparisons/passes/mat/structural-pass.png",
+      "cameraView": "top-or-grazing",
+      "notes": "",
+      "aiVisionNotes": "Rolled binding, underside, and segmented stitches are present. Residual: Binding is slightly flatter than reference."
+    },
+    {
+      "timestamp": "2026-08-11T09:42:00.531284+00:00",
+      "passId": "form-refinement",
+      "estimatedFidelity": 0.87,
+      "aiVisionScore": 0.87,
+      "visualAcceptanceThreshold": 0.85,
+      "layerScores": {
+        "silhouetteProportion": 0.89,
+        "componentStructure": 0.87,
+        "formDetail": 0.86,
+        "materialSurface": 0.72,
+        "lightingCamera": 0.84
+      },
+      "featureReviews": [
+        {
+          "id": "mat-rounded-footprint",
+          "score": 0.88
+        },
+        {
+          "id": "mat-layered-edge-profile",
+          "score": 0.86
+        },
+        {
+          "id": "mat-segmented-stitch-path",
+          "score": 0.85
+        }
+      ],
+      "referenceScreenshot": "docs/assets/concepts/warm-paper-atelier-desk-mat.png",
+      "renderScreenshot": "docs/assets/model-reviews/dd-20260810-002/renders/passes/mat/form-refinement.png",
+      "comparisonImage": "docs/assets/model-reviews/dd-20260810-002/comparisons/passes/mat/form-refinement.png",
+      "cameraView": "top-or-grazing",
+      "notes": "",
+      "aiVisionNotes": "Corner radius and tangent stitch path read cleanly. Residual: Stitches are lower contrast than reference."
+    },
+    {
+      "timestamp": "2026-08-11T09:42:00.593573+00:00",
+      "passId": "material-pass",
+      "estimatedFidelity": 0.86,
+      "aiVisionScore": 0.86,
+      "visualAcceptanceThreshold": 0.85,
+      "layerScores": {
+        "silhouetteProportion": 0.89,
+        "componentStructure": 0.87,
+        "formDetail": 0.85,
+        "materialSurface": 0.85,
+        "lightingCamera": 0.84
+      },
+      "featureReviews": [
+        {
+          "id": "mat-three-frequency-cloth",
+          "score": 0.84
+        }
+      ],
+      "referenceScreenshot": "docs/assets/concepts/warm-paper-atelier-desk-mat.png",
+      "renderScreenshot": "docs/assets/model-reviews/dd-20260810-002/renders/passes/mat/material-pass.png",
+      "comparisonImage": "docs/assets/model-reviews/dd-20260810-002/comparisons/passes/mat/material-pass.png",
+      "cameraView": "top-or-grazing",
+      "notes": "",
+      "aiVisionNotes": "Moss cloth separates field and binding. Residual: Render is darker and more olive."
+    },
+    {
+      "timestamp": "2026-08-11T09:42:00.654602+00:00",
+      "passId": "surface-pass",
+      "estimatedFidelity": 0.86,
+      "aiVisionScore": 0.86,
+      "visualAcceptanceThreshold": 0.85,
+      "layerScores": {
+        "silhouetteProportion": 0.89,
+        "componentStructure": 0.87,
+        "formDetail": 0.86,
+        "materialSurface": 0.85,
+        "lightingCamera": 0.85
+      },
+      "featureReviews": [
+        {
+          "id": "mat-segmented-stitch-path",
+          "score": 0.84
+        },
+        {
+          "id": "mat-three-frequency-cloth",
+          "score": 0.85
+        }
+      ],
+      "referenceScreenshot": "docs/assets/concepts/warm-paper-atelier-desk-mat.png",
+      "renderScreenshot": "docs/assets/model-reviews/dd-20260810-002/renders/passes/mat/surface-pass.png",
+      "comparisonImage": "docs/assets/model-reviews/dd-20260810-002/comparisons/passes/mat/surface-pass.png",
+      "cameraView": "top-or-grazing",
+      "notes": "",
+      "aiVisionNotes": "Grazing view shows cloth relief and stitching. Residual: Micro weave is more regular."
+    },
+    {
+      "timestamp": "2026-08-11T09:42:00.719428+00:00",
+      "passId": "lighting-pass",
+      "estimatedFidelity": 0.86,
+      "aiVisionScore": 0.86,
+      "visualAcceptanceThreshold": 0.85,
+      "layerScores": {
+        "silhouetteProportion": 0.89,
+        "componentStructure": 0.87,
+        "formDetail": 0.86,
+        "materialSurface": 0.85,
+        "lightingCamera": 0.86
+      },
+      "featureReviews": [
+        {
+          "id": "mat-three-frequency-cloth",
+          "score": 0.85
+        },
+        {
+          "id": "mat-contact-and-hit-contract",
+          "score": 0.84
+        }
+      ],
+      "referenceScreenshot": "docs/assets/concepts/warm-paper-atelier-desk-mat.png",
+      "renderScreenshot": "docs/assets/model-reviews/dd-20260810-002/renders/passes/mat/lighting-pass.png",
+      "comparisonImage": "docs/assets/model-reviews/dd-20260810-002/comparisons/passes/mat/lighting-pass.png",
+      "cameraView": "top-or-grazing",
+      "notes": "",
+      "aiVisionNotes": "Grazing light keeps edge and contact readable. Residual: Ground is darker than wood-backed reference."
+    },
+    {
+      "timestamp": "2026-08-11T09:42:00.782520+00:00",
+      "passId": "interaction-pass",
+      "estimatedFidelity": 0.86,
+      "aiVisionScore": 0.86,
+      "visualAcceptanceThreshold": 0.85,
+      "layerScores": {
+        "silhouetteProportion": 0.89,
+        "componentStructure": 0.87,
+        "formDetail": 0.86,
+        "materialSurface": 0.85,
+        "lightingCamera": 0.86
+      },
+      "featureReviews": [
+        {
+          "id": "mat-contact-and-hit-contract",
+          "score": 0.86
+        }
+      ],
+      "referenceScreenshot": "docs/assets/concepts/warm-paper-atelier-desk-mat.png",
+      "renderScreenshot": "docs/assets/model-reviews/dd-20260810-002/renders/passes/mat/interaction-pass.png",
+      "comparisonImage": "docs/assets/model-reviews/dd-20260810-002/comparisons/passes/mat/interaction-pass.png",
+      "cameraView": "top-or-grazing",
+      "notes": "",
+      "aiVisionNotes": "Visible mat stays separate from the hit surface. Residual: Hit surface is intentionally invisible."
+    },
+    {
+      "timestamp": "2026-08-11T09:42:00.841177+00:00",
+      "passId": "optimization-pass",
+      "estimatedFidelity": 0.87,
+      "aiVisionScore": 0.87,
+      "visualAcceptanceThreshold": 0.85,
+      "layerScores": {
+        "silhouetteProportion": 0.89,
+        "componentStructure": 0.87,
+        "formDetail": 0.86,
+        "materialSurface": 0.86,
+        "lightingCamera": 0.86
+      },
+      "featureReviews": [],
+      "referenceScreenshot": "docs/assets/concepts/warm-paper-atelier-desk-mat.png",
+      "renderScreenshot": "docs/assets/model-reviews/dd-20260810-002/renders/passes/mat/optimization-pass.png",
+      "comparisonImage": "docs/assets/model-reviews/dd-20260810-002/comparisons/passes/mat/optimization-pass.png",
+      "cameraView": "top-or-grazing",
+      "notes": "",
+      "aiVisionNotes": "Instancing preserves appearance inside budget. Residual: Color remains slightly darker."
+    }
+  ],
+  "reviewHistory": [
+    {
+      "timestamp": "2026-08-11T09:40:10.887254+00:00",
+      "passId": "blockout",
+      "estimatedFidelity": 0.88,
+      "aiVisionScore": 0.88,
+      "visualAcceptanceThreshold": 0.85,
+      "layerScores": {
+        "silhouetteProportion": 0.89,
+        "componentStructure": 0.86,
+        "formDetail": 0.84,
+        "materialSurface": 0.7,
+        "lightingCamera": 0.84
+      },
+      "featureReviews": [
+        {
+          "id": "mat-rounded-footprint",
+          "score": 0.88,
+          "visible": true,
+          "notes": "Visible in the shared comparison pair and assessed against the named subsystem."
+        }
+      ],
+      "action": "continue",
+      "summary": "Broad rounded footprint and aspect ratio closely match the desk-mat reference.",
+      "matched": [],
+      "mismatches": [
+        "The review isolates the mat instead of showing its wood contact context."
+      ],
+      "specFixes": [],
+      "codeFixes": [],
+      "evidence": [],
+      "visualEvidence": {
+        "referenceScreenshot": "docs/assets/concepts/warm-paper-atelier-desk-mat.png",
+        "renderScreenshot": "docs/assets/model-reviews/dd-20260810-002/renders/passes/mat/blockout.png",
+        "comparisonImage": "docs/assets/model-reviews/dd-20260810-002/comparisons/passes/mat/blockout.png",
+        "cameraView": "top-or-grazing",
+        "notes": "",
+        "aiVisionNotes": "Broad rounded footprint and aspect ratio closely match the desk-mat reference. Residual mismatch: The review isolates the mat instead of showing its wood contact context."
+      }
+    },
+    {
+      "timestamp": "2026-08-11T09:42:00.463606+00:00",
+      "passId": "structural-pass",
+      "estimatedFidelity": 0.86,
+      "aiVisionScore": 0.86,
+      "visualAcceptanceThreshold": 0.85,
+      "layerScores": {
+        "silhouetteProportion": 0.88,
+        "componentStructure": 0.86,
+        "formDetail": 0.84,
+        "materialSurface": 0.7,
+        "lightingCamera": 0.84
+      },
+      "featureReviews": [
+        {
+          "id": "mat-layered-edge-profile",
+          "score": 0.85
+        },
+        {
+          "id": "mat-segmented-stitch-path",
+          "score": 0.84
+        }
+      ],
+      "action": "continue",
+      "summary": "Rolled binding, underside, and segmented stitches are present.",
+      "matched": [],
+      "mismatches": [
+        "Binding is slightly flatter than reference."
+      ],
+      "specFixes": [],
+      "codeFixes": [],
+      "evidence": [],
+      "visualEvidence": {
+        "referenceScreenshot": "docs/assets/concepts/warm-paper-atelier-desk-mat.png",
+        "renderScreenshot": "docs/assets/model-reviews/dd-20260810-002/renders/passes/mat/structural-pass.png",
+        "comparisonImage": "docs/assets/model-reviews/dd-20260810-002/comparisons/passes/mat/structural-pass.png",
+        "cameraView": "top-or-grazing",
+        "notes": "",
+        "aiVisionNotes": "Rolled binding, underside, and segmented stitches are present. Residual: Binding is slightly flatter than reference."
+      }
+    },
+    {
+      "timestamp": "2026-08-11T09:42:00.531284+00:00",
+      "passId": "form-refinement",
+      "estimatedFidelity": 0.87,
+      "aiVisionScore": 0.87,
+      "visualAcceptanceThreshold": 0.85,
+      "layerScores": {
+        "silhouetteProportion": 0.89,
+        "componentStructure": 0.87,
+        "formDetail": 0.86,
+        "materialSurface": 0.72,
+        "lightingCamera": 0.84
+      },
+      "featureReviews": [
+        {
+          "id": "mat-rounded-footprint",
+          "score": 0.88
+        },
+        {
+          "id": "mat-layered-edge-profile",
+          "score": 0.86
+        },
+        {
+          "id": "mat-segmented-stitch-path",
+          "score": 0.85
+        }
+      ],
+      "action": "continue",
+      "summary": "Corner radius and tangent stitch path read cleanly.",
+      "matched": [],
+      "mismatches": [
+        "Stitches are lower contrast than reference."
+      ],
+      "specFixes": [],
+      "codeFixes": [],
+      "evidence": [],
+      "visualEvidence": {
+        "referenceScreenshot": "docs/assets/concepts/warm-paper-atelier-desk-mat.png",
+        "renderScreenshot": "docs/assets/model-reviews/dd-20260810-002/renders/passes/mat/form-refinement.png",
+        "comparisonImage": "docs/assets/model-reviews/dd-20260810-002/comparisons/passes/mat/form-refinement.png",
+        "cameraView": "top-or-grazing",
+        "notes": "",
+        "aiVisionNotes": "Corner radius and tangent stitch path read cleanly. Residual: Stitches are lower contrast than reference."
+      }
+    },
+    {
+      "timestamp": "2026-08-11T09:42:00.593573+00:00",
+      "passId": "material-pass",
+      "estimatedFidelity": 0.86,
+      "aiVisionScore": 0.86,
+      "visualAcceptanceThreshold": 0.85,
+      "layerScores": {
+        "silhouetteProportion": 0.89,
+        "componentStructure": 0.87,
+        "formDetail": 0.85,
+        "materialSurface": 0.85,
+        "lightingCamera": 0.84
+      },
+      "featureReviews": [
+        {
+          "id": "mat-three-frequency-cloth",
+          "score": 0.84
+        }
+      ],
+      "action": "continue",
+      "summary": "Moss cloth separates field and binding.",
+      "matched": [],
+      "mismatches": [
+        "Render is darker and more olive."
+      ],
+      "specFixes": [],
+      "codeFixes": [],
+      "evidence": [],
+      "visualEvidence": {
+        "referenceScreenshot": "docs/assets/concepts/warm-paper-atelier-desk-mat.png",
+        "renderScreenshot": "docs/assets/model-reviews/dd-20260810-002/renders/passes/mat/material-pass.png",
+        "comparisonImage": "docs/assets/model-reviews/dd-20260810-002/comparisons/passes/mat/material-pass.png",
+        "cameraView": "top-or-grazing",
+        "notes": "",
+        "aiVisionNotes": "Moss cloth separates field and binding. Residual: Render is darker and more olive."
+      }
+    },
+    {
+      "timestamp": "2026-08-11T09:42:00.654602+00:00",
+      "passId": "surface-pass",
+      "estimatedFidelity": 0.86,
+      "aiVisionScore": 0.86,
+      "visualAcceptanceThreshold": 0.85,
+      "layerScores": {
+        "silhouetteProportion": 0.89,
+        "componentStructure": 0.87,
+        "formDetail": 0.86,
+        "materialSurface": 0.85,
+        "lightingCamera": 0.85
+      },
+      "featureReviews": [
+        {
+          "id": "mat-segmented-stitch-path",
+          "score": 0.84
+        },
+        {
+          "id": "mat-three-frequency-cloth",
+          "score": 0.85
+        }
+      ],
+      "action": "continue",
+      "summary": "Grazing view shows cloth relief and stitching.",
+      "matched": [],
+      "mismatches": [
+        "Micro weave is more regular."
+      ],
+      "specFixes": [],
+      "codeFixes": [],
+      "evidence": [],
+      "visualEvidence": {
+        "referenceScreenshot": "docs/assets/concepts/warm-paper-atelier-desk-mat.png",
+        "renderScreenshot": "docs/assets/model-reviews/dd-20260810-002/renders/passes/mat/surface-pass.png",
+        "comparisonImage": "docs/assets/model-reviews/dd-20260810-002/comparisons/passes/mat/surface-pass.png",
+        "cameraView": "top-or-grazing",
+        "notes": "",
+        "aiVisionNotes": "Grazing view shows cloth relief and stitching. Residual: Micro weave is more regular."
+      }
+    },
+    {
+      "timestamp": "2026-08-11T09:42:00.719428+00:00",
+      "passId": "lighting-pass",
+      "estimatedFidelity": 0.86,
+      "aiVisionScore": 0.86,
+      "visualAcceptanceThreshold": 0.85,
+      "layerScores": {
+        "silhouetteProportion": 0.89,
+        "componentStructure": 0.87,
+        "formDetail": 0.86,
+        "materialSurface": 0.85,
+        "lightingCamera": 0.86
+      },
+      "featureReviews": [
+        {
+          "id": "mat-three-frequency-cloth",
+          "score": 0.85
+        },
+        {
+          "id": "mat-contact-and-hit-contract",
+          "score": 0.84
+        }
+      ],
+      "action": "continue",
+      "summary": "Grazing light keeps edge and contact readable.",
+      "matched": [],
+      "mismatches": [
+        "Ground is darker than wood-backed reference."
+      ],
+      "specFixes": [],
+      "codeFixes": [],
+      "evidence": [],
+      "visualEvidence": {
+        "referenceScreenshot": "docs/assets/concepts/warm-paper-atelier-desk-mat.png",
+        "renderScreenshot": "docs/assets/model-reviews/dd-20260810-002/renders/passes/mat/lighting-pass.png",
+        "comparisonImage": "docs/assets/model-reviews/dd-20260810-002/comparisons/passes/mat/lighting-pass.png",
+        "cameraView": "top-or-grazing",
+        "notes": "",
+        "aiVisionNotes": "Grazing light keeps edge and contact readable. Residual: Ground is darker than wood-backed reference."
+      }
+    },
+    {
+      "timestamp": "2026-08-11T09:42:00.782520+00:00",
+      "passId": "interaction-pass",
+      "estimatedFidelity": 0.86,
+      "aiVisionScore": 0.86,
+      "visualAcceptanceThreshold": 0.85,
+      "layerScores": {
+        "silhouetteProportion": 0.89,
+        "componentStructure": 0.87,
+        "formDetail": 0.86,
+        "materialSurface": 0.85,
+        "lightingCamera": 0.86
+      },
+      "featureReviews": [
+        {
+          "id": "mat-contact-and-hit-contract",
+          "score": 0.86
+        }
+      ],
+      "action": "continue",
+      "summary": "Visible mat stays separate from the hit surface.",
+      "matched": [],
+      "mismatches": [
+        "Hit surface is intentionally invisible."
+      ],
+      "specFixes": [],
+      "codeFixes": [],
+      "evidence": [],
+      "visualEvidence": {
+        "referenceScreenshot": "docs/assets/concepts/warm-paper-atelier-desk-mat.png",
+        "renderScreenshot": "docs/assets/model-reviews/dd-20260810-002/renders/passes/mat/interaction-pass.png",
+        "comparisonImage": "docs/assets/model-reviews/dd-20260810-002/comparisons/passes/mat/interaction-pass.png",
+        "cameraView": "top-or-grazing",
+        "notes": "",
+        "aiVisionNotes": "Visible mat stays separate from the hit surface. Residual: Hit surface is intentionally invisible."
+      }
+    },
+    {
+      "timestamp": "2026-08-11T09:42:00.841177+00:00",
+      "passId": "optimization-pass",
+      "estimatedFidelity": 0.87,
+      "aiVisionScore": 0.87,
+      "visualAcceptanceThreshold": 0.85,
+      "layerScores": {
+        "silhouetteProportion": 0.89,
+        "componentStructure": 0.87,
+        "formDetail": 0.86,
+        "materialSurface": 0.86,
+        "lightingCamera": 0.86
+      },
+      "featureReviews": [],
+      "action": "continue",
+      "summary": "Instancing preserves appearance inside budget.",
+      "matched": [],
+      "mismatches": [
+        "Color remains slightly darker."
+      ],
+      "specFixes": [],
+      "codeFixes": [],
+      "evidence": [],
+      "visualEvidence": {
+        "referenceScreenshot": "docs/assets/concepts/warm-paper-atelier-desk-mat.png",
+        "renderScreenshot": "docs/assets/model-reviews/dd-20260810-002/renders/passes/mat/optimization-pass.png",
+        "comparisonImage": "docs/assets/model-reviews/dd-20260810-002/comparisons/passes/mat/optimization-pass.png",
+        "cameraView": "top-or-grazing",
+        "notes": "",
+        "aiVisionNotes": "Instancing preserves appearance inside budget. Residual: Color remains slightly darker."
+      }
+    }
+  ],
+  "lodPlan": [
+    {
+      "tier": "near",
+      "distance": 0,
+      "strategy": "full component tree and material layers"
+    },
+    {
+      "tier": "far",
+      "distance": 30,
+      "strategy": "merge static components and reduce local feature geometry"
+    }
+  ],
+  "performanceBudget": {
+    "qualityPriority": "reference-fidelity",
+    "targetTriangles": 18000,
+    "maxTriangles": 80000,
+    "maxDrawCalls": 45,
+    "maxTextures": 16,
+    "shadowCastingLights": 1,
+    "textureSize": 2048,
+    "fpsTarget": 60,
+    "dprRange": [
+      1.0,
+      1.5
+    ],
+    "optimizationPolicy": "Use one stitch InstancedMesh, share rounded-path data and materials, keep only the warm key shadow-casting, and preserve the approved 45 draw-call/80k triangle/16 texture limits without removing binding, seam, stitch, or three-frequency cloth evidence."
+  },
+  "lightingFromPhoto": [
+    {
+      "id": "warm-key",
+      "type": "directional key light",
+      "direction": [
+        -4.0,
+        9.0,
+        5.0
+      ],
+      "color": "#FFE0AD",
+      "intensity": 2.25,
+      "castsShadow": true,
+      "shadowSoftness": 0.45,
+      "notes": "The only shadow-casting light; reveal the rolled edge and stitch relief from upper-left."
+    },
+    {
+      "id": "cool-fill",
+      "type": "hemisphere fill light",
+      "direction": [
+        7.0,
+        4.0,
+        -5.0
+      ],
+      "color": "#AEBDB4",
+      "intensity": 0.34,
+      "castsShadow": false,
+      "notes": "Lift the dark moss field without flattening the seam channel or contact shadow."
+    },
+    {
+      "id": "environment-rim",
+      "type": "non-shadowing environment and restrained rim response",
+      "color": "#D7D3C4",
+      "intensity": 0.22,
+      "castsShadow": false,
+      "notes": "Provide only enough environment reflection to separate the binding crest from the walnut desktop."
+    },
+    {
+      "id": "output-and-grounding",
+      "type": "render output contract",
+      "exposure": 1.0,
+      "toneMapping": "ACES Filmic",
+      "background": "warm walnut desktop; no decorative fog over the mat",
+      "contactShadow": "tight soft shadow at world y=-0.04 with no visible floating gap or surface intersection",
+      "notes": "Verify neutral, grazing, orthographic-top, and reference-match views before acceptance."
+    }
+  ],
+  "proceduralStrategy": [
+    "Build the 8.7 by 6.25 footprint from a 2D rounded-rectangle Shape with explicit 0.55 plan radius, then extrude along Y; do not use thin RoundedBoxGeometry.",
+    "Derive inset field, rolled binding ring, and recessed seam from the same rounded-path parameters so corner tangency and layer registration cannot drift.",
+    "Sample the stitch path by constant arc length and render all dashes in one InstancedMesh with deterministic seed dd-20260810-002.",
+    "Generate independent 2048px albedo, roughness, height/normal, and AO channels; apply planar UVs to the field and curve-length UVs to the binding.",
+    "Use the moss-cloth extraction at confidence 0.761 as evidence, not exact inverse rendering; stop or refine if neutral/grazing screenshots contradict it.",
+    "Expose root, layer nodes, rounded hit proxy, y=0.11 sticker plane, unchanged placement bounds, and disposal handles through root.userData.sculptRuntime."
+  ],
+  "animationAnchors": [
+    "root pivot supports whole-object transforms while remaining at scene [0, 0.025, 0.2]",
+    "interaction socket preserves world y=0.11 and sticker bounds x=[-4.05,4.05], z=[-2.72,2.72]",
+    "visual layers stay named children for LOD/material review but are not user-articulated"
+  ],
+  "destructionAnchors": [
+    "none: the approved desk mat is a non-breakable static prop"
+  ],
+  "risks": [
+    "A generic rounded-box helper will clamp the 0.55 plan radius against 0.13 thickness and fail the silhouette.",
+    "Per-stitch meshes will exceed draw-call goals; one InstancedMesh is mandatory.",
+    "Planar mapping on the binding will stretch at corners; use perimeter arc-length UVs.",
+    "The 0.761 PBR extraction contains single-image lighting ambiguity and must be judged under neutral and grazing light.",
+    "Changing the collider, y=0.11 plane, or sticker coordinate bounds would break existing persisted interaction behavior."
+  ]
+}

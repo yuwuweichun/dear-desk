@@ -1,0 +1,87 @@
+{
+  "ok": true,
+  "verdict": "pass",
+  "confidence": 0.829,
+  "estimatedFidelity": 0.829,
+  "targetThreshold": 0.7,
+  "materialId": "ivory-paper",
+  "sourceImage": "/Users/song/Desktop/dear-desk/docs/assets/model-reviews/dd-20260810-002/pbr-crops/ivory-paper.png",
+  "outDir": "/Users/song/Desktop/dear-desk/docs/assets/model-reviews/dd-20260810-002/pbr-evidence/ivory-paper",
+  "palette": [
+    "#E4D5C3",
+    "#E0CFBD",
+    "#513423",
+    "#E8DAC9",
+    "#C8B197"
+  ],
+  "maps": {
+    "albedo": {
+      "path": "/Users/song/Desktop/dear-desk/docs/assets/model-reviews/dd-20260810-002/pbr-evidence/ivory-paper/ivory-paper_albedo.png",
+      "url": "ivory-paper_albedo.png",
+      "channel": "albedo",
+      "source": "reference-pixel-extraction"
+    },
+    "roughness": {
+      "path": "/Users/song/Desktop/dear-desk/docs/assets/model-reviews/dd-20260810-002/pbr-evidence/ivory-paper/ivory-paper_roughness.png",
+      "url": "ivory-paper_roughness.png",
+      "channel": "roughness",
+      "source": "reference-pixel-extraction"
+    },
+    "height": {
+      "path": "/Users/song/Desktop/dear-desk/docs/assets/model-reviews/dd-20260810-002/pbr-evidence/ivory-paper/ivory-paper_height.png",
+      "url": "ivory-paper_height.png",
+      "channel": "height",
+      "source": "reference-pixel-extraction"
+    },
+    "normal": {
+      "path": "/Users/song/Desktop/dear-desk/docs/assets/model-reviews/dd-20260810-002/pbr-evidence/ivory-paper/ivory-paper_normal.png",
+      "url": "ivory-paper_normal.png",
+      "channel": "normal",
+      "source": "reference-pixel-extraction"
+    },
+    "ao": {
+      "path": "/Users/song/Desktop/dear-desk/docs/assets/model-reviews/dd-20260810-002/pbr-evidence/ivory-paper/ivory-paper_ao.png",
+      "url": "ivory-paper_ao.png",
+      "channel": "ao",
+      "source": "reference-pixel-extraction"
+    }
+  },
+  "diagnostics": {
+    "sourceWidth": 300,
+    "sourceHeight": 340,
+    "mapSize": 256,
+    "cropBBoxPixels": {
+      "x": 0,
+      "y": 0,
+      "width": 300,
+      "height": 340
+    },
+    "mask": {
+      "backgroundColor": "#4F3322",
+      "backgroundNoise": 32.171,
+      "transparentPixelFraction": 0.0,
+      "foregroundCoverage": 1.0
+    },
+    "mapStats": {
+      "valueRange": 0.6751,
+      "heightP90Gradient": 0.0458,
+      "roughnessBase": 0.719,
+      "roughnessVariation": 0.07,
+      "normalStrength": 0.21,
+      "blurRadius": 5
+    },
+    "palette": [
+      "#E4D5C3",
+      "#E0CFBD",
+      "#513423",
+      "#E8DAC9",
+      "#C8B197"
+    ]
+  },
+  "warnings": [
+    "image is not clearly isolated from background; using most pixels as material evidence",
+    "object/background separation is weak",
+    "single-image inverse rendering cannot prove true physical PBR; confidence is capped"
+  ],
+  "limitation": "single-image PBR extraction is an estimate; 70%+ extraction confidence still needs render screenshot review"
+}

@@ -1,0 +1,87 @@
+{
+  "ok": true,
+  "verdict": "pass",
+  "confidence": 0.807,
+  "estimatedFidelity": 0.807,
+  "targetThreshold": 0.7,
+  "materialId": "book-cloth",
+  "sourceImage": "/Users/song/Desktop/dear-desk/docs/assets/model-reviews/dd-20260810-002/pbr-crops/book-cloth.png",
+  "outDir": "/Users/song/Desktop/dear-desk/docs/assets/model-reviews/dd-20260810-002/pbr-evidence/book-cloth",
+  "palette": [
+    "#2B2F23",
+    "#3C3F31",
+    "#4F4F3E",
+    "#1A1E14",
+    "#9E774B"
+  ],
+  "maps": {
+    "albedo": {
+      "path": "/Users/song/Desktop/dear-desk/docs/assets/model-reviews/dd-20260810-002/pbr-evidence/book-cloth/book-cloth_albedo.png",
+      "url": "book-cloth_albedo.png",
+      "channel": "albedo",
+      "source": "reference-pixel-extraction"
+    },
+    "roughness": {
+      "path": "/Users/song/Desktop/dear-desk/docs/assets/model-reviews/dd-20260810-002/pbr-evidence/book-cloth/book-cloth_roughness.png",
+      "url": "book-cloth_roughness.png",
+      "channel": "roughness",
+      "source": "reference-pixel-extraction"
+    },
+    "height": {
+      "path": "/Users/song/Desktop/dear-desk/docs/assets/model-reviews/dd-20260810-002/pbr-evidence/book-cloth/book-cloth_height.png",
+      "url": "book-cloth_height.png",
+      "channel": "height",
+      "source": "reference-pixel-extraction"
+    },
+    "normal": {
+      "path": "/Users/song/Desktop/dear-desk/docs/assets/model-reviews/dd-20260810-002/pbr-evidence/book-cloth/book-cloth_normal.png",
+      "url": "book-cloth_normal.png",
+      "channel": "normal",
+      "source": "reference-pixel-extraction"
+    },
+    "ao": {
+      "path": "/Users/song/Desktop/dear-desk/docs/assets/model-reviews/dd-20260810-002/pbr-evidence/book-cloth/book-cloth_ao.png",
+      "url": "book-cloth_ao.png",
+      "channel": "ao",
+      "source": "reference-pixel-extraction"
+    }
+  },
+  "diagnostics": {
+    "sourceWidth": 470,
+    "sourceHeight": 360,
+    "mapSize": 256,
+    "cropBBoxPixels": {
+      "x": 0,
+      "y": 0,
+      "width": 470,
+      "height": 360
+    },
+    "mask": {
+      "backgroundColor": "#35382B",
+      "backgroundNoise": 41.146,
+      "transparentPixelFraction": 0.0,
+      "foregroundCoverage": 0.9897
+    },
+    "mapStats": {
+      "valueRange": 0.3895,
+      "heightP90Gradient": 0.16211,
+      "roughnessBase": 0.868,
+      "roughnessVariation": 0.147,
+      "normalStrength": 0.346,
+      "blurRadius": 5
+    },
+    "palette": [
+      "#2B2F23",
+      "#3C3F31",
+      "#4F4F3E",
+      "#1A1E14",
+      "#9E774B"
+    ]
+  },
+  "warnings": [
+    "image is not clearly isolated from background; using most pixels as material evidence",
+    "object/background separation is weak",
+    "single-image inverse rendering cannot prove true physical PBR; confidence is capped"
+  ],
+  "limitation": "single-image PBR extraction is an estimate; 70%+ extraction confidence still needs render screenshot review"
+}

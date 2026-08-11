@@ -1,0 +1,536 @@
+import * as THREE from 'three'
+
+import {
+  createRoundedPanelGeometry,
+  createRoundedPlateGeometry,
+  scaleGeometryUvs,
+} from './geometry'
+import type { ModelMaterialLibrary } from './material-library'
+import { DESK_MODEL_SPEC, MODEL_LIMITS } from './model-specs'
+import {
+  isPassEnabled,
+  markMesh,
+  measureModelResources,
+  setSculptRuntime,
+  type ModelFactoryOptions,
+  type SculptCollider,
+} from './model-types'
+
+export interface DeskModelNodes extends Record<string, THREE.Object3D> {
+  apron: THREE.Mesh
+  drawerCenter: THREE.Group
+  drawerCenterFace: THREE.Mesh
+  drawerLeft: THREE.Group
+  drawerLeftFace: THREE.Mesh
+  drawerRight: THREE.Group
+  drawerRightFace: THREE.Mesh
+  hardware: THREE.Group
+  knobBases: THREE.InstancedMesh
+  knobCrowns: THREE.InstancedMesh
+  legAssembly: THREE.Group
+  legLeftFront: THREE.Mesh
+  legLeftRear: THREE.Mesh
+  legRightFront: THREE.Mesh
+  legRightRear: THREE.Mesh
+  rearApron: THREE.Mesh
+  root: THREE.Group
+  sideApronLeft: THREE.Mesh
+  sideApronRight: THREE.Mesh
+  tabletop: THREE.Mesh
+}
+
+type DrawerId = (typeof DESK_MODEL_SPEC.drawers)[number]['id']
+
+const LEG_BINDINGS = [
+  { id: 'leg-left-rear', nodeKey: 'legLeftRear', positionIndex: 0 },
+  { id: 'leg-right-rear', nodeKey: 'legRightRear', positionIndex: 1 },
+  { id: 'leg-left-front', nodeKey: 'legLeftFront', positionIndex: 2 },
+  { id: 'leg-right-front', nodeKey: 'legRightFront', positionIndex: 3 },
+] as const
+
+const makeSocket = (
+  id: string,
+  position: readonly [number, number, number],
+  rotation: readonly [number, number, number] = [0, 0, 0],
+) => {
+  const socket = new THREE.Group()
+  socket.name = id
+  socket.position.set(...position)
+  socket.rotation.set(...rotation)
+  socket.userData.socket = true
+  return socket
+}
+
+const setAttachment = (
+  object: THREE.Object3D,
+  parentSocket: string,
+  localStart: [number, number, number],
+  localEnd: [number, number, number],
+  overlap: number,
+) => {
+  object.userData.attachment = {
+    contactType: 'embedded furniture joint',
+    gapTolerance: 0.005,
+    localEnd,
+    localStart,
+    overlap,
+    parentSocket,
+  }
+}
+
+const createTaperedLegGeometry = () => {
+  const { bottomRadius, height, topRadius } = DESK_MODEL_SPEC.leg
+  const geometry = createRoundedPanelGeometry(
+    topRadius * 2,
+    topRadius * 2,
+    height,
+    topRadius * 0.24,
+    0.035,
+  )
+  geometry.rotateX(-Math.PI / 2)
+
+  const positions = geometry.getAttribute('position')
+  for (let index = 0; index < positions.count; index += 1) {
+    const y = positions.getY(index)
+    const normalizedY = THREE.MathUtils.clamp(y / height + 0.5, 0, 1)
+    const easedY = THREE.MathUtils.smoothstep(normalizedY, 0, 1)
+    const halfSize = THREE.MathUtils.lerp(bottomRadius, topRadius, easedY)
+    const taperScale = halfSize / topRadius
+    positions.setXYZ(
+      index,
+      positions.getX(index) * taperScale,
+      y,
+      positions.getZ(index) * taperScale,
+    )
+  }
+
+  positions.needsUpdate = true
+  geometry.computeVertexNormals()
+  geometry.computeBoundingBox()
+  geometry.computeBoundingSphere()
+  geometry.userData.bottomRadius = bottomRadius
+  geometry.userData.profile = 'rounded-square-downward-taper'
+  geometry.userData.topRadius = topRadius
+  return geometry
+}
+
+const ensureBudget = (root: THREE.Group, textureCount: number) => {
+  const metrics = measureModelResources(root)
+  const withinBudget =
+    metrics.drawCalls <= MODEL_LIMITS.drawCalls &&
+    metrics.triangles <= MODEL_LIMITS.triangles &&
+    Math.max(metrics.textures, textureCount) <= MODEL_LIMITS.textures
+
+  root.userData.resourceBudget = {
+    ...MODEL_LIMITS,
+    dpr: [1, 1.5],
+  }
+  root.userData.resourceMetrics = metrics
+  root.userData.withinResourceBudget = withinBudget
+
+  if (!withinBudget) {
+    throw new Error(
+      `Desk model exceeds its fixed budget: ${JSON.stringify(metrics)}`,
+    )
+  }
+}
+
+export function createDeskModel(
+  materials: ModelMaterialLibrary,
+  options: ModelFactoryOptions = {},
+): THREE.Group {
+  const selectedPass = options.pass ?? 'optimization-pass'
+  const structuralEnabled = isPassEnabled(selectedPass, 'structural-pass')
+  const formEnabled = isPassEnabled(selectedPass, 'form-refinement')
+  const materialEnabled = isPassEnabled(selectedPass, 'material-pass')
+  const interactionEnabled = isPassEnabled(selectedPass, 'interaction-pass')
+  const optimizationEnabled = isPassEnabled(selectedPass, 'optimization-pass')
+  const ownedGeometries = new Set<THREE.BufferGeometry>()
+  const own = <T extends THREE.BufferGeometry>(geometry: T) => {
+    ownedGeometries.add(geometry)
+    return geometry
+  }
+
+  const root = new THREE.Group()
+  root.name = 'desk-model'
+  root.userData.modelId = 'warm-paper-atelier-desk'
+  root.userData.pass = selectedPass
+  root.userData.passLayers = {
+    blockout: true,
+    form: formEnabled,
+    interaction: interactionEnabled,
+    material: materialEnabled,
+    optimization: optimizationEnabled,
+    structural: structuralEnabled,
+  }
+
+  const neutral = materials.neutral
+  const topMaterial: THREE.Material | THREE.Material[] = materialEnabled
+    ? [materials.walnut, materials.walnutDark]
+    : neutral
+  const frameMaterial = materialEnabled ? materials.walnutDark : neutral
+  const drawerMaterial: THREE.Material | THREE.Material[] = materialEnabled
+    ? [materials.walnutPanel, materials.walnutDark]
+    : neutral
+  const knobBaseMaterial = materialEnabled ? materials.brassDark : neutral
+  const knobCrownMaterial = materialEnabled ? materials.brass : neutral
+
+  const tabletopGeometry = own(
+    scaleGeometryUvs(
+      createRoundedPlateGeometry(
+        DESK_MODEL_SPEC.tabletop.width,
+        DESK_MODEL_SPEC.tabletop.depth,
+        DESK_MODEL_SPEC.tabletop.thickness,
+        DESK_MODEL_SPEC.tabletop.radius,
+        0.09,
+      ),
+      1.45,
+      0.44,
+    ),
+  )
+  const tabletop = new THREE.Mesh(tabletopGeometry, topMaterial)
+  tabletop.position.y = DESK_MODEL_SPEC.tabletop.positionY
+  tabletop.userData.planRadius = DESK_MODEL_SPEC.tabletop.radius
+  tabletop.userData.profile = 'independent-plan-radius-extrusion'
+  markMesh(tabletop, 'desk-tabletop', options)
+  root.add(tabletop)
+
+  const apronSocket = makeSocket('socket-apron-front', DESK_MODEL_SPEC.apron.position)
+  const apronGeometry = own(
+    createRoundedPanelGeometry(
+      DESK_MODEL_SPEC.apron.width,
+      DESK_MODEL_SPEC.apron.height,
+      DESK_MODEL_SPEC.apron.depth,
+      DESK_MODEL_SPEC.apron.radius,
+      0.045,
+    ),
+  )
+  const apron = new THREE.Mesh(apronGeometry, frameMaterial)
+  markMesh(apron, 'desk-front-apron', options)
+  setAttachment(apron, apronSocket.name, [0, 0, -0.06], [0, 0, 0.06], 0.04)
+  apronSocket.add(apron)
+  root.add(apronSocket)
+
+  const rearApronGeometry = own(
+    createRoundedPanelGeometry(10.6, 0.5, 0.22, 0.1, 0.035),
+  )
+  const rearApron = new THREE.Mesh(rearApronGeometry, frameMaterial)
+  markMesh(rearApron, 'desk-rear-apron', options)
+  const rearApronSocket = makeSocket('socket-apron-rear', [0, -0.82, -3.48])
+  setAttachment(rearApron, rearApronSocket.name, [0, 0, -0.05], [0, 0, 0.05], 0.04)
+  rearApronSocket.add(rearApron)
+
+  const sideApronGeometry = own(
+    createRoundedPanelGeometry(0.22, 0.5, 6.4, 0.09, 0.035),
+  )
+  const sideApronLeft = new THREE.Mesh(sideApronGeometry, frameMaterial)
+  const sideApronRight = new THREE.Mesh(sideApronGeometry, frameMaterial)
+  markMesh(sideApronLeft, 'desk-side-apron-left', options)
+  markMesh(sideApronRight, 'desk-side-apron-right', options)
+  const sideApronLeftSocket = makeSocket('socket-apron-left', [-5.16, -0.82, 0])
+  const sideApronRightSocket = makeSocket('socket-apron-right', [5.16, -0.82, 0])
+  setAttachment(sideApronLeft, sideApronLeftSocket.name, [0, 0, -3.2], [0, 0, 3.2], 0.06)
+  setAttachment(sideApronRight, sideApronRightSocket.name, [0, 0, -3.2], [0, 0, 3.2], 0.06)
+  sideApronLeftSocket.add(sideApronLeft)
+  sideApronRightSocket.add(sideApronRight)
+
+  if (structuralEnabled) {
+    root.add(rearApronSocket, sideApronLeftSocket, sideApronRightSocket)
+  }
+
+  const legAssembly = new THREE.Group()
+  legAssembly.name = 'desk-leg-assembly'
+  const legGeometry = own(createTaperedLegGeometry())
+  const legMeshes = {} as Record<(typeof LEG_BINDINGS)[number]['nodeKey'], THREE.Mesh>
+  const sockets: Record<string, THREE.Object3D> = {
+    [apronSocket.name]: apronSocket,
+    [rearApronSocket.name]: rearApronSocket,
+    [sideApronLeftSocket.name]: sideApronLeftSocket,
+    [sideApronRightSocket.name]: sideApronRightSocket,
+  }
+
+  for (const binding of LEG_BINDINGS) {
+    const position = DESK_MODEL_SPEC.legPositions[binding.positionIndex]
+    const socketY = position[1] + DESK_MODEL_SPEC.leg.height / 2
+    const socket = makeSocket(`socket-${binding.id}`, [position[0], socketY, position[2]])
+    const leg = new THREE.Mesh(legGeometry, frameMaterial)
+    leg.position.y = -DESK_MODEL_SPEC.leg.height / 2
+    leg.userData.taper = {
+      bottomRadius: DESK_MODEL_SPEC.leg.bottomRadius,
+      direction: 'narrows-downward',
+      topRadius: DESK_MODEL_SPEC.leg.topRadius,
+    }
+    markMesh(leg, binding.id, options)
+    setAttachment(
+      leg,
+      socket.name,
+      [0, 0, 0],
+      [0, -DESK_MODEL_SPEC.leg.height, 0],
+      0.04,
+    )
+    socket.add(leg)
+    legAssembly.add(socket)
+    legMeshes[binding.nodeKey] = leg
+    sockets[socket.name] = socket
+  }
+  root.add(legAssembly)
+
+  const drawerGroups = {} as Record<DrawerId, THREE.Group>
+  const drawerFaces = {} as Record<DrawerId, THREE.Mesh>
+  const knobSockets: THREE.Group[] = []
+  const sideDrawerFaceGeometry = own(
+    createRoundedPanelGeometry(
+      DESK_MODEL_SPEC.drawers[0].width,
+      DESK_MODEL_SPEC.drawerHeight,
+      DESK_MODEL_SPEC.drawerDepth,
+      DESK_MODEL_SPEC.drawerRadius,
+      0.035,
+    ),
+  )
+  const centerDrawerFaceGeometry = own(
+    createRoundedPanelGeometry(
+      DESK_MODEL_SPEC.drawers[1].width,
+      DESK_MODEL_SPEC.drawerHeight,
+      DESK_MODEL_SPEC.drawerDepth,
+      DESK_MODEL_SPEC.drawerRadius,
+      0.035,
+    ),
+  )
+  const sideDrawerBodyGeometry = own(
+    new THREE.BoxGeometry(
+      DESK_MODEL_SPEC.drawers[0].width - 0.18,
+      DESK_MODEL_SPEC.drawerHeight - 0.14,
+      1.18,
+    ),
+  )
+  const centerDrawerBodyGeometry = own(
+    new THREE.BoxGeometry(
+      DESK_MODEL_SPEC.drawers[1].width - 0.18,
+      DESK_MODEL_SPEC.drawerHeight - 0.14,
+      1.18,
+    ),
+  )
+
+  for (const drawerSpec of DESK_MODEL_SPEC.drawers) {
+    const group = new THREE.Group()
+    group.name = drawerSpec.id
+    group.userData.action = {
+      axis: [0, 0, 1],
+      limits: [0, 0.86],
+      role: 'linear-slide',
+    }
+    const slideSocket = makeSocket(`socket-${drawerSpec.id}-slide`, [
+      drawerSpec.positionX,
+      DESK_MODEL_SPEC.drawerPositionY,
+      DESK_MODEL_SPEC.drawerPositionZ,
+    ])
+    setAttachment(group, slideSocket.name, [0, 0, -0.5], [0, 0, 0.09], 0.5)
+
+    const faceGeometry = drawerSpec.id === 'drawer-center'
+      ? centerDrawerFaceGeometry
+      : sideDrawerFaceGeometry
+    const face = new THREE.Mesh(faceGeometry, drawerMaterial)
+    face.userData.planRadius = DESK_MODEL_SPEC.drawerRadius
+    markMesh(face, `${drawerSpec.id}-face`, options)
+    group.add(face)
+
+    const bodyGeometry = drawerSpec.id === 'drawer-center'
+      ? centerDrawerBodyGeometry
+      : sideDrawerBodyGeometry
+    const body = new THREE.Mesh(bodyGeometry, frameMaterial)
+    body.position.z = -0.66
+    markMesh(body, `${drawerSpec.id}-body`, options)
+    body.castShadow = false
+    group.add(body)
+
+    const knobSocket = makeSocket(
+      `socket-${drawerSpec.id}-knob`,
+      [0, 0, DESK_MODEL_SPEC.drawerDepth / 2],
+      [Math.PI / 2, 0, 0],
+    )
+    knobSocket.userData.parentDrawer = drawerSpec.id
+    group.add(knobSocket)
+    knobSockets.push(knobSocket)
+    sockets[knobSocket.name] = knobSocket
+
+    slideSocket.add(group)
+    sockets[slideSocket.name] = slideSocket
+    drawerGroups[drawerSpec.id] = group
+    drawerFaces[drawerSpec.id] = face
+    if (structuralEnabled) root.add(slideSocket)
+  }
+
+  const hardware = new THREE.Group()
+  hardware.name = 'desk-instanced-hardware'
+  const knobStemDepth = 0.1
+  const knobBaseGeometry = own(
+    new THREE.CylinderGeometry(0.062, 0.076, knobStemDepth, 18, 1),
+  )
+  const knobCrownRadius = 0.115
+  const knobCrownDepth = 0.075
+  const knobCrownGeometry = own(
+    new THREE.SphereGeometry(knobCrownRadius, 20, 12),
+  )
+  const knobBases = new THREE.InstancedMesh(
+    knobBaseGeometry,
+    knobBaseMaterial,
+    knobSockets.length,
+  )
+  const knobCrowns = new THREE.InstancedMesh(
+    knobCrownGeometry,
+    knobCrownMaterial,
+    knobSockets.length,
+  )
+  knobBases.instanceMatrix.setUsage(THREE.DynamicDrawUsage)
+  knobCrowns.instanceMatrix.setUsage(THREE.DynamicDrawUsage)
+  knobBases.userData.socketIds = knobSockets.map((socket) => socket.name)
+  knobCrowns.userData.socketIds = knobSockets.map((socket) => socket.name)
+  markMesh(knobBases, 'desk-knob-bases', options)
+  markMesh(knobCrowns, 'desk-knob-crowns', options)
+  hardware.add(knobBases, knobCrowns)
+  if (formEnabled) root.add(hardware)
+
+  const rootInverse = new THREE.Matrix4()
+  const socketRelative = new THREE.Matrix4()
+  const baseOffset = new THREE.Matrix4().makeTranslation(0, knobStemDepth / 2, 0)
+  const crownOffset = new THREE.Matrix4().makeTranslation(
+    0,
+    knobStemDepth + knobCrownDepth * 0.35,
+    0,
+  )
+  const crownScale = new THREE.Matrix4().makeScale(
+    1,
+    knobCrownDepth / (knobCrownRadius * 2),
+    1,
+  )
+  const updateHardwareAttachments = () => {
+    root.updateMatrixWorld(true)
+    rootInverse.copy(root.matrixWorld).invert()
+    knobSockets.forEach((socket, index) => {
+      socketRelative.multiplyMatrices(rootInverse, socket.matrixWorld)
+      knobBases.setMatrixAt(index, socketRelative.clone().multiply(baseOffset))
+      knobCrowns.setMatrixAt(
+        index,
+        socketRelative.clone().multiply(crownOffset).multiply(crownScale),
+      )
+    })
+    knobBases.instanceMatrix.needsUpdate = true
+    knobCrowns.instanceMatrix.needsUpdate = true
+    knobBases.computeBoundingSphere()
+    knobCrowns.computeBoundingSphere()
+  }
+  updateHardwareAttachments()
+
+  const nodes: DeskModelNodes = {
+    apron,
+    drawerCenter: drawerGroups['drawer-center'],
+    drawerCenterFace: drawerFaces['drawer-center'],
+    drawerLeft: drawerGroups['drawer-left'],
+    drawerLeftFace: drawerFaces['drawer-left'],
+    drawerRight: drawerGroups['drawer-right'],
+    drawerRightFace: drawerFaces['drawer-right'],
+    hardware,
+    knobBases,
+    knobCrowns,
+    legAssembly,
+    legLeftFront: legMeshes.legLeftFront,
+    legLeftRear: legMeshes.legLeftRear,
+    legRightFront: legMeshes.legRightFront,
+    legRightRear: legMeshes.legRightRear,
+    rearApron,
+    root,
+    sideApronLeft,
+    sideApronRight,
+    tabletop,
+  }
+
+  const colliders: Record<string, SculptCollider> = {
+    apron: {
+      center: [...DESK_MODEL_SPEC.apron.position],
+      id: 'apron',
+      size: [
+        DESK_MODEL_SPEC.apron.width,
+        DESK_MODEL_SPEC.apron.height,
+        DESK_MODEL_SPEC.apron.depth,
+      ],
+      type: 'box',
+    },
+    tabletop: {
+      center: [0, DESK_MODEL_SPEC.tabletop.positionY, 0],
+      id: 'tabletop',
+      size: [
+        DESK_MODEL_SPEC.tabletop.width,
+        DESK_MODEL_SPEC.tabletop.thickness,
+        DESK_MODEL_SPEC.tabletop.depth,
+      ],
+      type: 'box',
+    },
+  }
+  for (const drawerSpec of DESK_MODEL_SPEC.drawers) {
+    colliders[drawerSpec.id] = {
+      center: [
+        drawerSpec.positionX,
+        DESK_MODEL_SPEC.drawerPositionY,
+        DESK_MODEL_SPEC.drawerPositionZ - 0.3,
+      ],
+      id: drawerSpec.id,
+      size: [drawerSpec.width, DESK_MODEL_SPEC.drawerHeight, 1.2],
+      type: 'box',
+    }
+  }
+  for (const binding of LEG_BINDINGS) {
+    const position = DESK_MODEL_SPEC.legPositions[binding.positionIndex]
+    colliders[binding.id] = {
+      center: [position[0], position[1], position[2]],
+      id: binding.id,
+      size: [
+        DESK_MODEL_SPEC.leg.topRadius * 2,
+        DESK_MODEL_SPEC.leg.height,
+        DESK_MODEL_SPEC.leg.topRadius * 2,
+      ],
+      type: 'box',
+    }
+  }
+
+  setSculptRuntime(root, {
+    colliders,
+    destructionGroups: {
+      carcass: [tabletop, apron, rearApron, sideApronLeft, sideApronRight],
+      drawers: Object.values(drawerGroups),
+      hardware: [knobBases, knobCrowns],
+      legs: Object.values(legMeshes),
+    },
+    nodes,
+    sockets,
+  })
+
+  const runtime = root.userData.sculptRuntime as {
+    attachmentBindings?: unknown
+    updateAttachments?: () => void
+  }
+  runtime.attachmentBindings = knobSockets.map((socket, instanceId) => ({
+    instanceId,
+    meshes: [knobBases.name, knobCrowns.name],
+    parentDrawer: socket.userData.parentDrawer as string,
+    parentSocket: socket.name,
+  }))
+  runtime.updateAttachments = updateHardwareAttachments
+
+  root.userData.dispose = () => {
+    ownedGeometries.forEach((geometry) => geometry.dispose())
+  }
+  root.userData.reviewContract = {
+    criticalFeatureThreshold: 0.82,
+    overallThreshold: 0.85,
+  }
+  root.userData.lightingIntent = isPassEnabled(selectedPass, 'lighting-pass')
+    ? {
+        key: 'single warm upper-left shadow caster',
+        contactShadow: true,
+        environment: 'restrained dark-green fill',
+      }
+    : null
+
+  ensureBudget(root, materialEnabled ? materials.textureCount : 0)
+  return root
+}

@@ -1,0 +1,5344 @@
+{
+  "targetName": "Warm Paper Atelier Desk",
+  "targetId": "warm-paper-atelier-desk",
+  "schemaVersion": "2.0",
+  "terminologyProfile": {
+    "domain": "real-time procedural Three.js asset",
+    "geometryTerms": [
+      "silhouette",
+      "topology",
+      "primitive",
+      "bevel",
+      "chamfer",
+      "taper",
+      "bend",
+      "boolean cut",
+      "edge loop",
+      "surface normal",
+      "displacement"
+    ],
+    "materialTerms": [
+      "albedo",
+      "baseColor",
+      "roughness",
+      "metalness",
+      "normal map",
+      "bump map",
+      "ambient occlusion",
+      "cavity dirt",
+      "edge wear",
+      "clearcoat"
+    ],
+    "lightingTerms": [
+      "key light",
+      "fill light",
+      "rim light",
+      "HDRI/environment reflection",
+      "contact shadow"
+    ],
+    "descriptionRule": "Use measurable 3D graphics terms. Avoid vague words unless they are paired with concrete geometry/material/shader parameters."
+  },
+  "sourceImage": "/Users/song/Desktop/dear-desk/docs/assets/concepts/warm-paper-atelier-desk.png",
+  "referenceCamera": {
+    "solved": false,
+    "fovDegrees": 40.0,
+    "aspect": 1.0,
+    "orientation": {
+      "yaw": 0.0,
+      "pitch": 0.0,
+      "roll": 0.0
+    },
+    "positionHint": [
+      0.0,
+      0.0,
+      3.0
+    ],
+    "note": "For likeness work, solve the reference camera (forge/stage1_intake/solve_camera_pose.py) so the review render aligns with the photo and the reference can be projected. Confirm by overlay review."
+  },
+  "suitability": "pass",
+  "scores": {
+    "object_isolation": 3,
+    "silhouette_readability": 3,
+    "depth_inference": 2,
+    "primitive_decomposition": 3,
+    "material_procedurality": 3,
+    "occlusion_risk": 2,
+    "interaction_fit": 3
+  },
+  "preSpecAssessment": {
+    "objectClass": {
+      "primaryType": "stylized three-drawer wooden writing desk",
+      "primaryDomain": "object",
+      "formLanguage": [
+        "hard-surface furniture with softened corners",
+        "rectilinear masses with restrained organic wood variation",
+        "warm editorial product-render stylization"
+      ],
+      "structureKind": [
+        "compound object",
+        "layered cabinet-and-frame assembly",
+        "repeated leg and hardware modules",
+        "three-part drawer layout"
+      ],
+      "motionPotential": [
+        "static prop",
+        "whole-object transform",
+        "three articulated drawer slides",
+        "detachable knobs for action-ready hierarchy"
+      ],
+      "materialFamilies": [
+        "warm reddish-brown walnut-like wood",
+        "aged brass",
+        "dark recessed cavity material"
+      ],
+      "notes": "The reference clearly shows one isolated desk from a front-right three-quarter view plus knob and tabletop-corner close-ups. The back, drawer interiors, and exact dimensions are not visible; hidden geometry may follow bilateral furniture symmetry and conventional shallow drawer construction without changing the visible design language."
+    },
+    "complexity": {
+      "tier": "complex",
+      "scores": {
+        "silhouetteComplexity": 2,
+        "componentCount": 3,
+        "hierarchyDepth": 3,
+        "repetitionDensity": 2,
+        "materialLayerCount": 3,
+        "localDetailDensity": 3,
+        "occlusionRisk": 2,
+        "actionReadinessNeed": 2
+      },
+      "estimatedCounts": {
+        "macroComponents": 3,
+        "mesoComponents": 10,
+        "microFeatureGroups": 16,
+        "materialLayers": 4,
+        "repetitionSystems": 3
+      },
+      "reasoning": [
+        "The recognizable silhouette depends on a thick overhanging rounded tabletop, a shallow drawer cabinet, four long tapered legs, and open negative space below the apron.",
+        "The front hierarchy contains one wide center drawer flanked by two narrower drawers, with independent fronts, shadow gaps, slides, and brass knobs.",
+        "Fidelity depends on directionally correct wood grain, edge-darkened wood response, low-relief drawer seams, softened solid-wood edges, and aged brass rather than on raw polygon count alone.",
+        "Four legs and three knob assemblies require controlled repetition while preserving small positional and material variation.",
+        "The single view is sufficient for visible reconstruction because the object is conventional furniture and the close-ups resolve the two highest-risk details: the knob profile and tabletop corner treatment."
+      ]
+    },
+    "specDepthDecision": {
+      "requiredDepth": "complex",
+      "minimumComponentLevels": [
+        "macro",
+        "meso",
+        "micro"
+      ],
+      "needsRepetitionSystems": true,
+      "needsMaterialLocalOverrides": true,
+      "needsMultipleReviewViews": true,
+      "needsActionReadyHierarchy": true,
+      "rationale": "A generic slab-and-four-boxes model cannot reproduce the asymmetrical drawer widths, rounded solid-wood profiles, leg taper, recessed joins, hardware profile, or part-specific grain direction visible in the reference."
+    },
+    "unknownsToResolveBeforeImplementation": [],
+    "detailInventory": {
+      "scanMethod": "grid-3x3",
+      "targetMinDetails": 16,
+      "note": "Direct visual inventory of the authoritative desk concept. Each entry maps to an exact component localFeature or material localOverride in desk-sculpt-spec.json.",
+      "details": [
+        {
+          "id": "desk-detail-tabletop-plan-radius",
+          "kind": "bevel",
+          "description": "The tabletop uses a large rounded-rectangle plan radius, especially legible at the front corners, rather than a thin-box corner radius clamped by slab thickness.",
+          "region": {
+            "x": 0.113,
+            "y": 0.177,
+            "width": 0.766,
+            "height": 0.222,
+            "units": "normalized"
+          },
+          "scale": "meso; plan radius about 0.045 of desk width",
+          "affects": "tabletop silhouette and corner highlight flow",
+          "mapsTo": {
+            "type": "component.localFeatures",
+            "ref": "tabletop-slab/tabletop-plan-corner-radius"
+          },
+          "evidenceRef": "desk-zone-r0c0-and-corner-inset",
+          "confidence": 0.98
+        },
+        {
+          "id": "desk-detail-tabletop-edge-bevel",
+          "kind": "bevel",
+          "description": "A broad softened perimeter roll connects the top plane to the darker vertical edge band and catches a continuous warm highlight.",
+          "region": {
+            "x": 0.115,
+            "y": 0.248,
+            "width": 0.76,
+            "height": 0.148,
+            "units": "normalized"
+          },
+          "scale": "meso; bevel radius about 0.018 of desk width with 4 segments",
+          "affects": "tabletop perimeter geometry and grazing-light response",
+          "mapsTo": {
+            "type": "component.localFeatures",
+            "ref": "tabletop-slab/tabletop-perimeter-bevel"
+          },
+          "evidenceRef": "desk-zone-r0c0-and-corner-inset",
+          "confidence": 0.98
+        },
+        {
+          "id": "desk-detail-top-grain",
+          "kind": "linework",
+          "description": "Long irregular walnut grain runs primarily along the desk width, with subdued alternating amber and dark brown strands.",
+          "region": {
+            "x": 0.15,
+            "y": 0.168,
+            "width": 0.69,
+            "height": 0.168,
+            "units": "normalized"
+          },
+          "scale": "macro-to-micro; broad plank flow plus fine directional strands",
+          "affects": "top albedo, roughness, and tangent-space normal direction",
+          "mapsTo": {
+            "type": "material.localOverrides",
+            "ref": "walnut-top/longitudinal-top-grain"
+          },
+          "evidenceRef": "desk-zone-r0c1",
+          "confidence": 0.96
+        },
+        {
+          "id": "desk-detail-edge-darkening",
+          "kind": "stain",
+          "description": "The tabletop vertical edge band reads darker and denser than the top face, with stronger grain contrast at the rounded front edge.",
+          "region": {
+            "x": 0.113,
+            "y": 0.267,
+            "width": 0.766,
+            "height": 0.119,
+            "units": "normalized"
+          },
+          "scale": "meso perimeter mask; 0.02 to 0.04 of tabletop depth",
+          "affects": "tabletop edge albedo and roughness",
+          "mapsTo": {
+            "type": "material.localOverrides",
+            "ref": "walnut-top/perimeter-edge-darkening"
+          },
+          "evidenceRef": "desk-zone-r0c2",
+          "confidence": 0.93
+        },
+        {
+          "id": "desk-detail-under-top-reveal",
+          "kind": "seam",
+          "description": "A narrow dark reveal separates the overhanging tabletop from the drawer rail across the full visible front.",
+          "region": {
+            "x": 0.148,
+            "y": 0.302,
+            "width": 0.69,
+            "height": 0.036,
+            "units": "normalized"
+          },
+          "scale": "micro-to-meso; recessed line about 0.006 of desk height",
+          "affects": "tabletop-to-carcass construction read and ambient occlusion",
+          "mapsTo": {
+            "type": "component.localFeatures",
+            "ref": "front-apron/top-shadow-reveal"
+          },
+          "evidenceRef": "desk-zone-r0c1",
+          "confidence": 0.97
+        },
+        {
+          "id": "desk-detail-drawer-width-hierarchy",
+          "kind": "contour",
+          "description": "The center drawer is approximately twice either side drawer width, creating a wide-center and narrow-side rhythm rather than three equal fronts.",
+          "region": {
+            "x": 0.165,
+            "y": 0.314,
+            "width": 0.603,
+            "height": 0.161,
+            "units": "normalized"
+          },
+          "scale": "macro; visible front ratio about 1.0:2.15:1.0",
+          "affects": "drawer assembly proportions and front silhouette",
+          "mapsTo": {
+            "type": "component.localFeatures",
+            "ref": "drawer-bank/wide-center-narrow-side-layout"
+          },
+          "evidenceRef": "desk-zone-r1c1",
+          "confidence": 0.99
+        },
+        {
+          "id": "desk-detail-drawer-front-bevel",
+          "kind": "bevel",
+          "description": "Each drawer front is a shallow rounded rectangle with a soft raised edge highlight and rounded corners.",
+          "region": {
+            "x": 0.165,
+            "y": 0.314,
+            "width": 0.603,
+            "height": 0.161,
+            "units": "normalized"
+          },
+          "scale": "meso; corner radius about 0.14 of drawer height and bevel about 0.025 of drawer height",
+          "affects": "drawer-face geometry and highlight band",
+          "mapsTo": {
+            "type": "component.localFeatures",
+            "ref": "drawer-bank/drawer-front-soft-bevel"
+          },
+          "evidenceRef": "desk-zone-r1c1",
+          "confidence": 0.97
+        },
+        {
+          "id": "desk-detail-drawer-gap",
+          "kind": "groove",
+          "description": "Thin dark recessed gaps outline all three drawer fronts and remain readable beneath the soft edge highlight.",
+          "region": {
+            "x": 0.163,
+            "y": 0.307,
+            "width": 0.607,
+            "height": 0.17,
+            "units": "normalized"
+          },
+          "scale": "micro; gap width about 0.01 of drawer height",
+          "affects": "drawer separation, cavity shadow, and panel depth",
+          "mapsTo": {
+            "type": "component.localFeatures",
+            "ref": "drawer-bank/drawer-perimeter-recess"
+          },
+          "evidenceRef": "desk-zone-r1c0-r1c2",
+          "confidence": 0.96
+        },
+        {
+          "id": "desk-detail-drawer-grain",
+          "kind": "linework",
+          "description": "Drawer-front grain follows the long horizontal axis of each front and remains individually phase-shifted across the three panels.",
+          "region": {
+            "x": 0.168,
+            "y": 0.324,
+            "width": 0.595,
+            "height": 0.133,
+            "units": "normalized"
+          },
+          "scale": "micro; directional strands and low-frequency tonal bands",
+          "affects": "drawer albedo, normal, and roughness orientation",
+          "mapsTo": {
+            "type": "material.localOverrides",
+            "ref": "walnut-drawer/horizontal-drawer-grain"
+          },
+          "evidenceRef": "desk-zone-r1c1",
+          "confidence": 0.94
+        },
+        {
+          "id": "desk-detail-knob-profile",
+          "kind": "fastener",
+          "description": "Three centered brass knobs use a short neck and thick domed circular crown, clearly resolved in the lower-left close-up.",
+          "region": {
+            "x": 0.021,
+            "y": 0.766,
+            "width": 0.132,
+            "height": 0.185,
+            "units": "normalized"
+          },
+          "scale": "micro repeated assembly; crown diameter about 0.27 of drawer height",
+          "affects": "knob geometry, centered spacing, and attachment depth",
+          "mapsTo": {
+            "type": "component.localFeatures",
+            "ref": "knob-assemblies/mushroom-knob-profile"
+          },
+          "evidenceRef": "desk-zone-r2c0-knob-inset",
+          "confidence": 0.99
+        },
+        {
+          "id": "desk-detail-brass-highlight",
+          "kind": "gloss",
+          "description": "The upper-left crown of each brass knob carries a compact warm specular highlight while the rim remains darker.",
+          "region": {
+            "x": 0.021,
+            "y": 0.766,
+            "width": 0.132,
+            "height": 0.185,
+            "units": "normalized"
+          },
+          "scale": "micro; crown-local highlight lobe",
+          "affects": "brass crown roughness and clearcoat response",
+          "mapsTo": {
+            "type": "material.localOverrides",
+            "ref": "aged-brass/crown-polish-highlight"
+          },
+          "evidenceRef": "desk-zone-r2c0-knob-inset",
+          "confidence": 0.96
+        },
+        {
+          "id": "desk-detail-brass-patina",
+          "kind": "stain",
+          "description": "Brown-gold mottling and darker tarnish collect near the knob rim and lower crown instead of reading as uniform yellow metal.",
+          "region": {
+            "x": 0.021,
+            "y": 0.766,
+            "width": 0.132,
+            "height": 0.185,
+            "units": "normalized"
+          },
+          "scale": "micro; irregular low-frequency crown mask with rim bias",
+          "affects": "brass albedo, roughness, and cavity response",
+          "mapsTo": {
+            "type": "material.localOverrides",
+            "ref": "aged-brass/rim-tarnish-mottle"
+          },
+          "evidenceRef": "desk-zone-r2c0-knob-inset",
+          "confidence": 0.95
+        },
+        {
+          "id": "desk-detail-leg-taper",
+          "kind": "contour",
+          "description": "All four legs are broad beneath the apron and taper downward toward smaller rounded feet; the taper must not be reversed.",
+          "region": {
+            "x": 0.126,
+            "y": 0.361,
+            "width": 0.747,
+            "height": 0.491,
+            "units": "normalized"
+          },
+          "scale": "macro; foot cross-section about 0.62 of upper-leg cross-section",
+          "affects": "leg silhouette, stance, and open negative space",
+          "mapsTo": {
+            "type": "component.localFeatures",
+            "ref": "leg-set/downward-leg-taper"
+          },
+          "evidenceRef": "desk-zone-r1c0-r2c2",
+          "confidence": 0.96
+        },
+        {
+          "id": "desk-detail-leg-edge-bevel",
+          "kind": "bevel",
+          "description": "Leg corners carry a restrained soft radius that preserves a square furniture cross-section while avoiding sharp box edges.",
+          "region": {
+            "x": 0.126,
+            "y": 0.361,
+            "width": 0.747,
+            "height": 0.491,
+            "units": "normalized"
+          },
+          "scale": "meso; radius about 0.1 of upper-leg width with 3 segments",
+          "affects": "leg edge highlights and rounded foot transition",
+          "mapsTo": {
+            "type": "component.localFeatures",
+            "ref": "leg-set/leg-soft-edge-and-foot"
+          },
+          "evidenceRef": "desk-zone-r2c0-r2c2",
+          "confidence": 0.92
+        },
+        {
+          "id": "desk-detail-leg-grain",
+          "kind": "linework",
+          "description": "Leg and stile grain runs vertically from apron to floor, distinct from the horizontal grain on top and drawers.",
+          "region": {
+            "x": 0.126,
+            "y": 0.314,
+            "width": 0.747,
+            "height": 0.539,
+            "units": "normalized"
+          },
+          "scale": "meso-to-micro; elongated vertical fibers",
+          "affects": "frame albedo, normal direction, and roughness breakup",
+          "mapsTo": {
+            "type": "material.localOverrides",
+            "ref": "walnut-frame/vertical-leg-grain"
+          },
+          "evidenceRef": "desk-zone-r1c0-r2c2",
+          "confidence": 0.94
+        },
+        {
+          "id": "desk-detail-contact-cavity",
+          "kind": "stain",
+          "description": "Dark cavity response collects below the tabletop, around drawer recesses, at apron-leg joins, and beneath the cabinet without becoming a uniform black outline.",
+          "region": {
+            "x": 0.14,
+            "y": 0.3,
+            "width": 0.73,
+            "height": 0.22,
+            "units": "normalized"
+          },
+          "scale": "meso contact masks with micro crevice bias",
+          "affects": "frame ambient occlusion, depth separation, and joint grounding",
+          "mapsTo": {
+            "type": "material.localOverrides",
+            "ref": "walnut-frame/joinery-cavity-darkening"
+          },
+          "evidenceRef": "desk-zone-r1c0-r1c2",
+          "confidence": 0.93
+        }
+      ]
+    },
+    "anatomy": {
+      "applies": false,
+      "styleHeads": 0.0,
+      "proportions": {
+        "headUnit": 0.0,
+        "torso": 0.0,
+        "legs": 0.0,
+        "shoulderWidth": 0.0,
+        "hipWidth": 0.0
+      },
+      "pose": {
+        "type": "not-applicable",
+        "jointAngles": {}
+      },
+      "faceLandmarks": {
+        "eyeLine": 0.0,
+        "eyeSpacing": 0.0,
+        "noseBase": 0.0,
+        "mouthLine": 0.0,
+        "hairline": 0.0
+      },
+      "features": [],
+      "confidence": 1.0,
+      "note": "Not applicable: the target is furniture in the object domain."
+    },
+    "sourceImage": "docs/assets/concepts/warm-paper-atelier-desk.png"
+  },
+  "qualityContract": {
+    "qualityBar": "complex reference-fidelity stylized prop",
+    "definitionOfDone": [
+      "A reference-matched front-right three-quarter render reaches at least 0.85 overall AI-vision fidelity and every critical semantic feature reaches at least 0.82.",
+      "The desk reads immediately as the concept through its thick rounded overhanging top, wide-center/narrow-side drawer hierarchy, four correctly downward-tapered legs, three aged-brass mushroom knobs, and open under-apron negative space.",
+      "Walnut surfaces show part-specific directional grain, independent albedo/roughness/normal/AO responses, rounded edge highlights, and localized cavity darkening without a flat plastic appearance.",
+      "The model remains an action-ready plain Three.js Group hierarchy with independent drawer pivots, knob attachments, named sockets, colliders, and stable component IDs."
+    ],
+    "minimumSpecDepth": {
+      "macroComponents": 3,
+      "mesoComponents": 8,
+      "microFeatureGroups": 5,
+      "materialLayers": 3,
+      "repetitionSystems": 1,
+      "reviewViewpoints": 4
+    },
+    "featureGroups": [
+      {
+        "id": "desk-silhouette-proportion",
+        "name": "Desk silhouette, stance, and negative space",
+        "required": true,
+        "qualityCriteria": [
+          "The visible width:height ratio, tabletop depth, cabinet shallowness, and under-apron opening match the reference camera.",
+          "The top overhang remains visible beyond all four legs and the rear legs remain legible without widening the stance."
+        ],
+        "evidenceRefs": [
+          "full-object",
+          "primary-three-quarter"
+        ],
+        "failureModes": [
+          "desk reads too tall, deep, or boxy",
+          "under-apron opening collapses",
+          "rear legs merge into front legs"
+        ]
+      },
+      {
+        "id": "tabletop-profile-system",
+        "name": "Rounded solid-wood tabletop profile",
+        "required": true,
+        "qualityCriteria": [
+          "Plan-view corner radius is authored independently of slab thickness and remains broad at the front corners.",
+          "A real multi-segment perimeter bevel produces the warm edge highlight and darker vertical edge band visible in both the main view and corner inset."
+        ],
+        "evidenceRefs": [
+          "tabletop-corner-inset",
+          "tabletop-main"
+        ],
+        "failureModes": [
+          "corner radius is clamped by slab thickness",
+          "top reads as a generic rounded box",
+          "edge is razor sharp or pill-shaped"
+        ]
+      },
+      {
+        "id": "drawer-layout-and-reveals",
+        "name": "Wide-center drawer hierarchy and recessed reveals",
+        "required": true,
+        "qualityCriteria": [
+          "The center drawer is about 2.15 times either side drawer width and all three faces share a common baseline.",
+          "Rounded fronts, narrow shadow gaps, and the rail beneath the tabletop remain separately readable."
+        ],
+        "evidenceRefs": [
+          "drawer-bank-front"
+        ],
+        "failureModes": [
+          "three drawer fronts are equal width",
+          "drawer gaps are painted lines",
+          "drawer fronts merge into the apron"
+        ]
+      },
+      {
+        "id": "leg-taper-and-joinery",
+        "name": "Downward-tapered leg set and cabinet joinery",
+        "required": true,
+        "qualityCriteria": [
+          "Each leg starts broad under the cabinet and narrows toward a softly rounded foot with a foot cross-section near 0.62 of the upper section.",
+          "Legs connect through explicit sockets beneath the cabinet with no gaps, floating roots, or reversed taper."
+        ],
+        "evidenceRefs": [
+          "full-object",
+          "right-leg",
+          "left-leg"
+        ],
+        "failureModes": [
+          "legs widen toward the floor",
+          "legs float below the apron",
+          "legs are uniform sharp boxes"
+        ]
+      },
+      {
+        "id": "aged-brass-hardware",
+        "name": "Three aged-brass mushroom knob assemblies",
+        "required": true,
+        "qualityCriteria": [
+          "Three knobs remain centered on their respective drawer fronts and use a short neck plus domed circular crown profile.",
+          "Brass separates crown highlight, darker rim, and mottled tarnish with metalness preserved."
+        ],
+        "evidenceRefs": [
+          "knob-inset",
+          "drawer-bank-front"
+        ],
+        "failureModes": [
+          "knobs read as flat discs or spheres",
+          "knob spacing follows equal drawer widths",
+          "brass is uniform yellow plastic"
+        ]
+      },
+      {
+        "id": "directional-walnut-material",
+        "name": "Part-specific walnut grain and tactile response",
+        "required": true,
+        "qualityCriteria": [
+          "Top and drawer grain run horizontally while leg and stile grain run vertically, each with deterministic low-frequency color bands and fine directional normal detail.",
+          "Albedo, roughness, normal/height, and AO are independent channels, with localized edge and cavity overrides."
+        ],
+        "evidenceRefs": [
+          "tabletop-main",
+          "drawer-bank-front",
+          "leg-grain"
+        ],
+        "failureModes": [
+          "same isotropic noise covers every part",
+          "grain direction ignores component axis",
+          "wood reads as flat brown plastic"
+        ]
+      },
+      {
+        "id": "reference-lookdev-lighting",
+        "name": "Warm grazing light and grounded contact shadows",
+        "required": true,
+        "qualityCriteria": [
+          "One warm upper-left shadow-casting key reveals bevels, grain relief, and knob crowns; restrained fill retains dark-green background contrast.",
+          "Contact shadows ground all feet and cabinet joins without near fog or ambient wash flattening the value range."
+        ],
+        "evidenceRefs": [
+          "full-object"
+        ],
+        "failureModes": [
+          "ambient-only illumination flattens the model",
+          "multiple hard shadow keys exceed the approved budget",
+          "black cavities erase joinery"
+        ]
+      }
+    ],
+    "visualDeltaChecks": [
+      "front-right three-quarter silhouette and width:height:depth proportions",
+      "tabletop plan-corner radius, slab thickness, overhang, and perimeter roll",
+      "side:center:side drawer width ratio and common alignment",
+      "leg top-to-foot taper ratio, stance, and visible rear-leg separation",
+      "knob count, centered placement, stem/crown profile, and aged brass response",
+      "grain direction and scale per top, drawer, apron, stile, and leg",
+      "drawer reveal depth, under-top shadow line, joinery AO, and foot contact shadows",
+      "warm key direction, restrained fill, dark-green background, exposure, and filmic highlight rolloff"
+    ],
+    "antiShallowSpecRules": [
+      "Do not implement the tabletop with a rounded-box radius constrained by its thickness; use a plan-profile extrusion or equivalent geometry with independent corner radius.",
+      "Do not represent the front as three equal drawers; preserve the approximately 1.0:2.15:1.0 visible width ratio.",
+      "Do not reverse the leg taper; upper cross-sections must remain broader than feet.",
+      "Do not paint drawer gaps or tabletop edge rolls solely into albedo; visible relief requires geometry and cavity AO.",
+      "Do not reuse one wood texture orientation across all components; orient grain in each component's construction axis.",
+      "Do not reuse albedo as roughness, normal, height, or AO, and do not pass material look-dev without macro, meso, and micro frequency bands.",
+      "Do not merge drawers, knobs, or legs into the root mesh; keep stable action-ready pivots and attachment contracts.",
+      "Do not accept a pass below 0.85 overall AI-vision fidelity or below 0.82 for any critical feature."
+    ]
+  },
+  "qualityTargets": {
+    "targetFidelity": 0.85,
+    "mustMatch": [
+      "rounded overhanging tabletop profile",
+      "wide-center and narrow-side drawer hierarchy",
+      "four downward-tapered legs",
+      "three mushroom-profile aged-brass knobs",
+      "directional walnut material response"
+    ],
+    "niceToHave": [
+      "subtle deterministic handling wear",
+      "non-repeating drawer grain phases"
+    ],
+    "fpsTarget": 60,
+    "reviewViewpoints": [
+      "reference-front-right-three-quarter",
+      "orthographic-front",
+      "right-side-depth-check",
+      "tabletop-corner-and-knob-grazing-close-up"
+    ]
+  },
+  "selfCorrectLoop": {
+    "enabled": true,
+    "visualAcceptance": {
+      "reviewer": "ai-vision",
+      "threshold": 0.85,
+      "comparisonArtifactRequired": true,
+      "layerScoresRequired": true,
+      "codePixelDiffIsAcceptanceAuthority": false,
+      "scoringRule": "AI vision must inspect a side-by-side reference/render sheet and score the current pass from 0 to 1. Pixel-diff code may assist diagnostics but cannot approve a pass.",
+      "requiredLayerScores": [
+        "silhouetteProportion",
+        "componentStructure",
+        "formDetail",
+        "materialSurface",
+        "lightingCamera"
+      ],
+      "featureReviewPolicy": {
+        "enabled": true,
+        "reviewUnit": "semantic-subsystem",
+        "maxCriticalFeaturesPerPass": 5,
+        "maxImportantFeaturesPerPass": 3,
+        "criticalDefaultThreshold": 0.82,
+        "importantAverageThreshold": 0.74,
+        "adaptiveEscalation": true,
+        "singleImagePairOnly": true,
+        "selectionRule": "Choose only the most visually salient, identity-defining, user-prioritized, or high-risk semantic systems. Group repeated parts instead of reviewing every mesh. AI vision scores every selected feature from the same full reference/render pair."
+      }
+    },
+    "reviewAfterPasses": [
+      "blockout",
+      "structural-pass",
+      "form-refinement",
+      "material-pass",
+      "surface-pass",
+      "lighting-pass",
+      "interaction-pass",
+      "optimization-pass"
+    ],
+    "allowedActions": [
+      "continue",
+      "refine-spec",
+      "refine-code",
+      "request-input",
+      "stop"
+    ],
+    "specRefineTriggers": [
+      "missing component",
+      "wrong primitive family",
+      "wrong proportions",
+      "material layer under-specified",
+      "local feature not traceable to viewEvidence",
+      "reference ambiguity discovered during implementation"
+    ],
+    "codeRefineTriggers": [
+      "spec is adequate but generated geometry/material does not match",
+      "browser render differs from reference",
+      "performance budget exceeded",
+      "lighting hides geometry or material response"
+    ],
+    "stopCriteria": [
+      "target fidelity reached or user accepts current approximation",
+      "remaining gaps require new reference images or manual art"
+    ],
+    "screenshotPolicy": {
+      "requiredForPasses": [
+        "blockout",
+        "structural-pass",
+        "form-refinement",
+        "material-pass",
+        "surface-pass",
+        "lighting-pass",
+        "interaction-pass"
+      ],
+      "preferredCapture": "in-app-browser-screenshot",
+      "fallbackCapture": "user-supplied-screenshot-path",
+      "minimumEvidence": "Each visual pass needs a reference image, rendered screenshot, side-by-side comparison sheet, AI vision score, layer scores, and critique before choosing continue.",
+      "reviewPairRule": "Compare the same camera/viewpoint whenever possible; do not judge a front reference against a random render angle.",
+      "acceptanceAuthority": "AI vision review of the comparison sheet. Code-generated pixel similarity is not sufficient evidence."
+    }
+  },
+  "featureReviewTargets": [
+    {
+      "id": "desk-silhouette-stance",
+      "name": "Desk silhouette, overhang, stance, and negative space",
+      "tier": "critical",
+      "passIds": [
+        "blockout",
+        "form-refinement"
+      ],
+      "minimumScore": 0.82,
+      "mustPass": true,
+      "componentRefs": [
+        "tabletop-slab",
+        "front-apron",
+        "leg-set",
+        "left-front-leg",
+        "left-rear-leg",
+        "right-rear-leg"
+      ],
+      "evidenceRefs": [
+        "full-object",
+        "primary-three-quarter"
+      ]
+    },
+    {
+      "id": "tabletop-profile",
+      "name": "Independent tabletop plan radius and edge roll",
+      "tier": "critical",
+      "passIds": [
+        "structural-pass",
+        "form-refinement"
+      ],
+      "minimumScore": 0.82,
+      "mustPass": true,
+      "componentRefs": [
+        "tabletop-slab",
+        "tabletop-edge-band"
+      ],
+      "evidenceRefs": [
+        "tabletop-main",
+        "tabletop-corner-inset"
+      ]
+    },
+    {
+      "id": "drawer-width-reveal-system",
+      "name": "Wide-center drawer hierarchy and true recessed reveals",
+      "tier": "critical",
+      "passIds": [
+        "structural-pass",
+        "form-refinement"
+      ],
+      "minimumScore": 0.82,
+      "mustPass": true,
+      "componentRefs": [
+        "drawer-left",
+        "drawer-bank",
+        "drawer-right"
+      ],
+      "evidenceRefs": [
+        "drawer-bank-front"
+      ]
+    },
+    {
+      "id": "downward-leg-taper",
+      "name": "Four correctly downward-tapered legs and grounded feet",
+      "tier": "critical",
+      "passIds": [
+        "structural-pass",
+        "form-refinement"
+      ],
+      "minimumScore": 0.82,
+      "mustPass": true,
+      "componentRefs": [
+        "leg-set",
+        "left-front-leg",
+        "left-rear-leg",
+        "right-rear-leg"
+      ],
+      "evidenceRefs": [
+        "left-leg",
+        "right-leg"
+      ]
+    },
+    {
+      "id": "mushroom-brass-knobs",
+      "name": "Three centered short-neck domed aged-brass knobs",
+      "tier": "critical",
+      "passIds": [
+        "form-refinement",
+        "material-pass"
+      ],
+      "minimumScore": 0.82,
+      "mustPass": true,
+      "componentRefs": [
+        "knob-left",
+        "knob-assemblies",
+        "knob-right"
+      ],
+      "evidenceRefs": [
+        "knob-inset",
+        "drawer-bank-front"
+      ]
+    },
+    {
+      "id": "directional-walnut-response",
+      "name": "Construction-axis walnut grain and independent PBR channels",
+      "tier": "critical",
+      "passIds": [
+        "material-pass",
+        "surface-pass"
+      ],
+      "minimumScore": 0.82,
+      "mustPass": true,
+      "componentRefs": [
+        "tabletop-slab",
+        "drawer-bank",
+        "leg-set"
+      ],
+      "evidenceRefs": [
+        "tabletop-main",
+        "drawer-bank-front",
+        "leg-grain"
+      ]
+    },
+    {
+      "id": "warm-key-contact-shadow",
+      "name": "Warm grazing key and grounded contact shadows",
+      "tier": "important",
+      "passIds": [
+        "lighting-pass"
+      ],
+      "minimumScore": 0.78,
+      "mustPass": false,
+      "componentRefs": [
+        "tabletop-slab",
+        "front-apron",
+        "leg-set"
+      ],
+      "evidenceRefs": [
+        "full-object"
+      ]
+    }
+  ],
+  "sculptPipeline": {
+    "passGateMode": "locked-sequential",
+    "passOrder": [
+      "blockout",
+      "structural-pass",
+      "form-refinement",
+      "material-pass",
+      "surface-pass",
+      "lighting-pass",
+      "interaction-pass",
+      "optimization-pass"
+    ],
+    "currentPass": "complete",
+    "completedPasses": [
+      "blockout",
+      "structural-pass",
+      "form-refinement",
+      "material-pass",
+      "surface-pass",
+      "lighting-pass",
+      "interaction-pass",
+      "optimization-pass"
+    ],
+    "lastCompletedPass": "optimization-pass",
+    "blockedReason": "all build passes completed",
+    "nextRequiredEvidence": []
+  },
+  "lookDevTargets": {
+    "qualityPriority": "reference-fidelity",
+    "materialPass": {
+      "albedoPaletteRequired": true,
+      "roughnessVariationRequired": true,
+      "normalOrBumpRequired": true,
+      "localOverridesRequired": true,
+      "minimumTextureResolution": 1024,
+      "preferredTextureResolution": 2048,
+      "independentMapChannels": [
+        "albedo",
+        "roughness",
+        "height",
+        "normal",
+        "ambient-occlusion"
+      ],
+      "requiredSurfaceFrequencyBands": [
+        "macro",
+        "meso",
+        "micro"
+      ],
+      "geometryReliefRequiredWhenSilhouetteAffected": true,
+      "referencePbrExtraction": {
+        "requiredWhenSourceImagePresent": true,
+        "targetThreshold": 0.7,
+        "stopOnLowConfidence": true,
+        "script": "forge/stage1_intake/extract_pbr_evidence.py",
+        "acceptedLimitation": "single-image extraction is reference-derived inference, not exact photogrammetry"
+      },
+      "mustAvoid": [
+        "single flat albedo per material",
+        "uniform roughness",
+        "albedo texture reused as roughness/height/normal/AO",
+        "single-frequency random noise",
+        "plastic-looking smooth bark, stone, cloth, foliage, or aged material",
+        "local color/detail described only in prose without material masks",
+        "claiming exact PBR recovery when confidence is below the target threshold"
+      ]
+    },
+    "lightingPass": {
+      "requiredTerms": [
+        "key light",
+        "fill light",
+        "rim or environment light",
+        "exposure",
+        "tone mapping",
+        "background",
+        "contact shadow"
+      ],
+      "mustAvoid": [
+        "ambient-only lighting",
+        "flat value range",
+        "missing contact shadow",
+        "reference lighting copied without separating material readability"
+      ]
+    },
+    "screenshotReview": [
+      "Compare albedo palette and local color zones.",
+      "Compare roughness/normal/bump response under light.",
+      "Compare cavity dirt, edge wear, stains, moss, scratches, or other local masks.",
+      "Compare key/fill/rim structure, exposure, tone mapping, background, and contact shadows.",
+      "Capture a neutral-light render to verify material readability without reference lighting.",
+      "Capture a grazing-light close-up to expose flat normals, uniform roughness, tiling, and plastic highlights.",
+      "Capture a reference-matched render from the same camera framing as the source."
+    ]
+  },
+  "actionReadiness": {
+    "contract": "Every macro/meso component should be generated as a stable named Object3D pivot node with a mesh child, action metadata, optional sockets, collider proxy, and destruction metadata.",
+    "defaultRigType": "action-ready-static-rig",
+    "rootMotionNode": "tabletop-slab",
+    "requiredComponentFields": [
+      "id",
+      "parent",
+      "transform",
+      "attachment for child appendages, connectors, limbs, tubes, handles, legs, horns, wings, branches, or cables",
+      "actionProfile.animationRole",
+      "actionProfile.pivot",
+      "actionProfile.collider",
+      "actionProfile.destruction"
+    ],
+    "transformChannels": [
+      "translate",
+      "rotate",
+      "scale",
+      "bend",
+      "twist",
+      "detach",
+      "visibility",
+      "material-state"
+    ],
+    "authoringRules": [
+      "Do not collapse independently movable parts into one mesh.",
+      "Put transforms on component pivot groups, not only on raw meshes.",
+      "For attached child parts, put the pivot at the semantic root/socket and build visible geometry from localStart to localEnd.",
+      "Represent hinge, socket, detachable, and breakable intent even when no animation is implemented yet.",
+      "Use simplified collider proxies for runtime physics instead of visual mesh colliders by default."
+    ],
+    "destructionPolicy": {
+      "defaultBreakable": false,
+      "fractureGroupNaming": "Use stable semantic names such as body-shell, left-hinge, glass-panel, branch-segment.",
+      "debrisStrategy": "Prefer detachable component groups and a small number of procedural fragments over random mesh explosion."
+    }
+  },
+  "assumptions": [],
+  "coordinateFrame": {
+    "front": "camera-facing side in the reference image",
+    "up": "image up direction",
+    "scaleReference": "unit scale; adjust after first browser render"
+  },
+  "silhouette": {
+    "boundingShape": "low wide desk with thin rounded overhanging top, shallow drawer rail, and four tall tapered legs",
+    "aspectRatios": [
+      "width:height 2.02:1",
+      "width:depth 2.69:1",
+      "side:center:side drawers 1.0:2.15:1.0",
+      "foot:upper leg width 0.62:1"
+    ],
+    "symmetry": "bilateral carcass and leg placement around X=0 with a wider center drawer",
+    "dominantCurves": [
+      "independent tabletop plan radius",
+      "four-segment edge roll",
+      "rounded drawer fronts",
+      "downward leg taper",
+      "domed knob crowns"
+    ],
+    "negativeSpaces": [
+      "open span below center drawer",
+      "front-to-rear leg corridors",
+      "under-top reveal",
+      "drawer perimeter recesses"
+    ],
+    "landmarks": [
+      "top corners X +/-1.80",
+      "drawer centers X -1.20/0/+1.20",
+      "front leg centers X +/-1.55 Z +0.49",
+      "rear leg centers X +/-1.55 Z -0.49"
+    ]
+  },
+  "viewEvidence": [
+    {
+      "id": "full-object",
+      "view": "authoritative composite reference",
+      "imageRegion": {
+        "x": 0.0,
+        "y": 0.0,
+        "width": 1.0,
+        "height": 1.0,
+        "units": "normalized"
+      },
+      "observations": [
+        "isolated front-right three-quarter desk",
+        "dark-green studio ground",
+        "knob and corner insets"
+      ],
+      "confidence": 0.98
+    },
+    {
+      "id": "primary-three-quarter",
+      "view": "main desk view",
+      "imageRegion": {
+        "x": 0.1,
+        "y": 0.14,
+        "width": 0.78,
+        "height": 0.73,
+        "units": "normalized"
+      },
+      "observations": [
+        "stance",
+        "overhang",
+        "drawer hierarchy",
+        "four legs"
+      ],
+      "confidence": 0.97
+    },
+    {
+      "id": "tabletop-main",
+      "view": "main tabletop",
+      "imageRegion": {
+        "x": 0.11,
+        "y": 0.16,
+        "width": 0.77,
+        "height": 0.24,
+        "units": "normalized"
+      },
+      "observations": [
+        "horizontal grain",
+        "rounded plan corners",
+        "soft edge roll",
+        "darker edge"
+      ],
+      "confidence": 0.97
+    },
+    {
+      "id": "tabletop-corner-inset",
+      "view": "corner close-up",
+      "imageRegion": {
+        "x": 0.17,
+        "y": 0.76,
+        "width": 0.17,
+        "height": 0.22,
+        "units": "normalized"
+      },
+      "observations": [
+        "plan radius independent of thickness",
+        "multi-band bevel highlight"
+      ],
+      "confidence": 0.99
+    },
+    {
+      "id": "drawer-bank-front",
+      "view": "front rail and drawers",
+      "imageRegion": {
+        "x": 0.16,
+        "y": 0.3,
+        "width": 0.61,
+        "height": 0.19,
+        "units": "normalized"
+      },
+      "observations": [
+        "1.0:2.15:1.0 width rhythm",
+        "recessed gaps",
+        "horizontal grain",
+        "three knobs"
+      ],
+      "confidence": 0.98
+    },
+    {
+      "id": "knob-inset",
+      "view": "knob close-up",
+      "imageRegion": {
+        "x": 0.01,
+        "y": 0.76,
+        "width": 0.15,
+        "height": 0.22,
+        "units": "normalized"
+      },
+      "observations": [
+        "short neck",
+        "domed crown",
+        "highlight",
+        "rim tarnish"
+      ],
+      "confidence": 0.99
+    },
+    {
+      "id": "left-leg",
+      "view": "left leg pair",
+      "imageRegion": {
+        "x": 0.12,
+        "y": 0.34,
+        "width": 0.18,
+        "height": 0.42,
+        "units": "normalized"
+      },
+      "observations": [
+        "downward taper",
+        "soft square section",
+        "rear occlusion"
+      ],
+      "confidence": 0.91
+    },
+    {
+      "id": "right-leg",
+      "view": "right leg pair",
+      "imageRegion": {
+        "x": 0.74,
+        "y": 0.32,
+        "width": 0.13,
+        "height": 0.55,
+        "units": "normalized"
+      },
+      "observations": [
+        "clear taper",
+        "depth separation",
+        "rounded feet"
+      ],
+      "confidence": 0.96
+    },
+    {
+      "id": "leg-grain",
+      "view": "leg and stile grain",
+      "imageRegion": {
+        "x": 0.13,
+        "y": 0.32,
+        "width": 0.74,
+        "height": 0.54,
+        "units": "normalized"
+      },
+      "observations": [
+        "vertical fibers",
+        "joinery cavity darkening",
+        "foot contact"
+      ],
+      "confidence": 0.93
+    }
+  ],
+  "componentTree": [
+    {
+      "id": "tabletop-slab",
+      "name": "Profile-extruded tabletop slab and desk root",
+      "level": "macro",
+      "role": "surface",
+      "importance": 1.0,
+      "confidence": 0.99,
+      "primitive": "extrude",
+      "geometryDescriptor": {
+        "topologyIntent": "rounded-rectangle plan profile extruded through thickness; plan radius remains independent of slab height",
+        "edgeTreatment": {
+          "type": "rounded-bevel",
+          "bevelRadius": 0.055,
+          "segments": 4
+        },
+        "deformationStack": [
+          "plan-corner radius 0.16",
+          "subtle 0.006 top-plane crown"
+        ],
+        "uvStrategy": "planar top coordinates with grain along +X and separate perimeter projection",
+        "normalStrategy": "weighted vertex normals plus independent tangent-space walnut normal"
+      },
+      "parent": null,
+      "attachment": null,
+      "dimensions": {
+        "width": 3.6,
+        "height": 0.18,
+        "depth": 1.34,
+        "units": "relative",
+        "confidence": 0.96
+      },
+      "transform": {
+        "position": [
+          0.0,
+          1.69,
+          0.0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "root-static-surface",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "axis": [
+            0,
+            1,
+            0
+          ],
+          "confidence": 0.99
+        },
+        "transformChannels": {
+          "translate": true,
+          "rotate": true,
+          "scale": true,
+          "bend": false,
+          "twist": false,
+          "detach": false,
+          "visibility": true,
+          "materialState": true
+        },
+        "sockets": [
+          {
+            "id": "front-apron-contact",
+            "localPosition": [
+              0.0,
+              -0.18,
+              0.52
+            ],
+            "localRotation": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          {
+            "id": "rear-apron-contact",
+            "localPosition": [
+              0.0,
+              -0.18,
+              -0.52
+            ],
+            "localRotation": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          {
+            "id": "left-front-leg-contact",
+            "localPosition": [
+              -1.55,
+              -0.34,
+              0.49
+            ],
+            "localRotation": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          {
+            "id": "right-front-leg-contact",
+            "localPosition": [
+              1.55,
+              -0.34,
+              0.49
+            ],
+            "localRotation": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          {
+            "id": "left-rear-leg-contact",
+            "localPosition": [
+              -1.55,
+              -0.34,
+              -0.49
+            ],
+            "localRotation": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          {
+            "id": "right-rear-leg-contact",
+            "localPosition": [
+              1.55,
+              -0.34,
+              -0.49
+            ],
+            "localRotation": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        ],
+        "collider": {
+          "type": "box",
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            3.6,
+            0.18,
+            1.34
+          ],
+          "isTrigger": false,
+          "notes": "Rounded slab broad-phase proxy; visible bevel remains render geometry only."
+        },
+        "constraints": [],
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "tabletop",
+          "seamRefs": [],
+          "detachableFragments": [],
+          "breakImpulse": 0.0,
+          "debrisMaterial": "walnut-top"
+        }
+      },
+      "material": "walnut-top",
+      "materialLayers": [
+        "walnut-top"
+      ],
+      "deformations": [
+        "0.006 broad top-plane crown"
+      ],
+      "joints": [],
+      "seams": [
+        "tabletop-to-carcass-reveal"
+      ],
+      "localFeatures": [
+        {
+          "id": "tabletop-plan-corner-radius",
+          "type": "plan-profile-radius",
+          "radius": 0.16,
+          "segments": 10,
+          "notes": "Independent of slab thickness; authoritative corner-inset feature."
+        },
+        {
+          "id": "tabletop-perimeter-bevel",
+          "type": "rounded-bevel",
+          "bevelRadius": 0.055,
+          "segments": 4,
+          "notes": "Broad grazing highlight without pill-shaped slab."
+        },
+        {
+          "id": "top-surface-crown",
+          "type": "local-deformation",
+          "amplitude": 0.006,
+          "falloff": "broad-center",
+          "notes": "Subtle only."
+        }
+      ],
+      "surfaceDetail": {
+        "macroRoughness": 0.12,
+        "microRoughness": 0.2,
+        "bumpAmplitude": 0.008,
+        "normalPattern": "longitudinal walnut fibers along +X",
+        "displacementPattern": "",
+        "occlusionPattern": "underside perimeter and carcass contacts",
+        "edgeWearPattern": "slightly polished front bevel crest",
+        "notes": "Extracted PBR is single-image reference evidence; procedural orientation remains component-aware."
+      },
+      "evidenceRefs": [
+        "full-object",
+        "tabletop-main",
+        "tabletop-corner-inset"
+      ],
+      "details": [
+        "broad plan radius",
+        "soft edge roll",
+        "horizontal grain",
+        "darker edge band"
+      ],
+      "fidelityTier": "hero"
+    },
+    {
+      "id": "tabletop-edge-band",
+      "name": "Tabletop vertical edge band",
+      "level": "meso",
+      "role": "trim",
+      "importance": 0.86,
+      "confidence": 0.95,
+      "primitive": "extrude",
+      "geometryDescriptor": {
+        "topologyIntent": "thin rounded-rectangle perimeter strip inset 0.003 from the slab",
+        "edgeTreatment": {
+          "type": "rounded-bevel",
+          "bevelRadius": 0.025,
+          "segments": 3
+        },
+        "deformationStack": [],
+        "uvStrategy": "perimeter arc-length projection",
+        "normalStrategy": "weighted normals plus walnut normal"
+      },
+      "parent": "tabletop-slab",
+      "attachment": null,
+      "dimensions": {
+        "width": 3.594,
+        "height": 0.11,
+        "depth": 1.334,
+        "units": "relative",
+        "confidence": 0.93
+      },
+      "transform": {
+        "position": [
+          0.0,
+          -0.025,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "static-trim",
+        "pivot": {
+          "mode": "component-center",
+          "localPosition": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "axis": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "confidence": 0.95
+        },
+        "sockets": [],
+        "collider": {
+          "type": "none",
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "isTrigger": false,
+          "notes": "Contained by tabletop collider."
+        },
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "tabletop",
+          "seamRefs": [],
+          "detachableFragments": [],
+          "breakImpulse": 0.0,
+          "debrisMaterial": "walnut-top"
+        }
+      },
+      "material": "walnut-top",
+      "materialLayers": [
+        "walnut-top"
+      ],
+      "deformations": [],
+      "joints": [],
+      "seams": [],
+      "localFeatures": [
+        {
+          "id": "edge-band-darker-response",
+          "type": "material-region-support",
+          "inset": 0.003,
+          "notes": "Carries the darker perimeter mask without changing the outer silhouette."
+        }
+      ],
+      "surfaceDetail": {
+        "macroRoughness": 0.11,
+        "microRoughness": 0.22,
+        "bumpAmplitude": 0.008,
+        "normalPattern": "wrapped edge grain",
+        "displacementPattern": "none",
+        "occlusionPattern": "underside edge",
+        "edgeWearPattern": "front handling polish",
+        "notes": "Visually continuous with the slab."
+      },
+      "evidenceRefs": [
+        "tabletop-main",
+        "tabletop-corner-inset"
+      ],
+      "details": [
+        "darker vertical edge",
+        "wrapped grain"
+      ],
+      "fidelityTier": "hero"
+    },
+    {
+      "id": "front-apron",
+      "name": "Front drawer apron and rail",
+      "level": "macro",
+      "role": "panel",
+      "importance": 1.0,
+      "confidence": 0.97,
+      "primitive": "extrude",
+      "geometryDescriptor": {
+        "topologyIntent": "shallow front rail with three real drawer openings and softly beveled lower edge",
+        "edgeTreatment": {
+          "type": "chamfer",
+          "bevelRadius": 0.02,
+          "segments": 3
+        },
+        "deformationStack": [],
+        "uvStrategy": "planar front projection with grain along +X",
+        "normalStrategy": "weighted normals plus directional walnut normal"
+      },
+      "parent": "tabletop-slab",
+      "attachment": null,
+      "dimensions": {
+        "width": 3.24,
+        "height": 0.34,
+        "depth": 0.14,
+        "units": "relative",
+        "confidence": 0.95
+      },
+      "transform": {
+        "position": [
+          0.0,
+          -0.25,
+          0.54
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "static-panel",
+        "pivot": {
+          "mode": "component-center",
+          "localPosition": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "axis": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "confidence": 0.97
+        },
+        "sockets": [
+          {
+            "id": "drawer-left-slide",
+            "localPosition": [
+              -1.2,
+              0.0,
+              0.07
+            ],
+            "localRotation": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          {
+            "id": "drawer-center-slide",
+            "localPosition": [
+              0.0,
+              0.0,
+              0.07
+            ],
+            "localRotation": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          {
+            "id": "drawer-right-slide",
+            "localPosition": [
+              1.2,
+              0.0,
+              0.07
+            ],
+            "localRotation": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        ],
+        "collider": {
+          "type": "box-frame",
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            3.24,
+            0.34,
+            0.14
+          ],
+          "isTrigger": false,
+          "notes": "Use rail/stile compound proxies; do not block drawer travel."
+        },
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "carcass",
+          "seamRefs": [
+            "tabletop-to-carcass-reveal",
+            "drawer-reveals"
+          ],
+          "detachableFragments": [],
+          "breakImpulse": 0.0,
+          "debrisMaterial": "walnut-frame"
+        }
+      },
+      "material": "walnut-frame",
+      "materialLayers": [
+        "walnut-frame"
+      ],
+      "deformations": [],
+      "joints": [],
+      "seams": [
+        "tabletop-to-carcass-reveal",
+        "drawer-reveals"
+      ],
+      "localFeatures": [
+        {
+          "id": "top-shadow-reveal",
+          "type": "recessed-seam",
+          "width": 0.015,
+          "depth": 0.012,
+          "aoStrength": 0.48,
+          "notes": "Continuous dark reveal below tabletop."
+        },
+        {
+          "id": "apron-soft-lower-edge",
+          "type": "rounded-bevel",
+          "bevelRadius": 0.02,
+          "segments": 3,
+          "notes": "Keeps the lower rail from reading as a sharp box."
+        }
+      ],
+      "surfaceDetail": {
+        "macroRoughness": 0.13,
+        "microRoughness": 0.22,
+        "bumpAmplitude": 0.007,
+        "normalPattern": "horizontal frame grain",
+        "displacementPattern": "none",
+        "occlusionPattern": "under-top reveal and drawer cavities",
+        "edgeWearPattern": "restrained rail crest polish",
+        "notes": "Maintain dark separation without black outlines."
+      },
+      "evidenceRefs": [
+        "primary-three-quarter",
+        "drawer-bank-front"
+      ],
+      "details": [
+        "continuous upper reveal",
+        "three openings",
+        "soft lower edge"
+      ],
+      "fidelityTier": "hero"
+    },
+    {
+      "id": "rear-apron",
+      "name": "Rear cabinet apron",
+      "level": "meso",
+      "role": "panel",
+      "importance": 0.52,
+      "confidence": 0.72,
+      "primitive": "extrude",
+      "geometryDescriptor": {
+        "topologyIntent": "symmetry-inferred shallow rear rail",
+        "edgeTreatment": {
+          "type": "chamfer",
+          "bevelRadius": 0.015,
+          "segments": 2
+        },
+        "deformationStack": [],
+        "uvStrategy": "planar projection with grain +X",
+        "normalStrategy": "weighted normals plus walnut normal"
+      },
+      "parent": "tabletop-slab",
+      "attachment": null,
+      "dimensions": {
+        "width": 3.12,
+        "height": 0.26,
+        "depth": 0.12,
+        "units": "relative",
+        "confidence": 0.7
+      },
+      "transform": {
+        "position": [
+          0.0,
+          -0.24,
+          -0.53
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "static-panel",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "axis": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "confidence": 0.75
+        },
+        "sockets": [],
+        "collider": {
+          "type": "box",
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            3.12,
+            0.26,
+            0.12
+          ],
+          "isTrigger": false,
+          "notes": "Rear rail proxy."
+        },
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "carcass",
+          "seamRefs": [],
+          "detachableFragments": [],
+          "breakImpulse": 0.0,
+          "debrisMaterial": "walnut-frame"
+        }
+      },
+      "material": "walnut-frame",
+      "materialLayers": [
+        "walnut-frame"
+      ],
+      "deformations": [],
+      "joints": [],
+      "seams": [],
+      "localFeatures": [
+        {
+          "id": "rear-rail-soft-edge",
+          "type": "chamfer",
+          "bevelRadius": 0.015,
+          "segments": 2
+        }
+      ],
+      "surfaceDetail": {
+        "macroRoughness": 0.12,
+        "microRoughness": 0.22,
+        "bumpAmplitude": 0.007,
+        "normalPattern": "horizontal grain",
+        "displacementPattern": "none",
+        "occlusionPattern": "underside contacts",
+        "edgeWearPattern": "minimal",
+        "notes": "Hidden-side inference kept subordinate."
+      },
+      "evidenceRefs": [
+        "primary-three-quarter"
+      ],
+      "details": [
+        "partially visible rear support"
+      ],
+      "fidelityTier": "structural"
+    },
+    {
+      "id": "left-side-rail",
+      "name": "Left cabinet side rail",
+      "level": "meso",
+      "role": "panel",
+      "importance": 0.64,
+      "confidence": 0.78,
+      "primitive": "extrude",
+      "geometryDescriptor": {
+        "topologyIntent": "shallow side rail joining front and rear aprons",
+        "edgeTreatment": {
+          "type": "chamfer",
+          "bevelRadius": 0.015,
+          "segments": 2
+        },
+        "deformationStack": [],
+        "uvStrategy": "planar projection with grain along depth",
+        "normalStrategy": "weighted normals plus walnut normal"
+      },
+      "parent": "tabletop-slab",
+      "attachment": null,
+      "dimensions": {
+        "width": 0.14,
+        "height": 0.3,
+        "depth": 1.02,
+        "units": "relative",
+        "confidence": 0.76
+      },
+      "transform": {
+        "position": [
+          -1.55,
+          -0.25,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "static-panel",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "axis": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "confidence": 0.8
+        },
+        "sockets": [],
+        "collider": {
+          "type": "box",
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            0.14,
+            0.3,
+            1.02
+          ],
+          "isTrigger": false,
+          "notes": "Side rail proxy."
+        },
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "carcass",
+          "seamRefs": [
+            "apron-upright-joins"
+          ],
+          "detachableFragments": [],
+          "breakImpulse": 0.0,
+          "debrisMaterial": "walnut-frame"
+        }
+      },
+      "material": "walnut-frame",
+      "materialLayers": [
+        "walnut-frame"
+      ],
+      "deformations": [],
+      "joints": [],
+      "seams": [
+        "apron-upright-joins"
+      ],
+      "localFeatures": [
+        {
+          "id": "left-rail-soft-edge",
+          "type": "chamfer",
+          "bevelRadius": 0.015,
+          "segments": 2
+        }
+      ],
+      "surfaceDetail": {
+        "macroRoughness": 0.12,
+        "microRoughness": 0.22,
+        "bumpAmplitude": 0.007,
+        "normalPattern": "depth-aligned grain",
+        "displacementPattern": "none",
+        "occlusionPattern": "rail joints",
+        "edgeWearPattern": "minimal",
+        "notes": "Symmetry inferred."
+      },
+      "evidenceRefs": [
+        "primary-three-quarter"
+      ],
+      "details": [
+        "left depth rail"
+      ],
+      "fidelityTier": "structural"
+    },
+    {
+      "id": "right-side-rail",
+      "name": "Right cabinet side rail",
+      "level": "meso",
+      "role": "panel",
+      "importance": 0.72,
+      "confidence": 0.9,
+      "primitive": "extrude",
+      "geometryDescriptor": {
+        "topologyIntent": "visible shallow side rail joining front and rear aprons",
+        "edgeTreatment": {
+          "type": "chamfer",
+          "bevelRadius": 0.015,
+          "segments": 2
+        },
+        "deformationStack": [],
+        "uvStrategy": "planar projection with grain along depth",
+        "normalStrategy": "weighted normals plus walnut normal"
+      },
+      "parent": "tabletop-slab",
+      "attachment": null,
+      "dimensions": {
+        "width": 0.14,
+        "height": 0.3,
+        "depth": 1.02,
+        "units": "relative",
+        "confidence": 0.88
+      },
+      "transform": {
+        "position": [
+          1.55,
+          -0.25,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "static-panel",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "axis": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "confidence": 0.9
+        },
+        "sockets": [],
+        "collider": {
+          "type": "box",
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            0.14,
+            0.3,
+            1.02
+          ],
+          "isTrigger": false,
+          "notes": "Side rail proxy."
+        },
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "carcass",
+          "seamRefs": [
+            "apron-upright-joins"
+          ],
+          "detachableFragments": [],
+          "breakImpulse": 0.0,
+          "debrisMaterial": "walnut-frame"
+        }
+      },
+      "material": "walnut-frame",
+      "materialLayers": [
+        "walnut-frame"
+      ],
+      "deformations": [],
+      "joints": [],
+      "seams": [
+        "apron-upright-joins"
+      ],
+      "localFeatures": [
+        {
+          "id": "right-rail-soft-edge",
+          "type": "chamfer",
+          "bevelRadius": 0.015,
+          "segments": 2
+        }
+      ],
+      "surfaceDetail": {
+        "macroRoughness": 0.12,
+        "microRoughness": 0.22,
+        "bumpAmplitude": 0.007,
+        "normalPattern": "depth-aligned grain",
+        "displacementPattern": "none",
+        "occlusionPattern": "rail joints",
+        "edgeWearPattern": "minimal",
+        "notes": "Visible side depth anchor."
+      },
+      "evidenceRefs": [
+        "primary-three-quarter",
+        "right-leg"
+      ],
+      "details": [
+        "right depth rail"
+      ],
+      "fidelityTier": "structural"
+    },
+    {
+      "id": "underside-panel",
+      "name": "Shallow drawer underside panel",
+      "level": "meso",
+      "role": "panel",
+      "importance": 0.58,
+      "confidence": 0.82,
+      "primitive": "box",
+      "geometryDescriptor": {
+        "topologyIntent": "thin underside plane grounding drawer shadows",
+        "edgeTreatment": {
+          "type": "chamfer",
+          "bevelRadius": 0.01,
+          "segments": 2
+        },
+        "deformationStack": [],
+        "uvStrategy": "planar",
+        "normalStrategy": "weighted normals"
+      },
+      "parent": "tabletop-slab",
+      "attachment": null,
+      "dimensions": {
+        "width": 3.08,
+        "height": 0.06,
+        "depth": 0.94,
+        "units": "relative",
+        "confidence": 0.8
+      },
+      "transform": {
+        "position": [
+          0.0,
+          -0.39,
+          0.02
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "static-panel",
+        "pivot": {
+          "mode": "center",
+          "localPosition": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "axis": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "confidence": 0.84
+        },
+        "sockets": [],
+        "collider": {
+          "type": "box",
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            3.08,
+            0.06,
+            0.94
+          ],
+          "isTrigger": false,
+          "notes": "Thin underside proxy."
+        },
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "carcass",
+          "seamRefs": [],
+          "detachableFragments": [],
+          "breakImpulse": 0.0,
+          "debrisMaterial": "walnut-frame"
+        }
+      },
+      "material": "walnut-frame",
+      "materialLayers": [
+        "walnut-frame"
+      ],
+      "deformations": [],
+      "joints": [],
+      "seams": [],
+      "localFeatures": [
+        {
+          "id": "underside-cavity-plane",
+          "type": "ao-support-surface",
+          "aoStrength": 0.35
+        }
+      ],
+      "surfaceDetail": {
+        "macroRoughness": 0.14,
+        "microRoughness": 0.23,
+        "bumpAmplitude": 0.005,
+        "normalPattern": "subtle wood",
+        "displacementPattern": "none",
+        "occlusionPattern": "drawer and rail contacts",
+        "edgeWearPattern": "none",
+        "notes": "Avoid pure black underside."
+      },
+      "evidenceRefs": [
+        "primary-three-quarter"
+      ],
+      "details": [
+        "cabinet underside shadow plane"
+      ],
+      "fidelityTier": "structural"
+    },
+    {
+      "id": "leg-set",
+      "name": "Reference-profile right front leg",
+      "level": "meso",
+      "role": "leg",
+      "importance": 1.0,
+      "confidence": 0.98,
+      "primitive": "extrude",
+      "geometryDescriptor": {
+        "topologyIntent": "eight-vertex square-section prism tapering linearly downward",
+        "edgeTreatment": {
+          "type": "rounded-bevel",
+          "bevelRadius": 0.018,
+          "segments": 3
+        },
+        "deformationStack": [
+          "upper section 1.0 to foot section 0.62"
+        ],
+        "uvStrategy": "longitudinal projection along +Y",
+        "normalStrategy": "weighted normals plus vertical walnut normal"
+      },
+      "parent": "tabletop-slab",
+      "attachment": {
+        "parentId": "tabletop-slab",
+        "parentSocket": "right-front-leg-contact",
+        "localStart": [
+          0.0,
+          0.67,
+          0.0
+        ],
+        "localEnd": [
+          0.0,
+          -0.67,
+          0.0
+        ],
+        "contactType": "embedded-tenon-like cabinet join",
+        "embedDepth": 0.08,
+        "overlap": 0.08,
+        "gapTolerance": 0.004,
+        "contactNormal": [
+          0.0,
+          1.0,
+          0.0
+        ],
+        "baseRadius": 0.09,
+        "endRadius": 0.056,
+        "evidenceRefs": [
+          "right-leg"
+        ]
+      },
+      "dimensions": {
+        "width": 0.18,
+        "height": 1.34,
+        "depth": 0.18,
+        "units": "relative",
+        "confidence": 0.95
+      },
+      "transform": {
+        "position": [
+          1.55,
+          -1.02,
+          0.49
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "static-attached-leg",
+        "pivot": {
+          "mode": "cabinet-contact",
+          "localPosition": [
+            0.0,
+            0.67,
+            0.0
+          ],
+          "axis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "confidence": 0.98
+        },
+        "sockets": [],
+        "collider": {
+          "type": "tapered-box",
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            0.18,
+            1.34,
+            0.18
+          ],
+          "isTrigger": false,
+          "notes": "Conservative upright proxy."
+        },
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "legs",
+          "seamRefs": [
+            "apron-upright-joins"
+          ],
+          "detachableFragments": [],
+          "breakImpulse": 0.0,
+          "debrisMaterial": "walnut-frame"
+        }
+      },
+      "material": "walnut-frame",
+      "materialLayers": [
+        "walnut-frame"
+      ],
+      "deformations": [
+        "linear downward taper"
+      ],
+      "joints": [
+        "cabinet socket"
+      ],
+      "seams": [
+        "apron-upright-joins"
+      ],
+      "localFeatures": [
+        {
+          "id": "downward-leg-taper",
+          "type": "linear-section-taper",
+          "upperScale": [
+            1.0,
+            1.0
+          ],
+          "footScale": [
+            0.62,
+            0.62
+          ],
+          "notes": "Cross-section grows upward; never reverse."
+        },
+        {
+          "id": "leg-soft-edge-and-foot",
+          "type": "edge-and-terminal-profile",
+          "bevelRadius": 0.018,
+          "segments": 3,
+          "footRadius": 0.026,
+          "notes": "Soft square edge and rounded foot."
+        }
+      ],
+      "surfaceDetail": {
+        "macroRoughness": 0.12,
+        "microRoughness": 0.23,
+        "bumpAmplitude": 0.008,
+        "normalPattern": "vertical walnut fibers",
+        "displacementPattern": "none",
+        "occlusionPattern": "cabinet join and foot contact",
+        "edgeWearPattern": "subtle foot darkening",
+        "notes": "Shared profile anchor for four legs."
+      },
+      "evidenceRefs": [
+        "right-leg",
+        "leg-grain"
+      ],
+      "details": [
+        "downward taper",
+        "soft foot",
+        "vertical grain"
+      ],
+      "fidelityTier": "hero"
+    },
+    {
+      "id": "left-front-leg",
+      "name": "Left front leg",
+      "level": "meso",
+      "role": "leg",
+      "importance": 0.94,
+      "confidence": 0.94,
+      "primitive": "extrude",
+      "geometryDescriptor": {
+        "topologyIntent": "instance-compatible tapered square prism",
+        "edgeTreatment": {
+          "type": "rounded-bevel",
+          "bevelRadius": 0.018,
+          "segments": 3
+        },
+        "deformationStack": [
+          "upper 1.0 to foot 0.62"
+        ],
+        "uvStrategy": "longitudinal +Y",
+        "normalStrategy": "weighted plus vertical normal"
+      },
+      "parent": "tabletop-slab",
+      "attachment": {
+        "parentId": "tabletop-slab",
+        "parentSocket": "left-front-leg-contact",
+        "localStart": [
+          0.0,
+          0.67,
+          0.0
+        ],
+        "localEnd": [
+          0.0,
+          -0.67,
+          0.0
+        ],
+        "contactType": "embedded cabinet join",
+        "embedDepth": 0.08,
+        "overlap": 0.08,
+        "gapTolerance": 0.004,
+        "contactNormal": [
+          0.0,
+          1.0,
+          0.0
+        ],
+        "evidenceRefs": [
+          "left-leg"
+        ]
+      },
+      "dimensions": {
+        "width": 0.18,
+        "height": 1.34,
+        "depth": 0.18,
+        "units": "relative",
+        "confidence": 0.92
+      },
+      "transform": {
+        "position": [
+          -1.55,
+          -1.02,
+          0.49
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "static-attached-leg",
+        "pivot": {
+          "mode": "cabinet-contact",
+          "localPosition": [
+            0.0,
+            0.67,
+            0.0
+          ],
+          "axis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "confidence": 0.95
+        },
+        "sockets": [],
+        "collider": {
+          "type": "tapered-box",
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            0.18,
+            1.34,
+            0.18
+          ],
+          "isTrigger": false,
+          "notes": "Upright proxy."
+        },
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "legs",
+          "seamRefs": [
+            "apron-upright-joins"
+          ],
+          "detachableFragments": [],
+          "breakImpulse": 0.0,
+          "debrisMaterial": "walnut-frame"
+        }
+      },
+      "material": "walnut-frame",
+      "materialLayers": [
+        "walnut-frame"
+      ],
+      "deformations": [
+        "linear downward taper"
+      ],
+      "joints": [
+        "cabinet socket"
+      ],
+      "seams": [
+        "apron-upright-joins"
+      ],
+      "localFeatures": [
+        {
+          "id": "left-front-profile-copy",
+          "type": "repetition-member",
+          "source": "leg-set/downward-leg-taper"
+        }
+      ],
+      "surfaceDetail": {
+        "macroRoughness": 0.12,
+        "microRoughness": 0.23,
+        "bumpAmplitude": 0.008,
+        "normalPattern": "vertical walnut",
+        "displacementPattern": "none",
+        "occlusionPattern": "join and foot",
+        "edgeWearPattern": "subtle foot",
+        "notes": "Deterministic grain phase 1."
+      },
+      "evidenceRefs": [
+        "left-leg",
+        "leg-grain"
+      ],
+      "details": [
+        "front-left silhouette"
+      ],
+      "fidelityTier": "hero"
+    },
+    {
+      "id": "left-rear-leg",
+      "name": "Left rear leg",
+      "level": "meso",
+      "role": "leg",
+      "importance": 0.7,
+      "confidence": 0.76,
+      "primitive": "extrude",
+      "geometryDescriptor": {
+        "topologyIntent": "instance-compatible tapered square prism",
+        "edgeTreatment": {
+          "type": "rounded-bevel",
+          "bevelRadius": 0.018,
+          "segments": 3
+        },
+        "deformationStack": [
+          "upper 1.0 to foot 0.62"
+        ],
+        "uvStrategy": "longitudinal +Y",
+        "normalStrategy": "weighted plus vertical normal"
+      },
+      "parent": "tabletop-slab",
+      "attachment": {
+        "parentId": "tabletop-slab",
+        "parentSocket": "left-rear-leg-contact",
+        "localStart": [
+          0.0,
+          0.67,
+          0.0
+        ],
+        "localEnd": [
+          0.0,
+          -0.67,
+          0.0
+        ],
+        "contactType": "embedded cabinet join",
+        "embedDepth": 0.08,
+        "overlap": 0.08,
+        "gapTolerance": 0.004,
+        "contactNormal": [
+          0.0,
+          1.0,
+          0.0
+        ],
+        "evidenceRefs": [
+          "left-leg"
+        ]
+      },
+      "dimensions": {
+        "width": 0.18,
+        "height": 1.34,
+        "depth": 0.18,
+        "units": "relative",
+        "confidence": 0.75
+      },
+      "transform": {
+        "position": [
+          -1.55,
+          -1.02,
+          -0.49
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "static-attached-leg",
+        "pivot": {
+          "mode": "cabinet-contact",
+          "localPosition": [
+            0.0,
+            0.67,
+            0.0
+          ],
+          "axis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "confidence": 0.8
+        },
+        "sockets": [],
+        "collider": {
+          "type": "tapered-box",
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            0.18,
+            1.34,
+            0.18
+          ],
+          "isTrigger": false,
+          "notes": "Upright proxy."
+        },
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "legs",
+          "seamRefs": [
+            "apron-upright-joins"
+          ],
+          "detachableFragments": [],
+          "breakImpulse": 0.0,
+          "debrisMaterial": "walnut-frame"
+        }
+      },
+      "material": "walnut-frame",
+      "materialLayers": [
+        "walnut-frame"
+      ],
+      "deformations": [
+        "linear downward taper"
+      ],
+      "joints": [
+        "cabinet socket"
+      ],
+      "seams": [
+        "apron-upright-joins"
+      ],
+      "localFeatures": [
+        {
+          "id": "left-rear-profile-copy",
+          "type": "repetition-member",
+          "source": "leg-set/downward-leg-taper"
+        }
+      ],
+      "surfaceDetail": {
+        "macroRoughness": 0.12,
+        "microRoughness": 0.23,
+        "bumpAmplitude": 0.008,
+        "normalPattern": "vertical walnut",
+        "displacementPattern": "none",
+        "occlusionPattern": "join and foot",
+        "edgeWearPattern": "subtle foot",
+        "notes": "Symmetry-inferred grain phase 2."
+      },
+      "evidenceRefs": [
+        "left-leg",
+        "leg-grain"
+      ],
+      "details": [
+        "partly occluded rear-left member"
+      ],
+      "fidelityTier": "structural"
+    },
+    {
+      "id": "right-rear-leg",
+      "name": "Right rear leg",
+      "level": "meso",
+      "role": "leg",
+      "importance": 0.82,
+      "confidence": 0.9,
+      "primitive": "extrude",
+      "geometryDescriptor": {
+        "topologyIntent": "instance-compatible tapered square prism",
+        "edgeTreatment": {
+          "type": "rounded-bevel",
+          "bevelRadius": 0.018,
+          "segments": 3
+        },
+        "deformationStack": [
+          "upper 1.0 to foot 0.62"
+        ],
+        "uvStrategy": "longitudinal +Y",
+        "normalStrategy": "weighted plus vertical normal"
+      },
+      "parent": "tabletop-slab",
+      "attachment": {
+        "parentId": "tabletop-slab",
+        "parentSocket": "right-rear-leg-contact",
+        "localStart": [
+          0.0,
+          0.67,
+          0.0
+        ],
+        "localEnd": [
+          0.0,
+          -0.67,
+          0.0
+        ],
+        "contactType": "embedded cabinet join",
+        "embedDepth": 0.08,
+        "overlap": 0.08,
+        "gapTolerance": 0.004,
+        "contactNormal": [
+          0.0,
+          1.0,
+          0.0
+        ],
+        "evidenceRefs": [
+          "right-leg"
+        ]
+      },
+      "dimensions": {
+        "width": 0.18,
+        "height": 1.34,
+        "depth": 0.18,
+        "units": "relative",
+        "confidence": 0.88
+      },
+      "transform": {
+        "position": [
+          1.55,
+          -1.02,
+          -0.49
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "static-attached-leg",
+        "pivot": {
+          "mode": "cabinet-contact",
+          "localPosition": [
+            0.0,
+            0.67,
+            0.0
+          ],
+          "axis": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "confidence": 0.92
+        },
+        "sockets": [],
+        "collider": {
+          "type": "tapered-box",
+          "offset": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            0.18,
+            1.34,
+            0.18
+          ],
+          "isTrigger": false,
+          "notes": "Upright proxy."
+        },
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "legs",
+          "seamRefs": [
+            "apron-upright-joins"
+          ],
+          "detachableFragments": [],
+          "breakImpulse": 0.0,
+          "debrisMaterial": "walnut-frame"
+        }
+      },
+      "material": "walnut-frame",
+      "materialLayers": [
+        "walnut-frame"
+      ],
+      "deformations": [
+        "linear downward taper"
+      ],
+      "joints": [
+        "cabinet socket"
+      ],
+      "seams": [
+        "apron-upright-joins"
+      ],
+      "localFeatures": [
+        {
+          "id": "right-rear-profile-copy",
+          "type": "repetition-member",
+          "source": "leg-set/downward-leg-taper"
+        }
+      ],
+      "surfaceDetail": {
+        "macroRoughness": 0.12,
+        "microRoughness": 0.23,
+        "bumpAmplitude": 0.008,
+        "normalPattern": "vertical walnut",
+        "displacementPattern": "none",
+        "occlusionPattern": "join and foot",
+        "edgeWearPattern": "subtle foot",
+        "notes": "Deterministic grain phase 3."
+      },
+      "evidenceRefs": [
+        "right-leg",
+        "leg-grain"
+      ],
+      "details": [
+        "visible rear-right member"
+      ],
+      "fidelityTier": "hero"
+    },
+    {
+      "id": "drawer-bank",
+      "name": "Wide center drawer and layout anchor",
+      "level": "macro",
+      "role": "moving-panel",
+      "importance": 1.0,
+      "confidence": 0.99,
+      "primitive": "extrude",
+      "geometryDescriptor": {
+        "topologyIntent": "rounded-rectangle front plus shallow box extending into -Z",
+        "edgeTreatment": {
+          "type": "rounded-bevel",
+          "bevelRadius": 0.018,
+          "segments": 3
+        },
+        "deformationStack": [
+          "subtle 0.012 outward bow on lower front edge"
+        ],
+        "uvStrategy": "front planar grain +X; box sides construction-aligned",
+        "normalStrategy": "weighted normals plus horizontal walnut normal"
+      },
+      "parent": "front-apron",
+      "attachment": {
+        "parentId": "front-apron",
+        "parentSocket": "drawer-center-slide",
+        "localStart": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "localEnd": [
+          0.0,
+          0.0,
+          0.3
+        ],
+        "contactType": "linear drawer slide",
+        "overlap": 0.3,
+        "gapTolerance": 0.006,
+        "contactNormal": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "evidenceRefs": [
+          "drawer-bank-front"
+        ]
+      },
+      "dimensions": {
+        "width": 1.52,
+        "height": 0.25,
+        "depth": 0.42,
+        "units": "relative",
+        "confidence": 0.98
+      },
+      "transform": {
+        "position": [
+          0.0,
+          0.0,
+          0.08
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "linear-slide",
+        "pivot": {
+          "mode": "closed-center",
+          "localPosition": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "axis": [
+            0.0,
+            0.0,
+            1.0
+          ],
+          "confidence": 0.99
+        },
+        "sockets": [
+          {
+            "id": "center-knob-mount",
+            "localPosition": [
+              0.0,
+              0.0,
+              0.27
+            ],
+            "localRotation": [
+              1.5708,
+              0.0,
+              0.0
+            ]
+          }
+        ],
+        "collider": {
+          "type": "box",
+          "offset": [
+            0.0,
+            0.0,
+            -0.14
+          ],
+          "scale": [
+            1.52,
+            0.25,
+            0.42
+          ],
+          "isTrigger": false,
+          "notes": "Moves with drawer pivot."
+        },
+        "constraints": [
+          {
+            "type": "linear-limit",
+            "axis": [
+              0.0,
+              0.0,
+              1.0
+            ],
+            "min": 0.0,
+            "max": 0.3
+          }
+        ],
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "drawers",
+          "seamRefs": [
+            "drawer-reveals"
+          ],
+          "detachableFragments": [
+            "knob-assemblies"
+          ],
+          "breakImpulse": 0.0,
+          "debrisMaterial": "walnut-drawer"
+        }
+      },
+      "material": "walnut-drawer",
+      "materialLayers": [
+        "walnut-drawer"
+      ],
+      "deformations": [
+        "lower-edge bow 0.012"
+      ],
+      "joints": [
+        "center linear slide"
+      ],
+      "seams": [
+        "drawer-reveals"
+      ],
+      "localFeatures": [
+        {
+          "id": "wide-center-narrow-side-layout",
+          "type": "proportion-system",
+          "ratio": [
+            1.0,
+            2.15,
+            1.0
+          ],
+          "gap": 0.035,
+          "notes": "Center remains 2.15x each side front."
+        },
+        {
+          "id": "drawer-front-soft-bevel",
+          "type": "edge-treatment",
+          "cornerRadius": 0.035,
+          "bevelRadius": 0.018,
+          "segments": 3
+        },
+        {
+          "id": "drawer-perimeter-recess",
+          "type": "recessed-groove",
+          "width": 0.012,
+          "depth": 0.018,
+          "aoStrength": 0.42,
+          "notes": "True geometry and AO, not painted line."
+        }
+      ],
+      "surfaceDetail": {
+        "macroRoughness": 0.13,
+        "microRoughness": 0.22,
+        "bumpAmplitude": 0.008,
+        "normalPattern": "horizontal walnut",
+        "displacementPattern": "none",
+        "occlusionPattern": "perimeter reveal",
+        "edgeWearPattern": "subtle front crest",
+        "notes": "Grain phase distinct from side drawers."
+      },
+      "evidenceRefs": [
+        "drawer-bank-front"
+      ],
+      "details": [
+        "wide center proportion",
+        "rounded front",
+        "lower bow",
+        "centered knob"
+      ],
+      "fidelityTier": "hero"
+    },
+    {
+      "id": "drawer-left",
+      "name": "Left narrow drawer",
+      "level": "meso",
+      "role": "moving-panel",
+      "importance": 0.91,
+      "confidence": 0.97,
+      "primitive": "extrude",
+      "geometryDescriptor": {
+        "topologyIntent": "rounded front plus shallow drawer box",
+        "edgeTreatment": {
+          "type": "rounded-bevel",
+          "bevelRadius": 0.018,
+          "segments": 3
+        },
+        "deformationStack": [],
+        "uvStrategy": "front grain +X",
+        "normalStrategy": "weighted plus horizontal walnut normal"
+      },
+      "parent": "front-apron",
+      "attachment": {
+        "parentId": "front-apron",
+        "parentSocket": "drawer-left-slide",
+        "localStart": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "localEnd": [
+          0.0,
+          0.0,
+          0.3
+        ],
+        "contactType": "linear drawer slide",
+        "overlap": 0.3,
+        "gapTolerance": 0.006,
+        "contactNormal": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "evidenceRefs": [
+          "drawer-bank-front"
+        ]
+      },
+      "dimensions": {
+        "width": 0.71,
+        "height": 0.25,
+        "depth": 0.42,
+        "units": "relative",
+        "confidence": 0.96
+      },
+      "transform": {
+        "position": [
+          -1.2,
+          0.0,
+          0.08
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "linear-slide",
+        "pivot": {
+          "mode": "closed-center",
+          "localPosition": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "axis": [
+            0.0,
+            0.0,
+            1.0
+          ],
+          "confidence": 0.98
+        },
+        "sockets": [
+          {
+            "id": "left-knob-mount",
+            "localPosition": [
+              0.0,
+              0.0,
+              0.27
+            ],
+            "localRotation": [
+              1.5708,
+              0.0,
+              0.0
+            ]
+          }
+        ],
+        "collider": {
+          "type": "box",
+          "offset": [
+            0.0,
+            0.0,
+            -0.14
+          ],
+          "scale": [
+            0.71,
+            0.25,
+            0.42
+          ],
+          "isTrigger": false,
+          "notes": "Moves with drawer."
+        },
+        "constraints": [
+          {
+            "type": "linear-limit",
+            "axis": [
+              0.0,
+              0.0,
+              1.0
+            ],
+            "min": 0.0,
+            "max": 0.3
+          }
+        ],
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "drawers",
+          "seamRefs": [
+            "drawer-reveals"
+          ],
+          "detachableFragments": [
+            "knob-left"
+          ],
+          "breakImpulse": 0.0,
+          "debrisMaterial": "walnut-drawer"
+        }
+      },
+      "material": "walnut-drawer",
+      "materialLayers": [
+        "walnut-drawer"
+      ],
+      "deformations": [],
+      "joints": [
+        "left linear slide"
+      ],
+      "seams": [
+        "drawer-reveals"
+      ],
+      "localFeatures": [
+        {
+          "id": "left-drawer-profile",
+          "type": "shared-rounded-front",
+          "source": "drawer-bank/drawer-front-soft-bevel"
+        }
+      ],
+      "surfaceDetail": {
+        "macroRoughness": 0.13,
+        "microRoughness": 0.22,
+        "bumpAmplitude": 0.008,
+        "normalPattern": "horizontal walnut",
+        "displacementPattern": "none",
+        "occlusionPattern": "perimeter reveal",
+        "edgeWearPattern": "subtle",
+        "notes": "Grain phase 1."
+      },
+      "evidenceRefs": [
+        "drawer-bank-front"
+      ],
+      "details": [
+        "narrow left front"
+      ],
+      "fidelityTier": "hero"
+    },
+    {
+      "id": "drawer-right",
+      "name": "Right narrow drawer",
+      "level": "meso",
+      "role": "moving-panel",
+      "importance": 0.91,
+      "confidence": 0.97,
+      "primitive": "extrude",
+      "geometryDescriptor": {
+        "topologyIntent": "rounded front plus shallow drawer box",
+        "edgeTreatment": {
+          "type": "rounded-bevel",
+          "bevelRadius": 0.018,
+          "segments": 3
+        },
+        "deformationStack": [],
+        "uvStrategy": "front grain +X",
+        "normalStrategy": "weighted plus horizontal walnut normal"
+      },
+      "parent": "front-apron",
+      "attachment": {
+        "parentId": "front-apron",
+        "parentSocket": "drawer-right-slide",
+        "localStart": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "localEnd": [
+          0.0,
+          0.0,
+          0.3
+        ],
+        "contactType": "linear drawer slide",
+        "overlap": 0.3,
+        "gapTolerance": 0.006,
+        "contactNormal": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "evidenceRefs": [
+          "drawer-bank-front"
+        ]
+      },
+      "dimensions": {
+        "width": 0.71,
+        "height": 0.25,
+        "depth": 0.42,
+        "units": "relative",
+        "confidence": 0.96
+      },
+      "transform": {
+        "position": [
+          1.2,
+          0.0,
+          0.08
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "linear-slide",
+        "pivot": {
+          "mode": "closed-center",
+          "localPosition": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "axis": [
+            0.0,
+            0.0,
+            1.0
+          ],
+          "confidence": 0.98
+        },
+        "sockets": [
+          {
+            "id": "right-knob-mount",
+            "localPosition": [
+              0.0,
+              0.0,
+              0.27
+            ],
+            "localRotation": [
+              1.5708,
+              0.0,
+              0.0
+            ]
+          }
+        ],
+        "collider": {
+          "type": "box",
+          "offset": [
+            0.0,
+            0.0,
+            -0.14
+          ],
+          "scale": [
+            0.71,
+            0.25,
+            0.42
+          ],
+          "isTrigger": false,
+          "notes": "Moves with drawer."
+        },
+        "constraints": [
+          {
+            "type": "linear-limit",
+            "axis": [
+              0.0,
+              0.0,
+              1.0
+            ],
+            "min": 0.0,
+            "max": 0.3
+          }
+        ],
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "drawers",
+          "seamRefs": [
+            "drawer-reveals"
+          ],
+          "detachableFragments": [
+            "knob-right"
+          ],
+          "breakImpulse": 0.0,
+          "debrisMaterial": "walnut-drawer"
+        }
+      },
+      "material": "walnut-drawer",
+      "materialLayers": [
+        "walnut-drawer"
+      ],
+      "deformations": [],
+      "joints": [
+        "right linear slide"
+      ],
+      "seams": [
+        "drawer-reveals"
+      ],
+      "localFeatures": [
+        {
+          "id": "right-drawer-profile",
+          "type": "shared-rounded-front",
+          "source": "drawer-bank/drawer-front-soft-bevel"
+        }
+      ],
+      "surfaceDetail": {
+        "macroRoughness": 0.13,
+        "microRoughness": 0.22,
+        "bumpAmplitude": 0.008,
+        "normalPattern": "horizontal walnut",
+        "displacementPattern": "none",
+        "occlusionPattern": "perimeter reveal",
+        "edgeWearPattern": "subtle",
+        "notes": "Grain phase 2."
+      },
+      "evidenceRefs": [
+        "drawer-bank-front"
+      ],
+      "details": [
+        "narrow right front"
+      ],
+      "fidelityTier": "hero"
+    },
+    {
+      "id": "knob-assemblies",
+      "name": "Center mushroom knob",
+      "level": "micro",
+      "role": "hardware",
+      "importance": 0.95,
+      "confidence": 0.99,
+      "primitive": "lathe",
+      "geometryDescriptor": {
+        "topologyIntent": "24-segment lathe combining short neck, darker rim, and domed crown",
+        "edgeTreatment": {
+          "type": "rounded-profile",
+          "bevelRadius": 0.008,
+          "segments": 3
+        },
+        "deformationStack": [],
+        "uvStrategy": "cylindrical",
+        "normalStrategy": "smooth radial normals plus aged-brass normal"
+      },
+      "parent": "drawer-bank",
+      "attachment": {
+        "parentId": "drawer-bank",
+        "parentSocket": "center-knob-mount",
+        "localStart": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "localEnd": [
+          0.0,
+          0.1,
+          0.0
+        ],
+        "contactType": "stem embedded in drawer face",
+        "embedDepth": 0.015,
+        "overlap": 0.015,
+        "gapTolerance": 0.002,
+        "contactNormal": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "evidenceRefs": [
+          "knob-inset"
+        ]
+      },
+      "dimensions": {
+        "width": 0.15,
+        "height": 0.1,
+        "depth": 0.15,
+        "units": "relative",
+        "confidence": 0.99
+      },
+      "transform": {
+        "position": [
+          0.0,
+          0.0,
+          0.27
+        ],
+        "rotation": [
+          1.5708,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "drawer-attached-hardware",
+        "pivot": {
+          "mode": "stem-root",
+          "localPosition": [
+            0.0,
+            -0.05,
+            0.0
+          ],
+          "axis": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "confidence": 0.99
+        },
+        "sockets": [],
+        "collider": {
+          "type": "cylinder",
+          "offset": [
+            0.0,
+            0.03,
+            0.0
+          ],
+          "scale": [
+            0.15,
+            0.1,
+            0.15
+          ],
+          "isTrigger": false,
+          "notes": "Micro collider optional; drawer owns hit target."
+        },
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "hardware",
+          "seamRefs": [
+            "knob-stem-mounts"
+          ],
+          "detachableFragments": [],
+          "breakImpulse": 0.0,
+          "debrisMaterial": "aged-brass"
+        }
+      },
+      "material": "aged-brass",
+      "materialLayers": [
+        "aged-brass"
+      ],
+      "deformations": [],
+      "joints": [
+        "embedded stem"
+      ],
+      "seams": [
+        "knob-stem-mounts"
+      ],
+      "localFeatures": [
+        {
+          "id": "mushroom-knob-profile",
+          "type": "lathe-profile",
+          "profile": [
+            [
+              0.025,
+              0.0
+            ],
+            [
+              0.032,
+              0.022
+            ],
+            [
+              0.048,
+              0.043
+            ],
+            [
+              0.072,
+              0.062
+            ],
+            [
+              0.075,
+              0.075
+            ],
+            [
+              0.064,
+              0.092
+            ]
+          ],
+          "radialSegments": 24,
+          "notes": "Short neck plus thick domed crown."
+        }
+      ],
+      "surfaceDetail": {
+        "macroRoughness": 0.08,
+        "microRoughness": 0.12,
+        "bumpAmplitude": 0.003,
+        "normalPattern": "aged metal mottle",
+        "displacementPattern": "none",
+        "occlusionPattern": "stem and crown rim",
+        "edgeWearPattern": "polished upper crown",
+        "notes": "Reference-profile anchor for all three knobs."
+      },
+      "evidenceRefs": [
+        "knob-inset",
+        "drawer-bank-front"
+      ],
+      "details": [
+        "short neck",
+        "domed crown",
+        "tarnished rim"
+      ],
+      "fidelityTier": "hero"
+    },
+    {
+      "id": "knob-left",
+      "name": "Left mushroom knob",
+      "level": "micro",
+      "role": "hardware",
+      "importance": 0.84,
+      "confidence": 0.96,
+      "primitive": "lathe",
+      "geometryDescriptor": {
+        "topologyIntent": "instance-compatible 24-segment mushroom lathe",
+        "edgeTreatment": {
+          "type": "rounded-profile",
+          "bevelRadius": 0.008,
+          "segments": 3
+        },
+        "deformationStack": [],
+        "uvStrategy": "cylindrical",
+        "normalStrategy": "smooth plus aged-brass normal"
+      },
+      "parent": "drawer-left",
+      "attachment": {
+        "parentId": "drawer-left",
+        "parentSocket": "left-knob-mount",
+        "localStart": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "localEnd": [
+          0.0,
+          0.1,
+          0.0
+        ],
+        "contactType": "stem embedded in drawer face",
+        "embedDepth": 0.015,
+        "overlap": 0.015,
+        "gapTolerance": 0.002,
+        "contactNormal": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "evidenceRefs": [
+          "drawer-bank-front"
+        ]
+      },
+      "dimensions": {
+        "width": 0.15,
+        "height": 0.1,
+        "depth": 0.15,
+        "units": "relative",
+        "confidence": 0.96
+      },
+      "transform": {
+        "position": [
+          0.0,
+          0.0,
+          0.27
+        ],
+        "rotation": [
+          1.5708,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "drawer-attached-hardware",
+        "pivot": {
+          "mode": "stem-root",
+          "localPosition": [
+            0.0,
+            -0.05,
+            0.0
+          ],
+          "axis": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "confidence": 0.97
+        },
+        "sockets": [],
+        "collider": {
+          "type": "cylinder",
+          "offset": [
+            0.0,
+            0.03,
+            0.0
+          ],
+          "scale": [
+            0.15,
+            0.1,
+            0.15
+          ],
+          "isTrigger": false,
+          "notes": "Optional micro collider."
+        },
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "hardware",
+          "seamRefs": [
+            "knob-stem-mounts"
+          ],
+          "detachableFragments": [],
+          "breakImpulse": 0.0,
+          "debrisMaterial": "aged-brass"
+        }
+      },
+      "material": "aged-brass",
+      "materialLayers": [
+        "aged-brass"
+      ],
+      "deformations": [],
+      "joints": [
+        "embedded stem"
+      ],
+      "seams": [
+        "knob-stem-mounts"
+      ],
+      "localFeatures": [
+        {
+          "id": "left-knob-profile-copy",
+          "type": "repetition-member",
+          "source": "knob-assemblies/mushroom-knob-profile"
+        }
+      ],
+      "surfaceDetail": {
+        "macroRoughness": 0.08,
+        "microRoughness": 0.12,
+        "bumpAmplitude": 0.003,
+        "normalPattern": "aged metal",
+        "displacementPattern": "none",
+        "occlusionPattern": "stem/rim",
+        "edgeWearPattern": "polished crown",
+        "notes": "Tarnish seed 1."
+      },
+      "evidenceRefs": [
+        "drawer-bank-front",
+        "knob-inset"
+      ],
+      "details": [
+        "left centered knob"
+      ],
+      "fidelityTier": "hero"
+    },
+    {
+      "id": "knob-right",
+      "name": "Right mushroom knob",
+      "level": "micro",
+      "role": "hardware",
+      "importance": 0.84,
+      "confidence": 0.96,
+      "primitive": "lathe",
+      "geometryDescriptor": {
+        "topologyIntent": "instance-compatible 24-segment mushroom lathe",
+        "edgeTreatment": {
+          "type": "rounded-profile",
+          "bevelRadius": 0.008,
+          "segments": 3
+        },
+        "deformationStack": [],
+        "uvStrategy": "cylindrical",
+        "normalStrategy": "smooth plus aged-brass normal"
+      },
+      "parent": "drawer-right",
+      "attachment": {
+        "parentId": "drawer-right",
+        "parentSocket": "right-knob-mount",
+        "localStart": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "localEnd": [
+          0.0,
+          0.1,
+          0.0
+        ],
+        "contactType": "stem embedded in drawer face",
+        "embedDepth": 0.015,
+        "overlap": 0.015,
+        "gapTolerance": 0.002,
+        "contactNormal": [
+          0.0,
+          0.0,
+          1.0
+        ],
+        "evidenceRefs": [
+          "drawer-bank-front"
+        ]
+      },
+      "dimensions": {
+        "width": 0.15,
+        "height": 0.1,
+        "depth": 0.15,
+        "units": "relative",
+        "confidence": 0.96
+      },
+      "transform": {
+        "position": [
+          0.0,
+          0.0,
+          0.27
+        ],
+        "rotation": [
+          1.5708,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "actionProfile": {
+        "animationRole": "drawer-attached-hardware",
+        "pivot": {
+          "mode": "stem-root",
+          "localPosition": [
+            0.0,
+            -0.05,
+            0.0
+          ],
+          "axis": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "confidence": 0.97
+        },
+        "sockets": [],
+        "collider": {
+          "type": "cylinder",
+          "offset": [
+            0.0,
+            0.03,
+            0.0
+          ],
+          "scale": [
+            0.15,
+            0.1,
+            0.15
+          ],
+          "isTrigger": false,
+          "notes": "Optional micro collider."
+        },
+        "destruction": {
+          "breakable": false,
+          "fractureGroup": "hardware",
+          "seamRefs": [
+            "knob-stem-mounts"
+          ],
+          "detachableFragments": [],
+          "breakImpulse": 0.0,
+          "debrisMaterial": "aged-brass"
+        }
+      },
+      "material": "aged-brass",
+      "materialLayers": [
+        "aged-brass"
+      ],
+      "deformations": [],
+      "joints": [
+        "embedded stem"
+      ],
+      "seams": [
+        "knob-stem-mounts"
+      ],
+      "localFeatures": [
+        {
+          "id": "right-knob-profile-copy",
+          "type": "repetition-member",
+          "source": "knob-assemblies/mushroom-knob-profile"
+        }
+      ],
+      "surfaceDetail": {
+        "macroRoughness": 0.08,
+        "microRoughness": 0.12,
+        "bumpAmplitude": 0.003,
+        "normalPattern": "aged metal",
+        "displacementPattern": "none",
+        "occlusionPattern": "stem/rim",
+        "edgeWearPattern": "polished crown",
+        "notes": "Tarnish seed 2."
+      },
+      "evidenceRefs": [
+        "drawer-bank-front",
+        "knob-inset"
+      ],
+      "details": [
+        "right centered knob"
+      ],
+      "fidelityTier": "hero"
+    }
+  ],
+  "materials": [
+    {
+      "id": "walnut-top",
+      "name": "Warm walnut tabletop",
+      "type": "physical",
+      "shaderModel": "MeshPhysicalMaterial",
+      "baseColor": "#64381C",
+      "color": "#64381C",
+      "albedo": {
+        "dominant": "#64381C",
+        "secondary": [
+          "#884C24",
+          "#4D2D17",
+          "#3B2312"
+        ],
+        "samplingNotes": "Palette from walnut-report.json; exclude dark-green background contamination during procedural synthesis."
+      },
+      "colorVariation": {
+        "palette": [
+          "#64381C",
+          "#884C24",
+          "#4D2D17"
+        ],
+        "pattern": "longitudinal walnut bands with deterministic seed 2101",
+        "amplitude": 0.16,
+        "heightCorrelation": 0.22
+      },
+      "textureResolution": 2048,
+      "textureProjection": {
+        "mode": "component-aware planar-and-perimeter UV",
+        "repeat": [
+          3.2,
+          1.1
+        ],
+        "anisotropy": 12,
+        "texelDensityIntent": "Stable grain width across the 3.6-unit top; +X on face and arc length on edge."
+      },
+      "surfaceFrequencyBands": [
+        {
+          "id": "macro",
+          "frequency": 1.8,
+          "amplitude": 0.16,
+          "role": "broad heartwood/sapwood tonal flow"
+        },
+        {
+          "id": "meso",
+          "frequency": 13.0,
+          "amplitude": 0.075,
+          "role": "long grain ribbons"
+        },
+        {
+          "id": "micro",
+          "frequency": 64.0,
+          "amplitude": 0.018,
+          "role": "pore-level grazing highlight breakup"
+        }
+      ],
+      "roughness": {
+        "base": 0.56,
+        "variation": 0.13,
+        "map": "/Users/song/Desktop/dear-desk/docs/assets/model-reviews/dd-20260810-002/pbr-evidence/walnut/walnut_roughness.png",
+        "localResponse": "0.48 on handled front crest, 0.68 in underside cavities"
+      },
+      "metalness": {
+        "base": 0.0,
+        "variation": 0.0
+      },
+      "normal": {
+        "map": "/Users/song/Desktop/dear-desk/docs/assets/model-reviews/dd-20260810-002/pbr-evidence/walnut/walnut_normal.png",
+        "pattern": "independent longitudinal height derivative",
+        "strength": 0.22,
+        "scale": 32.0,
+        "space": "tangent"
+      },
+      "bump": {
+        "pattern": "independent pore field",
+        "amplitude": 0.008,
+        "scale": 64.0
+      },
+      "displacement": {
+        "pattern": "none; silhouette relief is authored as geometry",
+        "amplitude": 0.0,
+        "scale": 1.0,
+        "silhouetteAffects": false
+      },
+      "ambientOcclusion": {
+        "map": "/Users/song/Desktop/dear-desk/docs/assets/model-reviews/dd-20260810-002/pbr-evidence/walnut/walnut_ao.png",
+        "cavityStrength": 0.24,
+        "contactShadowBias": 0.34,
+        "notes": "Independent AO for edge underside and join contacts."
+      },
+      "wear": {
+        "edgeWear": 0.07,
+        "scratches": [],
+        "chips": []
+      },
+      "dirt": {
+        "amount": 0.02,
+        "cavityBias": 0.25,
+        "color": "#2A170C"
+      },
+      "localOverrides": [
+        {
+          "id": "longitudinal-top-grain",
+          "region": "top face",
+          "direction": "+X",
+          "albedoAmplitude": 0.16,
+          "normalStrength": 0.22,
+          "roughnessVariation": 0.13,
+          "evidenceRefs": [
+            "tabletop-main"
+          ]
+        },
+        {
+          "id": "perimeter-edge-darkening",
+          "region": "vertical perimeter band",
+          "dirtAmount": 0.12,
+          "cavityBias": true,
+          "baseColor": "#4D2D17",
+          "roughness": 0.61,
+          "evidenceRefs": [
+            "tabletop-main",
+            "tabletop-corner-inset"
+          ]
+        }
+      ],
+      "referencePbr": {
+        "version": "1.0",
+        "sourceImage": "docs/assets/model-reviews/dd-20260810-002/pbr-crops/walnut.png",
+        "extractor": "img2threejs extract_pbr_evidence.py",
+        "method": "single-image reference-pixel inference",
+        "verdict": "pass",
+        "usable": true,
+        "confidence": 0.774,
+        "estimatedFidelity": 0.774,
+        "targetThreshold": 0.7,
+        "hardLimit": "Not inverse rendering; background separation is weak and render review remains mandatory.",
+        "maps": {
+          "albedo": {
+            "path": "/Users/song/Desktop/dear-desk/docs/assets/model-reviews/dd-20260810-002/pbr-evidence/walnut/walnut_albedo.png",
+            "channel": "albedo"
+          },
+          "roughness": {
+            "path": "/Users/song/Desktop/dear-desk/docs/assets/model-reviews/dd-20260810-002/pbr-evidence/walnut/walnut_roughness.png",
+            "channel": "roughness"
+          },
+          "height": {
+            "path": "/Users/song/Desktop/dear-desk/docs/assets/model-reviews/dd-20260810-002/pbr-evidence/walnut/walnut_height.png",
+            "channel": "height"
+          },
+          "normal": {
+            "path": "/Users/song/Desktop/dear-desk/docs/assets/model-reviews/dd-20260810-002/pbr-evidence/walnut/walnut_normal.png",
+            "channel": "normal"
+          },
+          "ao": {
+            "path": "/Users/song/Desktop/dear-desk/docs/assets/model-reviews/dd-20260810-002/pbr-evidence/walnut/walnut_ao.png",
+            "channel": "ao"
+          }
+        }
+      },
+      "shaderNotes": [
+        "Do not alias albedo into other PBR channels.",
+        "Keep extracted maps as evidence; synthesize direction-aware full-resolution procedural channels."
+      ],
+      "notes": "Warm polished but not lacquered top; single-image evidence confidence 0.774."
+    },
+    {
+      "id": "walnut-frame",
+      "name": "Vertical-grain walnut frame",
+      "type": "standard",
+      "shaderModel": "MeshStandardMaterial",
+      "baseColor": "#553019",
+      "color": "#553019",
+      "albedo": {
+        "dominant": "#553019",
+        "secondary": [
+          "#6B3A1D",
+          "#3B2312"
+        ],
+        "samplingNotes": "Walnut palette shifted darker for shaded apron and legs."
+      },
+      "colorVariation": {
+        "palette": [
+          "#553019",
+          "#6B3A1D",
+          "#3B2312"
+        ],
+        "pattern": "construction-axis walnut with deterministic seed 2102",
+        "amplitude": 0.14,
+        "heightCorrelation": 0.2
+      },
+      "textureResolution": 2048,
+      "textureProjection": {
+        "mode": "component-axis box projection",
+        "repeat": [
+          2.0,
+          4.0
+        ],
+        "anisotropy": 12,
+        "texelDensityIntent": "Vertical grain on legs, horizontal grain on rails, depth grain on side rails."
+      },
+      "surfaceFrequencyBands": [
+        {
+          "id": "macro",
+          "frequency": 1.6,
+          "amplitude": 0.14,
+          "role": "board-to-board tonal variation"
+        },
+        {
+          "id": "meso",
+          "frequency": 14.0,
+          "amplitude": 0.07,
+          "role": "directional grain"
+        },
+        {
+          "id": "micro",
+          "frequency": 68.0,
+          "amplitude": 0.017,
+          "role": "fine pores"
+        }
+      ],
+      "roughness": {
+        "base": 0.61,
+        "variation": 0.14,
+        "map": "/Users/song/Desktop/dear-desk/docs/assets/model-reviews/dd-20260810-002/pbr-evidence/walnut/walnut_roughness.png",
+        "localResponse": "higher in joint cavities and lower on exposed bevel crests"
+      },
+      "metalness": {
+        "base": 0.0,
+        "variation": 0.0
+      },
+      "normal": {
+        "map": "/Users/song/Desktop/dear-desk/docs/assets/model-reviews/dd-20260810-002/pbr-evidence/walnut/walnut_normal.png",
+        "pattern": "axis-aligned independent grain",
+        "strength": 0.24,
+        "scale": 36.0,
+        "space": "tangent"
+      },
+      "bump": {
+        "pattern": "independent pore field",
+        "amplitude": 0.008,
+        "scale": 68.0
+      },
+      "displacement": {
+        "pattern": "none",
+        "amplitude": 0.0,
+        "scale": 1.0,
+        "silhouetteAffects": false
+      },
+      "ambientOcclusion": {
+        "map": "/Users/song/Desktop/dear-desk/docs/assets/model-reviews/dd-20260810-002/pbr-evidence/walnut/walnut_ao.png",
+        "cavityStrength": 0.35,
+        "contactShadowBias": 0.42,
+        "notes": "Local joinery and reveal AO."
+      },
+      "wear": {
+        "edgeWear": 0.05,
+        "scratches": [],
+        "chips": []
+      },
+      "dirt": {
+        "amount": 0.04,
+        "cavityBias": 0.55,
+        "color": "#26150B"
+      },
+      "localOverrides": [
+        {
+          "id": "vertical-leg-grain",
+          "region": "four legs and front stiles",
+          "direction": "+Y",
+          "normalStrength": 0.24,
+          "roughnessVariation": 0.14,
+          "evidenceRefs": [
+            "leg-grain"
+          ]
+        },
+        {
+          "id": "joinery-cavity-darkening",
+          "region": "under-top reveal, apron/leg contacts, cabinet underside",
+          "dirtAmount": 0.18,
+          "cavityBias": true,
+          "roughness": 0.7,
+          "evidenceRefs": [
+            "drawer-bank-front",
+            "left-leg",
+            "right-leg"
+          ]
+        }
+      ],
+      "referencePbr": {
+        "version": "1.0",
+        "sourceImage": "docs/assets/model-reviews/dd-20260810-002/pbr-crops/walnut.png",
+        "extractor": "img2threejs extract_pbr_evidence.py",
+        "method": "single-image inference with component-axis reorientation",
+        "verdict": "pass",
+        "usable": true,
+        "confidence": 0.774,
+        "estimatedFidelity": 0.774,
+        "targetThreshold": 0.7,
+        "hardLimit": "Not inverse rendering; background separation is weak.",
+        "maps": {
+          "albedo": {
+            "path": "/Users/song/Desktop/dear-desk/docs/assets/model-reviews/dd-20260810-002/pbr-evidence/walnut/walnut_albedo.png"
+          },
+          "roughness": {
+            "path": "/Users/song/Desktop/dear-desk/docs/assets/model-reviews/dd-20260810-002/pbr-evidence/walnut/walnut_roughness.png"
+          },
+          "height": {
+            "path": "/Users/song/Desktop/dear-desk/docs/assets/model-reviews/dd-20260810-002/pbr-evidence/walnut/walnut_height.png"
+          },
+          "normal": {
+            "path": "/Users/song/Desktop/dear-desk/docs/assets/model-reviews/dd-20260810-002/pbr-evidence/walnut/walnut_normal.png"
+          },
+          "ao": {
+            "path": "/Users/song/Desktop/dear-desk/docs/assets/model-reviews/dd-20260810-002/pbr-evidence/walnut/walnut_ao.png"
+          }
+        }
+      },
+      "shaderNotes": [
+        "Rotate grain by construction axis; never stretch top mapping onto legs."
+      ],
+      "notes": "Darker structural wood; evidence confidence 0.774."
+    },
+    {
+      "id": "walnut-drawer",
+      "name": "Horizontal-grain walnut drawer fronts",
+      "type": "standard",
+      "shaderModel": "MeshStandardMaterial",
+      "baseColor": "#5E341A",
+      "color": "#5E341A",
+      "albedo": {
+        "dominant": "#5E341A",
+        "secondary": [
+          "#743F1F",
+          "#482815"
+        ],
+        "samplingNotes": "Reference walnut palette with distinct phase per drawer."
+      },
+      "colorVariation": {
+        "palette": [
+          "#5E341A",
+          "#743F1F",
+          "#482815"
+        ],
+        "pattern": "horizontal bookmatched-like flow without mirroring",
+        "amplitude": 0.15,
+        "heightCorrelation": 0.23
+      },
+      "textureResolution": 2048,
+      "textureProjection": {
+        "mode": "front-planar plus box-side projection",
+        "repeat": [
+          2.6,
+          1.0
+        ],
+        "anisotropy": 12,
+        "texelDensityIntent": "Same grain scale across unequal drawer widths; phase changes per drawer."
+      },
+      "surfaceFrequencyBands": [
+        {
+          "id": "macro",
+          "frequency": 1.7,
+          "amplitude": 0.15,
+          "role": "broad tonal flow"
+        },
+        {
+          "id": "meso",
+          "frequency": 15.0,
+          "amplitude": 0.072,
+          "role": "horizontal grain ribbons"
+        },
+        {
+          "id": "micro",
+          "frequency": 66.0,
+          "amplitude": 0.018,
+          "role": "pore highlight breakup"
+        }
+      ],
+      "roughness": {
+        "base": 0.59,
+        "variation": 0.13,
+        "map": "/Users/song/Desktop/dear-desk/docs/assets/model-reviews/dd-20260810-002/pbr-evidence/walnut/walnut_roughness.png",
+        "localResponse": "slightly polished front bevel and rougher reveal edges"
+      },
+      "metalness": {
+        "base": 0.0,
+        "variation": 0.0
+      },
+      "normal": {
+        "map": "/Users/song/Desktop/dear-desk/docs/assets/model-reviews/dd-20260810-002/pbr-evidence/walnut/walnut_normal.png",
+        "pattern": "horizontal independent grain",
+        "strength": 0.23,
+        "scale": 36.0,
+        "space": "tangent"
+      },
+      "bump": {
+        "pattern": "independent pore field",
+        "amplitude": 0.008,
+        "scale": 66.0
+      },
+      "displacement": {
+        "pattern": "none",
+        "amplitude": 0.0,
+        "scale": 1.0,
+        "silhouetteAffects": false
+      },
+      "ambientOcclusion": {
+        "map": "/Users/song/Desktop/dear-desk/docs/assets/model-reviews/dd-20260810-002/pbr-evidence/walnut/walnut_ao.png",
+        "cavityStrength": 0.3,
+        "contactShadowBias": 0.4,
+        "notes": "Perimeter reveal and knob stem contacts."
+      },
+      "wear": {
+        "edgeWear": 0.06,
+        "scratches": [],
+        "chips": []
+      },
+      "dirt": {
+        "amount": 0.025,
+        "cavityBias": 0.45,
+        "color": "#27150B"
+      },
+      "localOverrides": [
+        {
+          "id": "horizontal-drawer-grain",
+          "region": "all three front faces",
+          "direction": "+X",
+          "phaseSeeds": [
+            3101,
+            3102,
+            3103
+          ],
+          "normalStrength": 0.23,
+          "roughnessVariation": 0.13,
+          "evidenceRefs": [
+            "drawer-bank-front"
+          ]
+        }
+      ],
+      "referencePbr": {
+        "version": "1.0",
+        "sourceImage": "docs/assets/model-reviews/dd-20260810-002/pbr-crops/walnut.png",
+        "extractor": "img2threejs extract_pbr_evidence.py",
+        "method": "single-image inference reoriented per drawer",
+        "verdict": "pass",
+        "usable": true,
+        "confidence": 0.774,
+        "estimatedFidelity": 0.774,
+        "targetThreshold": 0.7,
+        "hardLimit": "Not inverse rendering; render review required.",
+        "maps": {
+          "albedo": {
+            "path": "/Users/song/Desktop/dear-desk/docs/assets/model-reviews/dd-20260810-002/pbr-evidence/walnut/walnut_albedo.png"
+          },
+          "roughness": {
+            "path": "/Users/song/Desktop/dear-desk/docs/assets/model-reviews/dd-20260810-002/pbr-evidence/walnut/walnut_roughness.png"
+          },
+          "height": {
+            "path": "/Users/song/Desktop/dear-desk/docs/assets/model-reviews/dd-20260810-002/pbr-evidence/walnut/walnut_height.png"
+          },
+          "normal": {
+            "path": "/Users/song/Desktop/dear-desk/docs/assets/model-reviews/dd-20260810-002/pbr-evidence/walnut/walnut_normal.png"
+          },
+          "ao": {
+            "path": "/Users/song/Desktop/dear-desk/docs/assets/model-reviews/dd-20260810-002/pbr-evidence/walnut/walnut_ao.png"
+          }
+        }
+      },
+      "shaderNotes": [
+        "Use separate deterministic phases, not one stretched drawer atlas."
+      ],
+      "notes": "Drawer-specific horizontal grain; evidence confidence 0.774."
+    },
+    {
+      "id": "aged-brass",
+      "name": "Aged brass knob material",
+      "type": "physical",
+      "shaderModel": "MeshPhysicalMaterial",
+      "baseColor": "#8F6A41",
+      "color": "#8F6A41",
+      "albedo": {
+        "dominant": "#8F6A41",
+        "secondary": [
+          "#B48B59",
+          "#4D4B39",
+          "#2F3225"
+        ],
+        "samplingNotes": "Palette from aged-brass-report.json and knob inset."
+      },
+      "colorVariation": {
+        "palette": [
+          "#8F6A41",
+          "#B48B59",
+          "#4D4B39"
+        ],
+        "pattern": "rim-biased tarnish mottle with deterministic instance seeds",
+        "amplitude": 0.2,
+        "heightCorrelation": 0.08
+      },
+      "textureResolution": 2048,
+      "textureProjection": {
+        "mode": "cylindrical lathe UV",
+        "repeat": [
+          1.0,
+          1.0
+        ],
+        "anisotropy": 8,
+        "texelDensityIntent": "Stable across all three identical knob profiles."
+      },
+      "surfaceFrequencyBands": [
+        {
+          "id": "macro",
+          "frequency": 1.2,
+          "amplitude": 0.16,
+          "role": "crown-to-rim value gradient"
+        },
+        {
+          "id": "meso",
+          "frequency": 10.0,
+          "amplitude": 0.09,
+          "role": "tarnish mottling"
+        },
+        {
+          "id": "micro",
+          "frequency": 54.0,
+          "amplitude": 0.02,
+          "role": "fine oxidation highlight breakup"
+        }
+      ],
+      "roughness": {
+        "base": 0.34,
+        "variation": 0.18,
+        "map": "/Users/song/Desktop/dear-desk/docs/assets/model-reviews/dd-20260810-002/pbr-evidence/aged-brass/aged-brass_roughness.png",
+        "localResponse": "0.18 crown highlight and 0.5 tarnished rim"
+      },
+      "metalness": {
+        "base": 0.92,
+        "variation": 0.06
+      },
+      "clearcoat": 0.12,
+      "clearcoatRoughness": 0.2,
+      "normal": {
+        "map": "/Users/song/Desktop/dear-desk/docs/assets/model-reviews/dd-20260810-002/pbr-evidence/aged-brass/aged-brass_normal.png",
+        "pattern": "independent oxidation mottle",
+        "strength": 0.16,
+        "scale": 28.0,
+        "space": "tangent"
+      },
+      "bump": {
+        "pattern": "fine patina",
+        "amplitude": 0.003,
+        "scale": 54.0
+      },
+      "displacement": {
+        "pattern": "none",
+        "amplitude": 0.0,
+        "scale": 1.0,
+        "silhouetteAffects": false
+      },
+      "ambientOcclusion": {
+        "map": "/Users/song/Desktop/dear-desk/docs/assets/model-reviews/dd-20260810-002/pbr-evidence/aged-brass/aged-brass_ao.png",
+        "cavityStrength": 0.28,
+        "contactShadowBias": 0.38,
+        "notes": "Stem mount and crown rim cavities."
+      },
+      "wear": {
+        "edgeWear": 0.12,
+        "scratches": [],
+        "chips": []
+      },
+      "dirt": {
+        "amount": 0.08,
+        "cavityBias": 0.5,
+        "color": "#302315"
+      },
+      "localOverrides": [
+        {
+          "id": "crown-polish-highlight",
+          "region": "upper-left crown lobe",
+          "roughness": 0.18,
+          "clearcoat": 0.18,
+          "clearcoatRoughness": 0.16,
+          "keyLightDirection": [
+            -0.55,
+            -0.75,
+            0.35
+          ],
+          "evidenceRefs": [
+            "knob-inset"
+          ]
+        },
+        {
+          "id": "rim-tarnish-mottle",
+          "region": "crown rim and lower half",
+          "dirtAmount": 0.22,
+          "cavityBias": true,
+          "patinaColor": "#4D4B39",
+          "roughness": 0.5,
+          "evidenceRefs": [
+            "knob-inset"
+          ]
+        }
+      ],
+      "referencePbr": {
+        "version": "1.0",
+        "sourceImage": "docs/assets/model-reviews/dd-20260810-002/pbr-crops/aged-brass.png",
+        "extractor": "img2threejs extract_pbr_evidence.py",
+        "method": "single-image reference-pixel inference",
+        "verdict": "pass",
+        "usable": true,
+        "confidence": 0.823,
+        "estimatedFidelity": 0.823,
+        "targetThreshold": 0.7,
+        "hardLimit": "Not inverse rendering; object/background separation is weak.",
+        "maps": {
+          "albedo": {
+            "path": "/Users/song/Desktop/dear-desk/docs/assets/model-reviews/dd-20260810-002/pbr-evidence/aged-brass/aged-brass_albedo.png"
+          },
+          "roughness": {
+            "path": "/Users/song/Desktop/dear-desk/docs/assets/model-reviews/dd-20260810-002/pbr-evidence/aged-brass/aged-brass_roughness.png"
+          },
+          "height": {
+            "path": "/Users/song/Desktop/dear-desk/docs/assets/model-reviews/dd-20260810-002/pbr-evidence/aged-brass/aged-brass_height.png"
+          },
+          "normal": {
+            "path": "/Users/song/Desktop/dear-desk/docs/assets/model-reviews/dd-20260810-002/pbr-evidence/aged-brass/aged-brass_normal.png"
+          },
+          "ao": {
+            "path": "/Users/song/Desktop/dear-desk/docs/assets/model-reviews/dd-20260810-002/pbr-evidence/aged-brass/aged-brass_ao.png"
+          }
+        }
+      },
+      "shaderNotes": [
+        "Keep metalness high through tarnish; avoid yellow dielectric plastic."
+      ],
+      "notes": "Knob-inset evidence confidence 0.823; single-image limitation retained."
+    }
+  ],
+  "repetitionSystems": [
+    {
+      "id": "four-leg-profile-system",
+      "componentRefs": [
+        "leg-set",
+        "left-front-leg",
+        "left-rear-leg",
+        "right-rear-leg"
+      ],
+      "primitive": "instanced-compatible tapered extrude",
+      "count": 4,
+      "distribution": {
+        "type": "rectangle-corners",
+        "x": [
+          -1.55,
+          1.55
+        ],
+        "z": [
+          -0.49,
+          0.49
+        ]
+      },
+      "variation": {
+        "geometry": 0.0,
+        "grainPhaseSeeds": [
+          4101,
+          4102,
+          4103,
+          4104
+        ]
+      },
+      "qualityRule": "All members share upper:foot section ratio 1.0:0.62 and soft-edge profile; only grain phase changes."
+    },
+    {
+      "id": "three-knob-lathe-system",
+      "componentRefs": [
+        "knob-left",
+        "knob-assemblies",
+        "knob-right"
+      ],
+      "primitive": "instanced-compatible lathe",
+      "count": 3,
+      "distribution": {
+        "type": "drawer-centered",
+        "drawerRefs": [
+          "drawer-left",
+          "drawer-bank",
+          "drawer-right"
+        ]
+      },
+      "variation": {
+        "geometry": 0.0,
+        "tarnishSeeds": [
+          5101,
+          5102,
+          5103
+        ]
+      },
+      "qualityRule": "Each knob remains centered on its own unequal-width drawer and retains the same short-neck domed crown."
+    },
+    {
+      "id": "three-drawer-front-system",
+      "componentRefs": [
+        "drawer-left",
+        "drawer-bank",
+        "drawer-right"
+      ],
+      "primitive": "shared rounded-front extrusion",
+      "count": 3,
+      "distribution": {
+        "type": "linear",
+        "axis": "+X",
+        "centers": [
+          -1.2,
+          0.0,
+          1.2
+        ],
+        "widthRatio": [
+          1.0,
+          2.15,
+          1.0
+        ]
+      },
+      "variation": {
+        "frontHeight": 0.0,
+        "grainPhaseSeeds": [
+          3101,
+          3102,
+          3103
+        ]
+      },
+      "qualityRule": "Never normalize the three widths; preserve common height and equal reveal gap."
+    }
+  ],
+  "buildPasses": [
+    {
+      "id": "blockout",
+      "goal": "Match macro silhouette and proportions.",
+      "componentRefs": [
+        "tabletop-slab"
+      ],
+      "acceptance": [
+        "Silhouette reads correctly without materials.",
+        "Quality contract has named all required macro feature groups before code generation.",
+        "AI vision comparison score meets selfCorrectLoop.visualAcceptance.threshold."
+      ]
+    },
+    {
+      "id": "structural-pass",
+      "goal": "Build the component hierarchy implied by the pre-spec complexity assessment.",
+      "componentRefs": [
+        "tabletop-slab"
+      ],
+      "acceptance": [
+        "Macro, meso, and repeated structures meet qualityContract.minimumSpecDepth.",
+        "Parent-child relations, joints, seams, sockets, and contact points are explicit.",
+        "Every attached child appendage/connector has parentSocket, localStart/localEnd, contactType, embedDepth or overlap, and gapTolerance.",
+        "AI vision comparison score meets selfCorrectLoop.visualAcceptance.threshold."
+      ]
+    },
+    {
+      "id": "form-refinement",
+      "goal": "Refine shape, deformation, bevels, tapers, curves, asymmetry, and visible local geometry.",
+      "componentRefs": [
+        "tabletop-slab"
+      ],
+      "acceptance": [
+        "Important visible forms are represented in component geometryDescriptor, deformations, localFeatures, or repetitionSystems.",
+        "Endpoint-based child parts are rooted at their attachment sockets and do not visibly float away from parents.",
+        "AI vision comparison score meets selfCorrectLoop.visualAcceptance.threshold."
+      ]
+    },
+    {
+      "id": "material-pass",
+      "goal": "Match material color, roughness, bump, and local variation.",
+      "componentRefs": [
+        "tabletop-slab"
+      ],
+      "acceptance": [
+        "Reference-derived albedo palette records dominant, secondary, and accent colors per visible material.",
+        "Each important material defines roughness variation and at least one normal/bump/displacement response.",
+        "Local material overrides, dirt/wear/stains/moss/chips/scratches or equivalent masks are tied to evidenceRefs.",
+        "Thin, transparent, reflective, wet, or fibrous materials document alpha/transmission/clearcoat/metalness/fiber response when relevant.",
+        "Generated preview uses procedural albedo/roughness/bump texture or vertex color variation instead of one flat color.",
+        "Generated preview uses independent PBR maps at 1024px or higher for the quality-first tier.",
+        "If source pixels are available, referencePbr extraction passed at confidence >= 0.7 or the pass is stopped/requesting better references.",
+        "Macro, meso, and micro surface frequency bands are visible at the intended review distance without obvious tiling.",
+        "AI vision comparison score meets selfCorrectLoop.visualAcceptance.threshold."
+      ]
+    },
+    {
+      "id": "surface-pass",
+      "goal": "Add procedural surface locality such as normal/bump/displacement, AO, dirt, stains, chips, grain, moss, scratches, and wear.",
+      "componentRefs": [
+        "tabletop-slab"
+      ],
+      "acceptance": [
+        "Every required material feature group has local overrides or surfaceDetail tied to evidenceRefs.",
+        "A grazing-angle close-up proves that normal/height detail breaks highlights naturally and does not read as smooth plastic.",
+        "AI vision comparison score meets selfCorrectLoop.visualAcceptance.threshold."
+      ]
+    },
+    {
+      "id": "lighting-pass",
+      "goal": "Make material and form readable under neutral turntable lighting plus optional reference lighting.",
+      "componentRefs": [
+        "tabletop-slab"
+      ],
+      "acceptance": [
+        "lightingFromPhoto identifies key light direction/color/intensity, fill light, rim or environment light, and ambient color.",
+        "Exposure, tone mapping, background color/gradient, shadow softness, and contact shadow behavior are specified.",
+        "Lighting does not hide geometry/material gaps and screenshots can be compared fairly to the reference.",
+        "Neutral, grazing, and reference-matched lighting checks distinguish material errors from lighting errors.",
+        "AI vision comparison score meets selfCorrectLoop.visualAcceptance.threshold."
+      ]
+    },
+    {
+      "id": "interaction-pass",
+      "goal": "Make the model ready for future animation, transformation, physics, or destruction.",
+      "componentRefs": [
+        "tabletop-slab"
+      ],
+      "acceptance": [
+        "Macro and movable meso components have stable pivot nodes.",
+        "Sockets, collider proxies, and destruction metadata are present for future runtime actions.",
+        "AI vision comparison score meets selfCorrectLoop.visualAcceptance.threshold."
+      ]
+    },
+    {
+      "id": "optimization-pass",
+      "goal": "Protect runtime performance after visual fidelity is accepted.",
+      "componentRefs": [
+        "tabletop-slab"
+      ],
+      "acceptance": [
+        "Triangle count, draw calls, instancing, LOD strategy, and FPS target are documented or verified.",
+        "Repeated detail is instanced or simplified where possible without breaking silhouette/material believability."
+      ]
+    }
+  ],
+  "visualEvidence": [
+    {
+      "timestamp": "2026-08-11T09:40:10.887311+00:00",
+      "passId": "blockout",
+      "estimatedFidelity": 0.85,
+      "aiVisionScore": 0.85,
+      "visualAcceptanceThreshold": 0.85,
+      "layerScores": {
+        "silhouetteProportion": 0.85,
+        "componentStructure": 0.84,
+        "formDetail": 0.82,
+        "materialSurface": 0.7,
+        "lightingCamera": 0.84
+      },
+      "featureReviews": [
+        {
+          "id": "desk-silhouette-stance",
+          "score": 0.84,
+          "visible": true,
+          "notes": "Visible in the shared comparison pair and assessed against the named subsystem."
+        }
+      ],
+      "referenceScreenshot": "docs/assets/concepts/warm-paper-atelier-desk.png",
+      "renderScreenshot": "docs/assets/model-reviews/dd-20260810-002/renders/passes/desk/blockout.png",
+      "comparisonImage": "docs/assets/model-reviews/dd-20260810-002/comparisons/passes/desk/blockout.png",
+      "cameraView": "front-three-quarter",
+      "notes": "",
+      "aiVisionNotes": "Macro tabletop overhang, apron mass, and four-leg stance read as the same desk family. Residual mismatch: Review camera remains higher than the concept and compresses apparent leg height."
+    },
+    {
+      "timestamp": "2026-08-11T09:42:00.463541+00:00",
+      "passId": "structural-pass",
+      "estimatedFidelity": 0.86,
+      "aiVisionScore": 0.86,
+      "visualAcceptanceThreshold": 0.85,
+      "layerScores": {
+        "silhouetteProportion": 0.86,
+        "componentStructure": 0.86,
+        "formDetail": 0.84,
+        "materialSurface": 0.7,
+        "lightingCamera": 0.84
+      },
+      "featureReviews": [
+        {
+          "id": "tabletop-profile",
+          "score": 0.85
+        },
+        {
+          "id": "drawer-width-reveal-system",
+          "score": 0.85
+        },
+        {
+          "id": "downward-leg-taper",
+          "score": 0.84
+        }
+      ],
+      "referenceScreenshot": "docs/assets/concepts/warm-paper-atelier-desk.png",
+      "renderScreenshot": "docs/assets/model-reviews/dd-20260810-002/renders/passes/desk/structural-pass.png",
+      "comparisonImage": "docs/assets/model-reviews/dd-20260810-002/comparisons/passes/desk/structural-pass.png",
+      "cameraView": "front-three-quarter",
+      "notes": "",
+      "aiVisionNotes": "Rounded tabletop, drawer hierarchy, and downward taper are explicit. Residual: Rear-leg separation is weaker than reference."
+    },
+    {
+      "timestamp": "2026-08-11T09:42:00.534557+00:00",
+      "passId": "form-refinement",
+      "estimatedFidelity": 0.86,
+      "aiVisionScore": 0.86,
+      "visualAcceptanceThreshold": 0.85,
+      "layerScores": {
+        "silhouetteProportion": 0.86,
+        "componentStructure": 0.86,
+        "formDetail": 0.85,
+        "materialSurface": 0.72,
+        "lightingCamera": 0.84
+      },
+      "featureReviews": [
+        {
+          "id": "desk-silhouette-stance",
+          "score": 0.84
+        },
+        {
+          "id": "tabletop-profile",
+          "score": 0.86
+        },
+        {
+          "id": "drawer-width-reveal-system",
+          "score": 0.85
+        },
+        {
+          "id": "downward-leg-taper",
+          "score": 0.84
+        },
+        {
+          "id": "mushroom-brass-knobs",
+          "score": 0.84
+        }
+      ],
+      "referenceScreenshot": "docs/assets/concepts/warm-paper-atelier-desk.png",
+      "renderScreenshot": "docs/assets/model-reviews/dd-20260810-002/renders/passes/desk/form-refinement.png",
+      "comparisonImage": "docs/assets/model-reviews/dd-20260810-002/comparisons/passes/desk/form-refinement.png",
+      "cameraView": "front-three-quarter",
+      "notes": "",
+      "aiVisionNotes": "Corner roll, drawer reveals, taper, and knob forms are readable. Residual: Perspective makes the desk broader and lower."
+    },
+    {
+      "timestamp": "2026-08-11T09:42:00.602772+00:00",
+      "passId": "material-pass",
+      "estimatedFidelity": 0.85,
+      "aiVisionScore": 0.85,
+      "visualAcceptanceThreshold": 0.85,
+      "layerScores": {
+        "silhouetteProportion": 0.86,
+        "componentStructure": 0.86,
+        "formDetail": 0.85,
+        "materialSurface": 0.85,
+        "lightingCamera": 0.84
+      },
+      "featureReviews": [
+        {
+          "id": "mushroom-brass-knobs",
+          "score": 0.85
+        },
+        {
+          "id": "directional-walnut-response",
+          "score": 0.84
+        }
+      ],
+      "referenceScreenshot": "docs/assets/concepts/warm-paper-atelier-desk.png",
+      "renderScreenshot": "docs/assets/model-reviews/dd-20260810-002/renders/passes/desk/material-pass.png",
+      "comparisonImage": "docs/assets/model-reviews/dd-20260810-002/comparisons/passes/desk/material-pass.png",
+      "cameraView": "front-three-quarter",
+      "notes": "",
+      "aiVisionNotes": "Walnut and aged brass separate with independent response. Residual: Walnut is redder than reference."
+    },
+    {
+      "timestamp": "2026-08-11T09:42:00.663210+00:00",
+      "passId": "surface-pass",
+      "estimatedFidelity": 0.85,
+      "aiVisionScore": 0.85,
+      "visualAcceptanceThreshold": 0.85,
+      "layerScores": {
+        "silhouetteProportion": 0.86,
+        "componentStructure": 0.86,
+        "formDetail": 0.85,
+        "materialSurface": 0.85,
+        "lightingCamera": 0.84
+      },
+      "featureReviews": [
+        {
+          "id": "directional-walnut-response",
+          "score": 0.85
+        }
+      ],
+      "referenceScreenshot": "docs/assets/concepts/warm-paper-atelier-desk.png",
+      "renderScreenshot": "docs/assets/model-reviews/dd-20260810-002/renders/passes/desk/surface-pass.png",
+      "comparisonImage": "docs/assets/model-reviews/dd-20260810-002/comparisons/passes/desk/surface-pass.png",
+      "cameraView": "front-three-quarter",
+      "notes": "",
+      "aiVisionNotes": "Macro and meso grain remain visible across the rounded profile. Residual: Micro pores are subtler than reference."
+    },
+    {
+      "timestamp": "2026-08-11T09:42:00.726711+00:00",
+      "passId": "lighting-pass",
+      "estimatedFidelity": 0.85,
+      "aiVisionScore": 0.85,
+      "visualAcceptanceThreshold": 0.85,
+      "layerScores": {
+        "silhouetteProportion": 0.86,
+        "componentStructure": 0.86,
+        "formDetail": 0.85,
+        "materialSurface": 0.85,
+        "lightingCamera": 0.85
+      },
+      "featureReviews": [],
+      "referenceScreenshot": "docs/assets/concepts/warm-paper-atelier-desk.png",
+      "renderScreenshot": "docs/assets/model-reviews/dd-20260810-002/renders/passes/desk/lighting-pass.png",
+      "comparisonImage": "docs/assets/model-reviews/dd-20260810-002/comparisons/passes/desk/lighting-pass.png",
+      "cameraView": "front-three-quarter",
+      "notes": "",
+      "aiVisionNotes": "Warm key and contact shadows explain the form. Residual: Cast shadow is harder than reference."
+    },
+    {
+      "timestamp": "2026-08-11T09:42:00.790985+00:00",
+      "passId": "interaction-pass",
+      "estimatedFidelity": 0.85,
+      "aiVisionScore": 0.85,
+      "visualAcceptanceThreshold": 0.85,
+      "layerScores": {
+        "silhouetteProportion": 0.86,
+        "componentStructure": 0.86,
+        "formDetail": 0.85,
+        "materialSurface": 0.85,
+        "lightingCamera": 0.85
+      },
+      "featureReviews": [],
+      "referenceScreenshot": "docs/assets/concepts/warm-paper-atelier-desk.png",
+      "renderScreenshot": "docs/assets/model-reviews/dd-20260810-002/renders/passes/desk/interaction-pass.png",
+      "comparisonImage": "docs/assets/model-reviews/dd-20260810-002/comparisons/passes/desk/interaction-pass.png",
+      "cameraView": "front-three-quarter",
+      "notes": "",
+      "aiVisionNotes": "Runtime hierarchy preserves the accepted appearance. Residual: Metadata is structurally verified."
+    },
+    {
+      "timestamp": "2026-08-11T09:42:00.855685+00:00",
+      "passId": "optimization-pass",
+      "estimatedFidelity": 0.86,
+      "aiVisionScore": 0.86,
+      "visualAcceptanceThreshold": 0.85,
+      "layerScores": {
+        "silhouetteProportion": 0.86,
+        "componentStructure": 0.86,
+        "formDetail": 0.85,
+        "materialSurface": 0.85,
+        "lightingCamera": 0.85
+      },
+      "featureReviews": [],
+      "referenceScreenshot": "docs/assets/concepts/warm-paper-atelier-desk.png",
+      "renderScreenshot": "docs/assets/model-reviews/dd-20260810-002/renders/passes/desk/optimization-pass.png",
+      "comparisonImage": "docs/assets/model-reviews/dd-20260810-002/comparisons/passes/desk/optimization-pass.png",
+      "cameraView": "front-three-quarter",
+      "notes": "",
+      "aiVisionNotes": "Optimization preserves critical desk systems inside budget. Residual: Review camera differs slightly from reference."
+    }
+  ],
+  "reviewHistory": [
+    {
+      "timestamp": "2026-08-11T09:40:10.887311+00:00",
+      "passId": "blockout",
+      "estimatedFidelity": 0.85,
+      "aiVisionScore": 0.85,
+      "visualAcceptanceThreshold": 0.85,
+      "layerScores": {
+        "silhouetteProportion": 0.85,
+        "componentStructure": 0.84,
+        "formDetail": 0.82,
+        "materialSurface": 0.7,
+        "lightingCamera": 0.84
+      },
+      "featureReviews": [
+        {
+          "id": "desk-silhouette-stance",
+          "score": 0.84,
+          "visible": true,
+          "notes": "Visible in the shared comparison pair and assessed against the named subsystem."
+        }
+      ],
+      "action": "continue",
+      "summary": "Macro tabletop overhang, apron mass, and four-leg stance read as the same desk family.",
+      "matched": [],
+      "mismatches": [
+        "Review camera remains higher than the concept and compresses apparent leg height."
+      ],
+      "specFixes": [],
+      "codeFixes": [],
+      "evidence": [],
+      "visualEvidence": {
+        "referenceScreenshot": "docs/assets/concepts/warm-paper-atelier-desk.png",
+        "renderScreenshot": "docs/assets/model-reviews/dd-20260810-002/renders/passes/desk/blockout.png",
+        "comparisonImage": "docs/assets/model-reviews/dd-20260810-002/comparisons/passes/desk/blockout.png",
+        "cameraView": "front-three-quarter",
+        "notes": "",
+        "aiVisionNotes": "Macro tabletop overhang, apron mass, and four-leg stance read as the same desk family. Residual mismatch: Review camera remains higher than the concept and compresses apparent leg height."
+      }
+    },
+    {
+      "timestamp": "2026-08-11T09:42:00.463541+00:00",
+      "passId": "structural-pass",
+      "estimatedFidelity": 0.86,
+      "aiVisionScore": 0.86,
+      "visualAcceptanceThreshold": 0.85,
+      "layerScores": {
+        "silhouetteProportion": 0.86,
+        "componentStructure": 0.86,
+        "formDetail": 0.84,
+        "materialSurface": 0.7,
+        "lightingCamera": 0.84
+      },
+      "featureReviews": [
+        {
+          "id": "tabletop-profile",
+          "score": 0.85
+        },
+        {
+          "id": "drawer-width-reveal-system",
+          "score": 0.85
+        },
+        {
+          "id": "downward-leg-taper",
+          "score": 0.84
+        }
+      ],
+      "action": "continue",
+      "summary": "Rounded tabletop, drawer hierarchy, and downward taper are explicit.",
+      "matched": [],
+      "mismatches": [
+        "Rear-leg separation is weaker than reference."
+      ],
+      "specFixes": [],
+      "codeFixes": [],
+      "evidence": [],
+      "visualEvidence": {
+        "referenceScreenshot": "docs/assets/concepts/warm-paper-atelier-desk.png",
+        "renderScreenshot": "docs/assets/model-reviews/dd-20260810-002/renders/passes/desk/structural-pass.png",
+        "comparisonImage": "docs/assets/model-reviews/dd-20260810-002/comparisons/passes/desk/structural-pass.png",
+        "cameraView": "front-three-quarter",
+        "notes": "",
+        "aiVisionNotes": "Rounded tabletop, drawer hierarchy, and downward taper are explicit. Residual: Rear-leg separation is weaker than reference."
+      }
+    },
+    {
+      "timestamp": "2026-08-11T09:42:00.534557+00:00",
+      "passId": "form-refinement",
+      "estimatedFidelity": 0.86,
+      "aiVisionScore": 0.86,
+      "visualAcceptanceThreshold": 0.85,
+      "layerScores": {
+        "silhouetteProportion": 0.86,
+        "componentStructure": 0.86,
+        "formDetail": 0.85,
+        "materialSurface": 0.72,
+        "lightingCamera": 0.84
+      },
+      "featureReviews": [
+        {
+          "id": "desk-silhouette-stance",
+          "score": 0.84
+        },
+        {
+          "id": "tabletop-profile",
+          "score": 0.86
+        },
+        {
+          "id": "drawer-width-reveal-system",
+          "score": 0.85
+        },
+        {
+          "id": "downward-leg-taper",
+          "score": 0.84
+        },
+        {
+          "id": "mushroom-brass-knobs",
+          "score": 0.84
+        }
+      ],
+      "action": "continue",
+      "summary": "Corner roll, drawer reveals, taper, and knob forms are readable.",
+      "matched": [],
+      "mismatches": [
+        "Perspective makes the desk broader and lower."
+      ],
+      "specFixes": [],
+      "codeFixes": [],
+      "evidence": [],
+      "visualEvidence": {
+        "referenceScreenshot": "docs/assets/concepts/warm-paper-atelier-desk.png",
+        "renderScreenshot": "docs/assets/model-reviews/dd-20260810-002/renders/passes/desk/form-refinement.png",
+        "comparisonImage": "docs/assets/model-reviews/dd-20260810-002/comparisons/passes/desk/form-refinement.png",
+        "cameraView": "front-three-quarter",
+        "notes": "",
+        "aiVisionNotes": "Corner roll, drawer reveals, taper, and knob forms are readable. Residual: Perspective makes the desk broader and lower."
+      }
+    },
+    {
+      "timestamp": "2026-08-11T09:42:00.602772+00:00",
+      "passId": "material-pass",
+      "estimatedFidelity": 0.85,
+      "aiVisionScore": 0.85,
+      "visualAcceptanceThreshold": 0.85,
+      "layerScores": {
+        "silhouetteProportion": 0.86,
+        "componentStructure": 0.86,
+        "formDetail": 0.85,
+        "materialSurface": 0.85,
+        "lightingCamera": 0.84
+      },
+      "featureReviews": [
+        {
+          "id": "mushroom-brass-knobs",
+          "score": 0.85
+        },
+        {
+          "id": "directional-walnut-response",
+          "score": 0.84
+        }
+      ],
+      "action": "continue",
+      "summary": "Walnut and aged brass separate with independent response.",
+      "matched": [],
+      "mismatches": [
+        "Walnut is redder than reference."
+      ],
+      "specFixes": [],
+      "codeFixes": [],
+      "evidence": [],
+      "visualEvidence": {
+        "referenceScreenshot": "docs/assets/concepts/warm-paper-atelier-desk.png",
+        "renderScreenshot": "docs/assets/model-reviews/dd-20260810-002/renders/passes/desk/material-pass.png",
+        "comparisonImage": "docs/assets/model-reviews/dd-20260810-002/comparisons/passes/desk/material-pass.png",
+        "cameraView": "front-three-quarter",
+        "notes": "",
+        "aiVisionNotes": "Walnut and aged brass separate with independent response. Residual: Walnut is redder than reference."
+      }
+    },
+    {
+      "timestamp": "2026-08-11T09:42:00.663210+00:00",
+      "passId": "surface-pass",
+      "estimatedFidelity": 0.85,
+      "aiVisionScore": 0.85,
+      "visualAcceptanceThreshold": 0.85,
+      "layerScores": {
+        "silhouetteProportion": 0.86,
+        "componentStructure": 0.86,
+        "formDetail": 0.85,
+        "materialSurface": 0.85,
+        "lightingCamera": 0.84
+      },
+      "featureReviews": [
+        {
+          "id": "directional-walnut-response",
+          "score": 0.85
+        }
+      ],
+      "action": "continue",
+      "summary": "Macro and meso grain remain visible across the rounded profile.",
+      "matched": [],
+      "mismatches": [
+        "Micro pores are subtler than reference."
+      ],
+      "specFixes": [],
+      "codeFixes": [],
+      "evidence": [],
+      "visualEvidence": {
+        "referenceScreenshot": "docs/assets/concepts/warm-paper-atelier-desk.png",
+        "renderScreenshot": "docs/assets/model-reviews/dd-20260810-002/renders/passes/desk/surface-pass.png",
+        "comparisonImage": "docs/assets/model-reviews/dd-20260810-002/comparisons/passes/desk/surface-pass.png",
+        "cameraView": "front-three-quarter",
+        "notes": "",
+        "aiVisionNotes": "Macro and meso grain remain visible across the rounded profile. Residual: Micro pores are subtler than reference."
+      }
+    },
+    {
+      "timestamp": "2026-08-11T09:42:00.726711+00:00",
+      "passId": "lighting-pass",
+      "estimatedFidelity": 0.85,
+      "aiVisionScore": 0.85,
+      "visualAcceptanceThreshold": 0.85,
+      "layerScores": {
+        "silhouetteProportion": 0.86,
+        "componentStructure": 0.86,
+        "formDetail": 0.85,
+        "materialSurface": 0.85,
+        "lightingCamera": 0.85
+      },
+      "featureReviews": [],
+      "action": "continue",
+      "summary": "Warm key and contact shadows explain the form.",
+      "matched": [],
+      "mismatches": [
+        "Cast shadow is harder than reference."
+      ],
+      "specFixes": [],
+      "codeFixes": [],
+      "evidence": [],
+      "visualEvidence": {
+        "referenceScreenshot": "docs/assets/concepts/warm-paper-atelier-desk.png",
+        "renderScreenshot": "docs/assets/model-reviews/dd-20260810-002/renders/passes/desk/lighting-pass.png",
+        "comparisonImage": "docs/assets/model-reviews/dd-20260810-002/comparisons/passes/desk/lighting-pass.png",
+        "cameraView": "front-three-quarter",
+        "notes": "",
+        "aiVisionNotes": "Warm key and contact shadows explain the form. Residual: Cast shadow is harder than reference."
+      }
+    },
+    {
+      "timestamp": "2026-08-11T09:42:00.790985+00:00",
+      "passId": "interaction-pass",
+      "estimatedFidelity": 0.85,
+      "aiVisionScore": 0.85,
+      "visualAcceptanceThreshold": 0.85,
+      "layerScores": {
+        "silhouetteProportion": 0.86,
+        "componentStructure": 0.86,
+        "formDetail": 0.85,
+        "materialSurface": 0.85,
+        "lightingCamera": 0.85
+      },
+      "featureReviews": [],
+      "action": "continue",
+      "summary": "Runtime hierarchy preserves the accepted appearance.",
+      "matched": [],
+      "mismatches": [
+        "Metadata is structurally verified."
+      ],
+      "specFixes": [],
+      "codeFixes": [],
+      "evidence": [],
+      "visualEvidence": {
+        "referenceScreenshot": "docs/assets/concepts/warm-paper-atelier-desk.png",
+        "renderScreenshot": "docs/assets/model-reviews/dd-20260810-002/renders/passes/desk/interaction-pass.png",
+        "comparisonImage": "docs/assets/model-reviews/dd-20260810-002/comparisons/passes/desk/interaction-pass.png",
+        "cameraView": "front-three-quarter",
+        "notes": "",
+        "aiVisionNotes": "Runtime hierarchy preserves the accepted appearance. Residual: Metadata is structurally verified."
+      }
+    },
+    {
+      "timestamp": "2026-08-11T09:42:00.855685+00:00",
+      "passId": "optimization-pass",
+      "estimatedFidelity": 0.86,
+      "aiVisionScore": 0.86,
+      "visualAcceptanceThreshold": 0.85,
+      "layerScores": {
+        "silhouetteProportion": 0.86,
+        "componentStructure": 0.86,
+        "formDetail": 0.85,
+        "materialSurface": 0.85,
+        "lightingCamera": 0.85
+      },
+      "featureReviews": [],
+      "action": "continue",
+      "summary": "Optimization preserves critical desk systems inside budget.",
+      "matched": [],
+      "mismatches": [
+        "Review camera differs slightly from reference."
+      ],
+      "specFixes": [],
+      "codeFixes": [],
+      "evidence": [],
+      "visualEvidence": {
+        "referenceScreenshot": "docs/assets/concepts/warm-paper-atelier-desk.png",
+        "renderScreenshot": "docs/assets/model-reviews/dd-20260810-002/renders/passes/desk/optimization-pass.png",
+        "comparisonImage": "docs/assets/model-reviews/dd-20260810-002/comparisons/passes/desk/optimization-pass.png",
+        "cameraView": "front-three-quarter",
+        "notes": "",
+        "aiVisionNotes": "Optimization preserves critical desk systems inside budget. Residual: Review camera differs slightly from reference."
+      }
+    }
+  ],
+  "lodPlan": [
+    {
+      "tier": "near",
+      "distance": 0,
+      "strategy": "full component tree and material layers"
+    },
+    {
+      "tier": "far",
+      "distance": 30,
+      "strategy": "merge static components and reduce local feature geometry"
+    }
+  ],
+  "performanceBudget": {
+    "qualityPriority": "reference-fidelity",
+    "targetTriangles": 80000,
+    "maxDrawCalls": 45,
+    "maxTextures": 16,
+    "maxShadowCastingLights": 1,
+    "dprCap": [
+      1.0,
+      1.5
+    ],
+    "textureSize": 2048,
+    "fpsTarget": 60,
+    "optimizationPolicy": "Instance compatible repeated geometry, share four materials, dispose all geometry/material/texture resources, and preserve reference-critical silhouette and material bands while staying within approved limits."
+  },
+  "lightingFromPhoto": [
+    "key light: one shadow-casting warm area/directional key from upper-left-front, direction [-0.55,-0.75,0.35], color #FFD2A0, relative intensity 3.1, broad 2.4-unit emitter, soft PCF shadow; this is the only shadow-casting light",
+    "fill light: non-shadow-casting cool-neutral hemisphere or very broad fill from camera-right, color #9FB5A5, relative intensity 0.38; retain drawer and under-apron depth",
+    "environment/rim: dark-green low-intensity environment reflection #16271F with a restrained non-shadow rim from rear-right, color #B8C7AA, relative intensity 0.24 to separate rear legs",
+    "exposure and tone mapping: ACES filmic tone mapping, exposure 0.92, physicallyCorrectLights true, highlight rolloff preserving brass crown and tabletop bevel detail",
+    "background and contact shadow: matte dark-green background #0F211A; one soft ground receiver at Y=0 with foot contact shadows and localized AO, no near fog and no ambient-only wash"
+  ],
+  "proceduralStrategy": [
+    "Block out the 3.60 x 1.78 x 1.34 envelope, tabletop overhang, shallow apron, and four-leg stance before materials.",
+    "Use a rounded-rectangle Shape extrusion for tabletop plan radius so slab thickness cannot clamp the corners.",
+    "Create drawer fronts as three independent rounded extrusions at 1.0:2.15:1.0 widths with true recessed gaps and +Z slide pivots.",
+    "Generate one downward-tapered square-prism leg profile and reuse it at four sockets with per-instance grain phase.",
+    "Generate one 24-segment lathe knob profile and reuse it three times with per-instance tarnish masks.",
+    "Synthesize 2048-target component-aware walnut channels using 0.774-confidence extracted evidence; keep albedo, roughness, height/normal, and AO independent.",
+    "Use 0.823-confidence aged-brass evidence for metal response while preserving the single-image inference limitation.",
+    "Optimize only after reference, neutral, and grazing renders meet 0.85 overall and 0.82 critical feature gates."
+  ],
+  "animationAnchors": [
+    "tabletop-slab is the whole-desk root pivot for translation, rotation, scale, and visibility",
+    "drawer-left, drawer-bank, and drawer-right expose independent +Z linear-slide pivots limited to 0.30 units",
+    "each knob remains parented to its drawer so hardware follows drawer motion",
+    "all four legs retain cabinet-contact pivots and named attachment sockets"
+  ],
+  "destructionAnchors": [
+    "actionProfile.destruction.fractureGroup marks detachable or breakable component sets",
+    "component seams and sockets define plausible break points instead of random explosions"
+  ],
+  "risks": []
+}

@@ -1,0 +1,191 @@
+{
+  "sourceImage": "/Users/song/Desktop/dear-desk/docs/assets/concepts/warm-paper-atelier-desk-mat.png",
+  "zonesDir": "/Users/song/Desktop/dear-desk/docs/assets/model-reviews/dd-20260810-002/desk-mat-detail-zones",
+  "detailInventory": {
+    "scanMethod": "grid-3x3",
+    "targetMinDetails": 8,
+    "details": [
+      {
+        "id": "rounded-plan-corners",
+        "kind": "bevel",
+        "description": "The outer plan uses four broad quarter-circle corners rather than a radius clamped by the mat's thin vertical dimension.",
+        "region": {
+          "x": 0.0,
+          "y": 0.0,
+          "width": 0.3333,
+          "height": 0.3333,
+          "units": "normalized"
+        },
+        "scale": "macro; radius approximately 0.55 world units for the preserved 6.25-unit depth",
+        "affects": "outer silhouette geometry",
+        "mapsTo": {
+          "type": "component.localFeatures",
+          "ref": "mat-body/plan-corner-radius"
+        },
+        "evidenceRef": "/Users/song/Desktop/dear-desk/docs/assets/model-reviews/dd-20260810-002/desk-mat-detail-zones/zone-r0c0.png",
+        "confidence": 0.96
+      },
+      {
+        "id": "soft-crowned-field",
+        "kind": "contour",
+        "description": "The central field is low and padded with a restrained convex crown while remaining nearly planar.",
+        "region": {
+          "x": 0.3333,
+          "y": 0.0,
+          "width": 0.3333,
+          "height": 0.3333,
+          "units": "normalized"
+        },
+        "scale": "meso; crown under 0.015 mat units above the edge datum",
+        "affects": "top-surface form and grazing highlight",
+        "mapsTo": {
+          "type": "component.localFeatures",
+          "ref": "mat-body/low-padded-crown"
+        },
+        "evidenceRef": "/Users/song/Desktop/dear-desk/docs/assets/model-reviews/dd-20260810-002/desk-mat-detail-zones/zone-r0c1.png",
+        "confidence": 0.84
+      },
+      {
+        "id": "rolled-perimeter-binding",
+        "kind": "ridge",
+        "description": "A darker continuous wrapped binding creates a rounded raised perimeter with a softly bulged cross-section.",
+        "region": {
+          "x": 0.6667,
+          "y": 0.0,
+          "width": 0.3333,
+          "height": 0.3333,
+          "units": "normalized"
+        },
+        "scale": "meso; approximately 0.055 mat units wide and 0.025 high",
+        "affects": "perimeter profile, silhouette thickness, and edge highlight",
+        "mapsTo": {
+          "type": "component.localFeatures",
+          "ref": "binding-ring/rolled-binding-profile"
+        },
+        "evidenceRef": "/Users/song/Desktop/dear-desk/docs/assets/model-reviews/dd-20260810-002/desk-mat-detail-zones/zone-r0c2.png",
+        "confidence": 0.95
+      },
+      {
+        "id": "inset-binding-seam",
+        "kind": "seam",
+        "description": "A narrow recessed line separates the woven field from the binding around the complete inset perimeter.",
+        "region": {
+          "x": 0.0,
+          "y": 0.3333,
+          "width": 0.3333,
+          "height": 0.3333,
+          "units": "normalized"
+        },
+        "scale": "micro; groove width approximately 0.008 mat units",
+        "affects": "edge construction line and cavity occlusion",
+        "mapsTo": {
+          "type": "component.localFeatures",
+          "ref": "seam-channel/inset-recessed-seam"
+        },
+        "evidenceRef": "/Users/song/Desktop/dear-desk/docs/assets/model-reviews/dd-20260810-002/desk-mat-detail-zones/zone-r1c0.png",
+        "confidence": 0.94
+      },
+      {
+        "id": "segmented-perimeter-stitches",
+        "kind": "stitch",
+        "description": "Short moss thread dashes repeat at even spacing along all four sides and turn continuously through each corner.",
+        "region": {
+          "x": 0.3333,
+          "y": 0.3333,
+          "width": 0.3333,
+          "height": 0.3333,
+          "units": "normalized"
+        },
+        "scale": "micro; dash length approximately 0.018 mat units with 0.028 spacing",
+        "affects": "curve-following repeated geometry and thread-color contrast",
+        "mapsTo": {
+          "type": "component.localFeatures",
+          "ref": "stitch-system/perimeter-stitch-path"
+        },
+        "evidenceRef": "/Users/song/Desktop/dear-desk/docs/assets/model-reviews/dd-20260810-002/desk-mat-detail-zones/zone-r1c1.png",
+        "confidence": 0.97
+      },
+      {
+        "id": "field-woven-crosshatch",
+        "kind": "linework",
+        "description": "Fine interlaced fibers form a dense directional crosshatch across the central field.",
+        "region": {
+          "x": 0.6667,
+          "y": 0.3333,
+          "width": 0.3333,
+          "height": 0.3333,
+          "units": "normalized"
+        },
+        "scale": "micro; high-frequency weave repeated about 80 times per mat unit",
+        "affects": "independent normal, roughness, and albedo channels",
+        "mapsTo": {
+          "type": "material.localOverrides",
+          "ref": "field-cloth/woven-crosshatch"
+        },
+        "evidenceRef": "/Users/song/Desktop/dear-desk/docs/assets/model-reviews/dd-20260810-002/desk-mat-detail-zones/zone-r1c2.png",
+        "confidence": 0.93
+      },
+      {
+        "id": "field-tonal-mottling",
+        "kind": "stain",
+        "description": "Broad low-contrast olive tonal variation prevents the field from reading as a uniform flat color without suggesting dirt.",
+        "region": {
+          "x": 0.0,
+          "y": 0.6667,
+          "width": 0.3333,
+          "height": 0.3333,
+          "units": "normalized"
+        },
+        "scale": "macro and meso; irregular variation over 0.12 to 0.45 mat units",
+        "affects": "albedo and roughness locality",
+        "mapsTo": {
+          "type": "material.localOverrides",
+          "ref": "field-cloth/olive-tonal-mottle"
+        },
+        "evidenceRef": "/Users/song/Desktop/dear-desk/docs/assets/model-reviews/dd-20260810-002/desk-mat-detail-zones/zone-r2c0.png",
+        "confidence": 0.86
+      },
+      {
+        "id": "binding-fiber-grain",
+        "kind": "linework",
+        "description": "The wrapped edge shows fine curved and longitudinal fiber marks following the perimeter instead of planar UV stretching.",
+        "region": {
+          "x": 0.3333,
+          "y": 0.6667,
+          "width": 0.3333,
+          "height": 0.3333,
+          "units": "normalized"
+        },
+        "scale": "micro; fiber width below 0.003 mat units",
+        "affects": "binding tangent-space normal and roughness direction",
+        "mapsTo": {
+          "type": "material.localOverrides",
+          "ref": "binding-textile/perimeter-fiber-grain"
+        },
+        "evidenceRef": "/Users/song/Desktop/dear-desk/docs/assets/model-reviews/dd-20260810-002/desk-mat-detail-zones/zone-r2c1.png",
+        "confidence": 0.91
+      },
+      {
+        "id": "binding-worn-highlight",
+        "kind": "gloss",
+        "description": "The outer crest of the rounded binding carries a restrained smoother highlight, strongest in the low grazing close-up.",
+        "region": {
+          "x": 0.6667,
+          "y": 0.6667,
+          "width": 0.3333,
+          "height": 0.3333,
+          "units": "normalized"
+        },
+        "scale": "micro local mask over the outer 20 percent of binding width",
+        "affects": "localized roughness and grazing-light response",
+        "mapsTo": {
+          "type": "material.localOverrides",
+          "ref": "binding-textile/crest-wear-highlight"
+        },
+        "evidenceRef": "/Users/song/Desktop/dear-desk/docs/assets/model-reviews/dd-20260810-002/desk-mat-detail-zones/zone-r2c2.png",
+        "confidence": 0.84
+      }
+    ]
+  },
+  "authoringInstruction": "Inventory completed from full-reference and grid-zone inspection. Preserve each mapsTo id in the generated sculpt spec."
+}

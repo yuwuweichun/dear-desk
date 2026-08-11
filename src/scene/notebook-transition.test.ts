@@ -1,6 +1,7 @@
 import {
   easeInOutCubic,
   getNotebookTransitionDuration,
+  isNotebookModelVisible,
 } from './notebook-transition'
 
 describe('notebook transition timing', () => {
@@ -44,5 +45,18 @@ describe('notebook transition timing', () => {
     expect(easeInOutCubic(0)).toBe(0)
     expect(easeInOutCubic(0.5)).toBe(0.5)
     expect(easeInOutCubic(1)).toBe(1)
+  })
+
+  it('hides the 3D notebook only while the DOM journal owns the open pages', () => {
+    expect(isNotebookModelVisible('editing')).toBe(false)
+    for (const phase of [
+      'desk',
+      'approaching',
+      'opening',
+      'closing',
+      'retreating',
+    ] as const) {
+      expect(isNotebookModelVisible(phase)).toBe(true)
+    }
   })
 })

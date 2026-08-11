@@ -1,5 +1,5 @@
 import { BookOpen, Database, Sticker } from 'lucide-react'
-import { useEffect } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 
 import { formatLocalDate } from '../domain/daily-entry'
 import { JournalPanel } from '../features/journal/JournalPanel'
@@ -7,6 +7,15 @@ import { StickerControls } from '../features/stickers/StickerControls'
 import { StickerStudio } from '../features/stickers/StickerStudio'
 import { DeskScene } from '../scene/DeskScene'
 import { useAppStore } from '../state/app-store-context'
+
+type ModelReviewKind = 'desk' | 'mat' | 'notebook'
+
+const DevModelReviewScene = import.meta.env.DEV
+  ? lazy(async () => {
+      const module = await import('../scene/ModelReviewScene')
+      return { default: module.ModelReviewScene }
+    })
+  : null
 
 function SceneFallback() {
   const openNotebookWithoutScene = useAppStore(
@@ -24,7 +33,7 @@ function SceneFallback() {
   )
 }
 
-export function App() {
+function ProductApp() {
   const selectedDate = useAppStore((state) => state.selectedDate)
   const entry = useAppStore((state) => state.entry)
   const loadStatus = useAppStore((state) => state.loadStatus)
@@ -124,4 +133,34 @@ export function App() {
       {stickerWorkflow !== 'composing' ? <StickerControls /> : null}
     </main>
   )
+}
+
+const getDevModelReview = () => {
+  if (!import.meta.env.DEV) return null
+  const query = new URLSearchParams(window.location.search)
+  const review = query.get('review')
+  if (review !== 'desk' && review !== 'mat' && review !== 'notebook') {
+    return null
+  }
+  const model: ModelReviewKind = review
+
+  return {
+    light: query.get('light'),
+    model,
+    pass: query.get('pass'),
+    state: query.get('state'),
+    view: query.get('view'),
+  }
+}
+
+export function App() {
+  const review = getDevModelReview()
+  if (review && DevModelReviewScene) {
+    return (
+      <Suspense fallback={null}>
+        <DevModelReviewScene {...review} />
+      </Suspense>
+    )
+  }
+  return <ProductApp />
 }

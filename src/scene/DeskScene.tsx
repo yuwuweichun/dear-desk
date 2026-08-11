@@ -1,5 +1,5 @@
 import { createRoot, events, extend, useFrame, useThree } from '@react-three/fiber'
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import type { ReconcilerRoot } from '@react-three/fiber'
 import * as THREE from 'three'
 
@@ -7,8 +7,15 @@ import type { PlacedSticker, StickerPosition } from '../domain/sticker'
 import { useAppStore } from '../state/app-store-context'
 import type { NotebookPhase, StickerWorkflow } from '../state/app-store'
 import { NotebookObject } from './NotebookObject'
-import { RoundedBox } from './RoundedBox'
-import { createSurfaceTexture, SCENE_PALETTE } from './scene-visuals'
+import { createDeskMatModel } from './models/create-desk-mat-model'
+import { createDeskModel } from './models/create-desk-model'
+import {
+  createModelMaterialLibrary,
+  SCENE_PALETTE,
+  type ModelMaterialLibrary,
+} from './models/material-library'
+import { DESK_MAT_MODEL_SPEC } from './models/model-specs'
+import { SceneEnvironment } from './models/SceneEnvironment'
 import { StickerObject } from './StickerObject'
 import {
   easeInOutCubic,
@@ -24,6 +31,7 @@ extend({
   DirectionalLight: THREE.DirectionalLight,
   Fog: THREE.Fog,
   Group: THREE.Group,
+  HemisphereLight: THREE.HemisphereLight,
   Mesh: THREE.Mesh,
   MeshBasicMaterial: THREE.MeshBasicMaterial,
   MeshStandardMaterial: THREE.MeshStandardMaterial,
@@ -37,13 +45,6 @@ interface ManagedRoot {
 }
 
 const managedRoots = new WeakMap<HTMLCanvasElement, ManagedRoot>()
-const DESK_DRAWER_CENTERS = [-3.25, 0, 3.25]
-const DESK_LEG_POSITIONS: Array<[number, number, number]> = [
-  [-5.05, -2.08, -3.02],
-  [5.05, -2.08, -3.02],
-  [-5.05, -2.08, 3.02],
-  [5.05, -2.08, 3.02],
-]
 
 const acquireRoot = (canvas: HTMLCanvasElement) => {
   const existing = managedRoots.get(canvas)
@@ -94,11 +95,11 @@ const cameraPose = (
 
 const getCameraPoses = (mobile: boolean) => ({
   desk: mobile
-    ? cameraPose([6.6, 8.4, 10.8], [0, 0, 0], 36)
-    : cameraPose([7.8, 7.2, 9.6], [0, 0, 0], 36),
+    ? cameraPose([6.7, 7.7, 11.5], [0, -0.45, 0.15], 37)
+    : cameraPose([8.9, 5.7, 11.3], [0, -0.9, 0.2], 35),
   focus: mobile
-    ? cameraPose([0.1, 9.2, 5.4], [-0.72, 0.18, 0.25], 36)
-    : cameraPose([0.35, 7.2, 4.35], [-0.78, 0.18, 0.25], 31),
+    ? cameraPose([0.1, 10.6, 6.2], [-2.05, 0.22, 0.25], 39)
+    : cameraPose([0.2, 8.6, 5.1], [-2.05, 0.22, 0.25], 33),
 })
 
 const quaternionForPose = (pose: CameraPose) => {
@@ -210,50 +211,49 @@ function CameraRig({ notebookPhase, onAdvance, reducedMotion }: CameraRigProps) 
   return null
 }
 
-function DeskBody({ woodTexture }: { woodTexture: THREE.Texture }) {
-  return (
-    <group>
-      <RoundedBox
-        size={[12, 0.78, 8]}
-        radius={0.18}
-        segments={4}
-        position={[0, -0.43, 0]}
-        castShadow
-        receiveShadow
-      >
-        <meshStandardMaterial map={woodTexture} roughness={0.79} />
-      </RoundedBox>
-      <RoundedBox
-        size={[11.3, 0.34, 0.3]}
-        radius={0.08}
-        position={[0, -0.84, 3.65]}
-        castShadow
-      >
-        <meshStandardMaterial color={SCENE_PALETTE.walnutDark} roughness={0.82} />
-      </RoundedBox>
-      {DESK_DRAWER_CENTERS.map((x) => (
-        <group key={x} position={[x, -0.49, 3.86]}>
-          <RoundedBox size={[2.62, 0.42, 0.14]} radius={0.06} castShadow>
-            <meshStandardMaterial color={SCENE_PALETTE.honeyWood} roughness={0.8} />
-          </RoundedBox>
-          <mesh position={[0, 0, 0.12]} rotation={[Math.PI / 2, 0, 0]} castShadow>
-            <cylinderGeometry args={[0.09, 0.09, 0.14, 16]} />
-            <meshStandardMaterial
-              color={SCENE_PALETTE.brass}
-              metalness={0.56}
-              roughness={0.44}
-            />
-          </mesh>
-        </group>
-      ))}
-      {DESK_LEG_POSITIONS.map(([x, y, z]) => (
-        <mesh key={`${x}-${z}`} position={[x, y, z]} rotation={[0, Math.PI / 4, 0]} castShadow>
-          <cylinderGeometry args={[0.29, 0.42, 2.65, 4]} />
-          <meshStandardMaterial color={SCENE_PALETTE.walnutDark} roughness={0.84} />
-        </mesh>
-      ))}
-    </group>
-  )
+const disposeFactoryModel = (model: THREE.Group) => {
+  const dispose = model.userData.dispose
+  if (typeof dispose === 'function') dispose()
+}
+
+function DeskBody({ materials }: { materials: ModelMaterialLibrary }) {
+  const [model, setModel] = useState<THREE.Group | null>(null)
+
+  useEffect(() => {
+    const nextModel = createDeskModel(materials, {
+      pass: 'optimization-pass',
+    })
+    let disposed = false
+    queueMicrotask(() => {
+      if (!disposed) setModel(nextModel)
+    })
+    return () => {
+      disposed = true
+      disposeFactoryModel(nextModel)
+    }
+  }, [materials])
+
+  return model ? <primitive object={model} dispose={null} /> : null
+}
+
+function DeskMat({ materials }: { materials: ModelMaterialLibrary }) {
+  const [model, setModel] = useState<THREE.Group | null>(null)
+
+  useEffect(() => {
+    const nextModel = createDeskMatModel(materials, {
+      pass: 'optimization-pass',
+    })
+    let disposed = false
+    queueMicrotask(() => {
+      if (!disposed) setModel(nextModel)
+    })
+    return () => {
+      disposed = true
+      disposeFactoryModel(nextModel)
+    }
+  }, [materials])
+
+  return model ? <primitive object={model} dispose={null} /> : null
 }
 
 interface DeskContentsProps {
@@ -286,32 +286,72 @@ function DeskContents({
   stickers,
   stickerWorkflow,
 }: DeskContentsProps) {
-  const woodTexture = useMemo(() => createSurfaceTexture('wood'), [])
+  const [materials, setMaterials] = useState<ModelMaterialLibrary | null>(null)
 
-  useEffect(() => () => woodTexture.dispose(), [woodTexture])
+  useEffect(() => {
+    const nextMaterials = createModelMaterialLibrary()
+    let disposed = false
+    queueMicrotask(() => {
+      if (!disposed) setMaterials(nextMaterials)
+    })
+    return () => {
+      disposed = true
+      nextMaterials.dispose()
+    }
+  }, [])
+
+  if (!materials) {
+    return (
+      <>
+        <color attach="background" args={[SCENE_PALETTE.background]} />
+        <fog attach="fog" args={[SCENE_PALETTE.background, 25, 39]} />
+      </>
+    )
+  }
 
   return (
     <>
       <color attach="background" args={[SCENE_PALETTE.background]} />
-      <fog attach="fog" args={[SCENE_PALETTE.background, 10, 21]} />
-      <ambientLight intensity={1.15} color="#d9dfd7" />
+      <fog attach="fog" args={[SCENE_PALETTE.background, 25, 39]} />
+      <hemisphereLight args={['#aeb8aa', '#07100b', 0.25]} />
       <directionalLight
         castShadow
-        color="#ffe0ad"
-        intensity={2.75}
-        position={[-4, 9, 5]}
-        shadow-mapSize={[1024, 1024]}
-        shadow-bias={-0.0002}
+        color="#ffdca8"
+        intensity={2.25}
+        position={[-5.5, 10.5, 7]}
+        shadow-mapSize={[1536, 1536]}
+        shadow-bias={-0.00016}
+        shadow-normalBias={0.025}
+        shadow-radius={2.2}
+        shadow-camera-left={-9}
+        shadow-camera-right={9}
+        shadow-camera-top={9}
+        shadow-camera-bottom={-9}
+        shadow-camera-near={1}
+        shadow-camera-far={24}
       />
-      <directionalLight color="#9fb5ad" intensity={0.62} position={[7, 4, -5]} />
+      <directionalLight color="#9eb6a8" intensity={0.15} position={[7, 5, -6]} />
+      <SceneEnvironment intensity={0.32} />
       <CameraRig
         notebookPhase={notebookPhase}
         onAdvance={advanceNotebookPhase}
         reducedMotion={reducedMotion}
       />
 
-      <DeskBody woodTexture={woodTexture} />
-      <group
+      <DeskBody materials={materials} />
+      <mesh
+        position={[0, -3.45, 0]}
+        rotation={[-Math.PI / 2, 0, 0]}
+        receiveShadow
+      >
+        <planeGeometry args={[40, 40]} />
+        <meshStandardMaterial color="#070d09" roughness={1} />
+      </mesh>
+      <DeskMat materials={materials} />
+      <mesh
+        name="desk-mat-hit-surface"
+        position={[0, DESK_MAT_MODEL_SPEC.topY, 0.2]}
+        rotation={[-Math.PI / 2, 0, 0]}
         onClick={(event) => {
           if (stickerWorkflow === 'placingDesk') {
             event.stopPropagation()
@@ -327,44 +367,14 @@ function DeskContents({
           if (stickerWorkflow === 'placingDesk') document.body.style.cursor = ''
         }}
       >
-        <RoundedBox
-          size={[8.7, 0.13, 6.25]}
-          radius={0.18}
-          segments={4}
-          position={[0, 0.025, 0.2]}
-          receiveShadow
-        >
-          <meshStandardMaterial color={SCENE_PALETTE.cloth} roughness={0.96} />
-        </RoundedBox>
-        <RoundedBox
-          size={[8.32, 0.018, 0.025]}
-          radius={0.01}
-          position={[0, 0.102, -2.69]}
-        >
-          <meshStandardMaterial color="#718077" roughness={0.92} />
-        </RoundedBox>
-        <RoundedBox
-          size={[8.32, 0.018, 0.025]}
-          radius={0.01}
-          position={[0, 0.102, 3.09]}
-        >
-          <meshStandardMaterial color="#718077" roughness={0.92} />
-        </RoundedBox>
-        <RoundedBox
-          size={[0.025, 0.018, 5.78]}
-          radius={0.01}
-          position={[-4.15, 0.102, 0.2]}
-        >
-          <meshStandardMaterial color="#718077" roughness={0.92} />
-        </RoundedBox>
-        <RoundedBox
-          size={[0.025, 0.018, 5.78]}
-          radius={0.01}
-          position={[4.15, 0.102, 0.2]}
-        >
-          <meshStandardMaterial color="#718077" roughness={0.92} />
-        </RoundedBox>
-      </group>
+        <planeGeometry args={[DESK_MAT_MODEL_SPEC.width, DESK_MAT_MODEL_SPEC.depth]} />
+        <meshBasicMaterial
+          colorWrite={false}
+          depthWrite={false}
+          opacity={0}
+          transparent
+        />
+      </mesh>
       {stickers.map((sticker) => (
         <StickerObject
           key={sticker.instance.id}
@@ -379,6 +389,7 @@ function DeskContents({
         />
       ))}
       <NotebookObject
+        materials={materials}
         notebookPhase={notebookPhase}
         onAdvance={advanceNotebookPhase}
         onOpen={requestNotebookOpen}
@@ -486,6 +497,10 @@ export function DeskScene({ fallback }: DeskSceneProps) {
           left: rect.left,
         },
         onCreated: (state) => {
+          state.gl.outputColorSpace = THREE.SRGBColorSpace
+          state.gl.shadowMap.type = THREE.PCFShadowMap
+          state.gl.toneMapping = THREE.ACESFilmicToneMapping
+          state.gl.toneMappingExposure = 0.9
           state.events.connect?.(container)
           state.setEvents({
             compute: (event, eventState) => {
