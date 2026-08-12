@@ -47,9 +47,7 @@ const renderJournal = async (repository: DailyEntryRepository) => {
 }
 
 const startWriting = async (user: ReturnType<typeof userEvent.setup>) => {
-  await user.click(screen.getByRole('button', {
-    name: '当前为阅读模式，切换到编辑模式',
-  }))
+  await user.click(screen.getByRole('button', { name: '编辑' }))
   await user.click(screen.getByRole('button', { name: '开始书写本页' }))
   return screen.getByRole('textbox', { name: '本页记录' })
 }
@@ -62,16 +60,14 @@ describe('JournalPanel', () => {
     const user = userEvent.setup()
     const { container, store } = await renderJournal(repository)
 
-    const modeToggle = screen.getByRole('button', {
-      name: '当前为阅读模式，切换到编辑模式',
-    })
-    expect(modeToggle).toHaveAttribute('aria-pressed', 'false')
-    expect(within(modeToggle).getByText('阅读')).toBeVisible()
-    expect(within(modeToggle).getByText('编辑')).toBeVisible()
+    const readingMode = screen.getByRole('button', { name: '阅读' })
+    const editingMode = screen.getByRole('button', { name: '编辑' })
+    expect(readingMode).toHaveAttribute('aria-pressed', 'true')
+    expect(editingMode).toHaveAttribute('aria-pressed', 'false')
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument()
     expect(container.querySelector('.journal-page-left')).toHaveTextContent('')
 
-    await user.click(modeToggle)
+    await user.click(editingMode)
     await user.click(screen.getByRole('button', { name: /上一页/ }))
     await waitFor(() => {
       expect(container.querySelector('.page-turn-sheet.is-previous')).toBeInTheDocument()
@@ -81,9 +77,7 @@ describe('JournalPanel', () => {
     const rightPage = container.querySelector('.journal-page-right')
     expect(rightPage).not.toBeNull()
     expect(within(rightPage as HTMLElement).getByText('上一页留下的内容')).toBeVisible()
-    expect(screen.getByRole('button', {
-      name: '当前为编辑模式，切换到阅读模式',
-    })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: '编辑' })).toHaveAttribute('aria-pressed', 'true')
 
     await user.click(screen.getByRole('button', { name: /下一页/ }))
     await waitFor(() => {
@@ -167,9 +161,7 @@ describe('JournalPanel', () => {
     expect(store.getState().journalTurnPhase).toBe('idle')
     expect(screen.getByRole('status')).toHaveTextContent('请先收笔，再翻页。')
 
-    await user.click(screen.getByRole('button', {
-      name: '当前为编辑模式，切换到阅读模式',
-    }))
+    await user.click(screen.getByRole('button', { name: '阅读' }))
     expect(screen.getByRole('textbox', { name: '本页记录' })).toBeVisible()
     expect(screen.getByRole('status')).toHaveTextContent('请先收笔，再切回阅读。')
 

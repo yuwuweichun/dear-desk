@@ -5,6 +5,7 @@ import { formatLocalDate, MAX_ENTRY_LENGTH, type LocalDate } from '../../domain/
 import type { PlacedSticker } from '../../domain/sticker'
 import type { JournalTurnDirection } from '../../state/app-store'
 import { useAppStore } from '../../state/app-store-context'
+import { Button, IconButton, SegmentedControl } from '../../ui'
 import {
   BlankJournalPage,
   JournalPageFrame,
@@ -165,17 +166,16 @@ function JournalBook() {
       <p id="journal-navigation-help" className="sr-only">
         左页留白并用于返回上一页，当前日期的内容只显示在右页。
       </p>
-      <button
+      <IconButton
         className="icon-button journal-close-button"
-        type="button"
         onClick={closeNotebook}
         aria-disabled={dirty || saving || undefined}
-        aria-label="关闭本子"
-        title="关闭本子"
+        label="关闭本子"
         disabled={turning}
+        variant="quiet"
       >
         <X aria-hidden="true" size={20} strokeWidth={1.8} />
-      </button>
+      </IconButton>
 
       <div className="journal-book-stage">
         <div className="journal-book" aria-busy={journalLoadStatus === 'loading'}>
@@ -272,36 +272,35 @@ function JournalBook() {
       </div>
 
       <div className="journal-mode-controls" aria-label="日记模式与书写动作">
-        <button
+        <SegmentedControl
           className="journal-mode-toggle"
-          type="button"
-          data-mode={journalMode}
-          aria-pressed={journalMode === 'editing'}
-          aria-disabled={dirty || saving || undefined}
-          aria-label={journalMode === 'reading'
+          ariaLabel={journalMode === 'reading'
             ? '当前为阅读模式，切换到编辑模式'
             : '当前为编辑模式，切换到阅读模式'}
-          title={journalMode === 'reading' ? '切换到编辑模式' : '切换到阅读模式'}
           disabled={placingSticker}
-          onClick={() => selectMode(journalMode === 'reading' ? 'editing' : 'reading')}
-        >
-          <span className="journal-mode-label is-reading" aria-hidden="true">阅读</span>
-          <span className="journal-mode-label is-editing" aria-hidden="true">编辑</span>
-        </button>
+          onChange={selectMode}
+          options={[
+            { label: '阅读', value: 'reading' },
+            { label: '编辑', value: 'editing' },
+          ]}
+          value={journalMode}
+        />
         {journalMode === 'editing' ? (
-          <button
+          <Button
             className="journal-writing-button"
-            type={writing ? 'submit' : 'button'}
+            htmlType={writing ? 'submit' : 'button'}
             form={writing ? 'journal-entry-form' : undefined}
+            icon={writing ? <Save aria-hidden="true" size={17} /> : <PenLine aria-hidden="true" size={17} />}
             onClick={writing ? undefined : startWriting}
             aria-pressed={writing}
             aria-label={writing ? '保存本页' : '开始书写本页'}
             title={writing ? '保存本页' : '开始书写本页'}
             disabled={saving || overLimit || (writing && !activeDraft.trim()) || (!writing && (pageUnavailable || placingSticker))}
+            loading={saving}
+            variant="primary"
           >
-            {writing ? <Save aria-hidden="true" size={17} /> : <PenLine aria-hidden="true" size={17} />}
             <span>{saving ? '收笔中' : writing ? '收笔' : '书写'}</span>
-          </button>
+          </Button>
         ) : null}
       </div>
 

@@ -13,5 +13,10 @@ export default defineConfig({
     setupFiles: './src/test/setup.ts',
     clearMocks: true,
     globals: true,
+    server: {
+      deps: {
+        inline: ['animal-island-ui'],
+      },
+    },
   },
 })

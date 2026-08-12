@@ -7,8 +7,10 @@ import { dailyEntryRepository } from './persistence/daily-entry-repository'
 import { stickerRepository } from './persistence/sticker-repository'
 import { createAppStore } from './state/app-store'
 import { AppStoreProvider } from './state/app-store-context'
+import 'animal-island-ui/style'
 import './styles.css'
 import './sticker-workbench.css'
+import './ui/theme.css'
 
 const appStore = createAppStore(
   dailyEntryRepository,

@@ -30,6 +30,7 @@ import {
   type StickerForgeSession,
 } from '../../integrations/sticker-forge'
 import { useAppStore } from '../../state/app-store-context'
+import { Button, IconButton, SegmentedControl, TextInput } from '../../ui'
 import { ManualCutoutEditor } from './ManualCutoutEditor'
 
 const FONT_FAMILY = 'Arial Rounded MT Bold, Arial Black, sans-serif'
@@ -328,44 +329,35 @@ export function StickerStudio() {
             <p>独立贴纸工作台</p>
             <h1 id="sticker-studio-title">制作</h1>
           </div>
-          <button
+          <IconButton
             className="studio-icon-button"
-            type="button"
-            aria-label="取消制作"
-            title="取消制作"
+            label="取消制作"
             onClick={() => {
               closeSession()
               cancelStickerComposer()
             }}
+            variant="quiet"
           >
             <X aria-hidden="true" size={20} strokeWidth={1.8} />
-          </button>
+          </IconButton>
         </header>
 
-        <div className="source-tabs" aria-label="贴纸来源">
-          <button
-            type="button"
-            className={sourceKind === 'text' ? 'is-active' : ''}
-            aria-pressed={sourceKind === 'text'}
-            onClick={() => void switchSource('text')}
-          >
-            <Type aria-hidden="true" size={17} />文字
-          </button>
-          <button
-            type="button"
-            className={sourceKind === 'image' ? 'is-active' : ''}
-            aria-pressed={sourceKind === 'image'}
-            onClick={() => void switchSource('image')}
-          >
-            <ImageIcon aria-hidden="true" size={17} />图片
-          </button>
-        </div>
+        <SegmentedControl
+          ariaLabel="贴纸来源"
+          className="source-tabs"
+          onChange={(value) => void switchSource(value)}
+          options={[
+            { icon: <Type aria-hidden="true" size={17} />, label: '文字', value: 'text' },
+            { icon: <ImageIcon aria-hidden="true" size={17} />, label: '图片', value: 'image' },
+          ]}
+          value={sourceKind}
+        />
 
         {sourceKind === 'text' ? (
           <>
             <label className="studio-field">
               <span>文字</span>
-              <input
+              <TextInput
                 type="text"
                 value={text}
                 maxLength={MAX_STICKER_TEXT_LENGTH}
@@ -414,9 +406,9 @@ export function StickerStudio() {
             </label>
             {image ? (
               <div className="cutout-actions" aria-label="图片背景处理">
-                <button
-                  type="button"
-                  className={cutoutMode === 'rectangle' ? 'is-active' : ''}
+                <Button
+                  variant={cutoutMode === 'rectangle' ? 'primary' : 'secondary'}
+                  icon={<ImageIcon aria-hidden="true" size={16} />}
                   onClick={() => {
                     if (!originalImage) return
                     cancelAutomaticCutout()
@@ -426,30 +418,33 @@ export function StickerStudio() {
                     void updateImageSource(originalImage)
                   }}
                 >
-                  <ImageIcon aria-hidden="true" size={16} />保留矩形
-                </button>
-                <button
-                  type="button"
+                  保留矩形
+                </Button>
+                <Button
                   disabled={Boolean(cutoutProgress)}
-                  className={cutoutMode === 'automatic' ? 'is-active' : ''}
+                  icon={<WandSparkles aria-hidden="true" size={16} />}
+                  loading={Boolean(cutoutProgress)}
                   onClick={() => void automaticCutout()}
+                  variant={cutoutMode === 'automatic' ? 'primary' : 'secondary'}
                 >
-                  <WandSparkles aria-hidden="true" size={16} />{cutoutProgress ? '处理中…' : '自动抠图'}
-                </button>
-                <button
-                  type="button"
-                  className={cutoutMode === 'manual' ? 'is-active' : ''}
+                  {cutoutProgress ? '处理中…' : '自动抠图'}
+                </Button>
+                <Button
+                  icon={<Scissors aria-hidden="true" size={16} />}
                   onClick={() => {
                     cancelAutomaticCutout()
                     setManualEditing(true)
                   }}
+                  variant={cutoutMode === 'manual' ? 'primary' : 'secondary'}
                 >
-                  <Scissors aria-hidden="true" size={16} />手动修整
-                </button>
+                  手动修整
+                </Button>
                 {cutoutProgress ? (
-                  <button type="button" onClick={() => cancelAutomaticCutout()}>
-                    <X aria-hidden="true" size={16} />取消抠图
-                  </button>
+                  <Button
+                    icon={<X aria-hidden="true" size={16} />}
+                    onClick={() => cancelAutomaticCutout()}
+                    variant="quiet"
+                  >取消抠图</Button>
                 ) : null}
               </div>
             ) : null}
@@ -458,42 +453,38 @@ export function StickerStudio() {
 
         <fieldset className="studio-field">
           <legend>材质</legend>
-          <div className="material-control">
-            {materialOptions.map((option) => (
-              <button
-                key={option.value}
-                type="button"
-                className={option.value === appearance.material ? 'is-active' : ''}
-                aria-pressed={option.value === appearance.material}
-                onClick={() => updateAppearance({ ...appearance, material: option.value })}
-              >
-                {option.label}
-              </button>
-            ))}
-          </div>
+          <SegmentedControl
+            ariaLabel="贴纸材质"
+            className="material-control"
+            onChange={(material) => updateAppearance({ ...appearance, material })}
+            options={materialOptions}
+            value={appearance.material}
+          />
         </fieldset>
 
         {error ? <p className="studio-error" role="alert">{error}</p> : null}
 
         <div className="studio-target-actions">
-          <button
+          <Button
             className="studio-confirm"
-            type="button"
             disabled={!canConfirm}
+            icon={<MonitorUp aria-hidden="true" size={18} />}
+            loading={saving}
             onClick={() => void confirm('desk')}
+            variant="primary"
           >
-            <MonitorUp aria-hidden="true" size={18} />
             <span>{saving ? '正在生成' : '放到桌面'}</span>
-          </button>
-          <button
+          </Button>
+          <Button
             className="studio-confirm is-secondary"
-            type="button"
             disabled={!canConfirm}
+            icon={saving ? <Check aria-hidden="true" size={18} /> : <BookOpen aria-hidden="true" size={18} />}
+            loading={saving}
             onClick={() => void confirm('journal')}
+            variant="secondary"
           >
-            {saving ? <Check aria-hidden="true" size={18} /> : <BookOpen aria-hidden="true" size={18} />}
             <span>{saving ? '正在生成' : '放到日记'}</span>
-          </button>
+          </Button>
         </div>
       </aside>
     </section>

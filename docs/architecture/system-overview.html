@@ -22,7 +22,7 @@
         <kbd aria-hidden="true">/</kbd>
         <div id="search-results" class="search-results" role="listbox" aria-label="搜索结果" hidden></div>
       </div>
-      <span class="top-meta">CURRENT · 2026-08-11</span>
+      <span class="top-meta">CURRENT · 2026-08-12</span>
       <button class="toc-toggle" type="button" aria-controls="sidebar" aria-expanded="false">目录</button>
     </div>
   </header>
@@ -54,7 +54,7 @@
         <p class="lead">Dear Desk 是纯前端、本地优先的单页应用。IndexedDB v3 保存文字、贴纸 source、Forge PNG 与两种表面的位置；Zustand 协调本子开合、双页游标、仿真翻页和贴纸工作流；DOM 承担可读页面与表单，R3F 只负责需要空间关系的桌面和本子外形。</p>
         <div class="callout">
           <strong>当前事实</strong>
-          <p>本子聚焦开合、Sticker Forge、双页日记和历史正文书写均已有源码。DD-20260810-002 又把桌子、桌垫和本子替换为可审查、可动作、可释放的程序化 Three.js 模型，并完成严格规格、41 个自动测试、生产构建及桌面/移动浏览器验证；当前只等待用户验收本轮模型视觉。</p>
+          <p>本子聚焦开合、Sticker Forge、双页日记和历史正文书写均已有源码。DD-20260810-002 已把桌子、桌垫和本子替换为可释放的程序化 Three.js 模型，并在用户确认非商业用途后，以 <code>animal-island-ui</code> 为主要参考重写通用 DOM 控件和贴纸工作台；无持续职责的常驻品牌/“本地”顶栏已删除，核心页面使用完整视口。当前模型视觉与第二轮 UI 重构均等待用户验收。</p>
         </div>
       </header>
 
@@ -82,7 +82,7 @@
       <section id="runtime" data-search-title="运行时结构">
         <p class="section-index">02 · 运行时</p>
         <h2>React 组合一个 store，并保证 WebGL Canvas 单活跃</h2>
-        <p><code>src/main.tsx</code> 创建两个 Dexie repository 和一个 Zustand store。<code>App</code> 根据 <code>stickerWorkflow</code> 切换桌面与制作器：<code>composing</code> 时卸载 R3F，再让 Sticker Forge 创建自己的 Canvas；其他阶段由 <code>DeskScene</code> 持有唯一 R3F Canvas。双页日记始终是 Canvas 的 DOM sibling。</p>
+        <p><code>src/main.tsx</code> 创建两个 Dexie repository 和一个 Zustand store，并依次载入 <code>animal-island-ui/style</code>、应用样式和 Dear Desk 主题覆盖。<code>App</code> 根据 <code>stickerWorkflow</code> 切换桌面与制作器：<code>composing</code> 时卸载 R3F，再让 Sticker Forge 创建自己的 Canvas；其他阶段由 <code>DeskScene</code> 持有唯一 R3F Canvas。双页日记始终是 Canvas 的 DOM sibling。</p>
         <div class="code-block">
           <div class="code-head"><span>当前运行时层级</span><button class="copy-button" type="button" data-copy-target="runtime-tree">复制</button></div>
           <pre id="runtime-tree"><code>main.tsx
@@ -235,10 +235,13 @@
 
       <section id="rendering" data-search-title="DOM、R3F 与翻页渲染边界">
         <p class="section-index">08 · 渲染</p>
-        <h2>R3F 给出空间本子，DOM 给出可读双页</h2>
+        <h2>R3F 给出空间本子，DOM 适配层保持表单语义</h2>
         <p><code>NotebookObject</code> 用透明命中几何发出打开意图，并驱动 <code>createNotebookModel</code> 的封面铰链、左右页堆、中缝和书签；它不读取正文或 Blob。<code>JournalPanel</code> 对齐聚焦后的本子，提供空白左页、统一右页、局部模式控件、按日期 textarea 和纸页贴纸。旧 <code>RoundedBox</code> / <code>scene-visuals</code> 已不在当前桌子、桌垫、本子模型路径中。</p>
         <p>renderer 使用 ACES filmic tone mapping、显式曝光、PCF 阴影和 DPR <code>[1, 1.5]</code>；<code>SceneEnvironment</code> 生成并释放 PMREM 环境反射。场景只有一盏投影方向光，另有不投影的低强度补光；雾从主体之外开始，避免吞掉桌体层次。</p>
         <p><code>JournalStickerLayer</code> 的坐标是纸页内 <code>0..1</code> 归一化值。今天页保留 pointer capture、预览位置和 pointer up 提交；历史页即使进入正文书写也只复用 PNG 投影并关闭贴纸 pointer events。桌面 <code>StickerObject</code> 仍创建对象 URL 和 Three.js Texture，并在卸载时释放两者。</p>
+        <p><code>src/ui/</code> 是业务模块与 <code>animal-island-ui@1.5.1</code> 之间的唯一适配边界：<code>Button</code> 将 loading 映射为原生 disabled，<code>IconButton</code> 固化可访问名称，<code>TextInput</code> 和 <code>SegmentedControl</code> 统一输入与选择语义。第二轮重写删除了让组件回到旧式深色小圆角外观的覆盖，<code>theme.css</code> 现在保留库的胶囊、按压阴影、Nunito/Noto Sans、青绿 active 与暖白 surface，只补 Dear Desk 的业务色彩和领域布局。App、Journal 和 Sticker 功能从该层导入；领域专用 textarea、文件输入、颜色 swatch、range、纸页命中区、Forge mount 与抠图 Canvas 不进入通用组件库。</p>
+        <p><code>StickerStudio</code> 的页面骨架仍由业务组件拥有，但 <code>src/styles.css</code> 和 <code>src/sticker-workbench.css</code> 已把旧胡桃木/深苔网格背景、窄纸侧栏和方形控件整体替换为浅薄荷点阵制作空间、暖白预览框、圆角点阵控制面板、青绿来源/材质选择与青绿/珊瑚双目标动作。Forge Canvas、来源更新、抠图 session、capture 和 placement action 没有变化。</p>
+        <p><code>ProductApp</code> 不再渲染 <code>app-header</code>、品牌链接或“本地”常驻状态。<code>DeskScene</code> Canvas、<code>StickerStudio</code> 和 scene fallback 都从视口 <code>y=0</code> 开始；日期状态只在桌面 idle 阶段显示于左上角。该删除没有改变本地持久化事实，“本地”仍是 IndexedDB 架构边界而不是需要持续显示的运行状态。</p>
         <div class="note">
           <strong>为什么正文不进入 WebGL</strong>
           <p>textarea、键盘焦点、选择文本、错误反馈和屏幕阅读器语义都更适合 DOM。只有相机、光照、遮挡和桌面空间坐标进入 R3F；仿真翻页的视觉价值不需要牺牲表单质量。</p>
@@ -321,14 +324,17 @@ edit historical text:
           <div><code><a href="../../src/scene/models/SceneEnvironment.tsx">models/SceneEnvironment.tsx</a></code><span>程序化环境反射和 PMREM 释放</span></div>
           <div><code><a href="../../src/scene/ModelReviewScene.tsx">ModelReviewScene.tsx</a></code><span>开发环境 <code>?review=desk|mat|notebook</code> 的固定对象审查入口</span></div>
           <div><code><a href="../../src/features/stickers/StickerStudio.tsx">StickerStudio.tsx</a></code><span>文字/图片、抠图、Forge 预览和目标选择</span></div>
+          <div><code><a href="../../src/ui/index.ts">src/ui/index.ts</a></code><span>项目内 Button、IconButton、TextInput 与 SegmentedControl 公共出口；隔离第三方 UI API</span></div>
+          <div><code><a href="../../src/ui/theme.css">src/ui/theme.css</a></code><span>Dear Desk 主题 token、通用组件尺寸与领域布局衔接</span></div>
+          <div><code><a href="../../THIRD_PARTY_NOTICES.md">THIRD_PARTY_NOTICES.md</a></code><span><code>animal-island-ui</code> 的 CC BY-NC 4.0 来源、署名与非商业使用边界</span></div>
           <div><code><a href="../../src/integrations/sticker-forge.ts">sticker-forge.ts</a></code><span>固定上游公开 API、flat 捕获与 session 销毁</span></div>
         </div>
       </section>
 
       <section id="verification" data-search-title="验证证据与未覆盖边界">
         <p class="section-index">12 · 验证</p>
-        <h2>自动证据、严格模型规格和双视口浏览器检查均已通过</h2>
-        <p>当前 11 个测试文件共 41 个测试覆盖既有日期、保存、翻页、贴纸和迁移行为，也覆盖模型层级、薄板圆角、锚点、开合、独立 PBR 通道、预算与资源释放。ESLint、TypeScript/Vite production build、文档引用检查和 <code>git diff --check</code> 均通过；构建只保留已有主包、worker 和 WASM 大 chunk 提示。</p>
+        <h2>自动证据、模型规格和双视口 UI 检查均已通过</h2>
+        <p>当前 12 个测试文件共 43 个测试覆盖既有日期、保存、翻页、贴纸和迁移行为，也覆盖模型层级、材质与资源释放，以及 UI 适配层的点击、loading/disabled、分段选择和输入透传。ESLint、TypeScript/Vite production build、文档引用检查和 <code>git diff --check</code> 均通过。</p>
         <div class="table-wrap">
           <table>
             <thead><tr><th>能力</th><th>当前状态</th><th>证据边界</th></tr></thead>
@@ -336,19 +342,20 @@ edit historical text:
               <tr><td>当天正文与 IndexedDB 恢复</td><td><span class="status status-review">已实现</span></td><td>repository、store、DOM 自动测试</td></tr>
               <tr><td>独立贴纸工作台与双 surface</td><td><span class="status status-review">已完成</span></td><td>自动测试、构建与开发者验收；浏览器证据边界见 DD-20260808-002</td></tr>
               <tr><td>双页本子与仿真翻页</td><td><span class="status status-review">已完成</span></td><td>DD-20260809-001 自动测试、lint、build 与开发者验收</td></tr>
-              <tr><td>统一阅读与历史正文书写</td><td><span class="status status-review">待验收</span></td><td>41 个全量测试、lint、build 及桌面/移动打开与关闭恢复流程通过</td></tr>
+              <tr><td>统一阅读与历史正文书写</td><td><span class="status status-review">待验收</span></td><td>43 个全量测试、lint、build 及桌面/移动打开与关闭恢复流程通过</td></tr>
               <tr><td>程序化桌子、桌垫与本子</td><td><span class="status status-review">待验收</span></td><td>三个 strict-quality spec 均 complete；最终视觉分数依次为 0.86、0.87、0.85，所有适用 critical feature 均不低于 0.82</td></tr>
+              <tr><td>通用 DOM 与贴纸工作台重写</td><td><span class="status status-review">待验收</span></td><td><code>animal-island-ui@1.5.1</code> 经 <code>src/ui/</code> 接入；旧控件样式和旧工作台背景已删除，桌面、日记、文字/图片贴纸制作与抠图关键流程在桌面/移动端通过</td></tr>
               <tr><td>桌面/移动产品与本地 HTML 交互</td><td><span class="status status-review">已验证</span></td><td><code>ego-browser</code> 已覆盖 1440 × 900、390 × 844、DPR 2 与 reduced-motion；单 Canvas、无页面横向溢出</td></tr>
             </tbody>
           </table>
         </div>
         <div class="note">
-          <strong>构建体积不是翻页新增依赖</strong>
-          <p>翻页没有新增运行依赖。生产输出的主要体积仍来自应用主包、Transformers worker 与 ONNX Runtime WASM；U-2-Netp 模型作为静态资源按需使用。后续优化应维持“普通打开日记不等待抠图模型”的边界。</p>
+          <strong>第三方 UI 的已知成本</strong>
+          <p><code>animal-island-ui</code> 根导入会把未使用的装饰资源和约 3.5 MB 中文字体带入构建，Vite 因此继续报告大 chunk；这不改变按需加载抠图模型的边界。<code>npm audit --omit=dev</code> 的 4 个 high 问题均来自既有 Transformers 的 onnxruntime/sharp/adm-zip 链，当前无可用修复，不来自本次 UI 依赖。</p>
         </div>
       </section>
 
-      <footer>Dear Desk 当前系统架构 · 基于可运行源码、41 个自动测试与 DD-20260810-002 实施结果 · 2026-08-11</footer>
+      <footer>Dear Desk 当前系统架构 · 基于可运行源码、43 个自动测试与 DD-20260810-002 实施结果 · 2026-08-12</footer>
     </main>
   </div>
 

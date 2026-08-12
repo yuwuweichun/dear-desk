@@ -17,6 +17,8 @@
   "dependencies": {
     "@huggingface/transformers": "4.2.0",
     "@react-three/fiber": "^9.7.0",
+    "animal-island-ui": "1.5.1",
+    "classnames": "2.5.1",
     "dexie": "^4.4.4",
     "lucide-react": "^1.28.0",
     "react": "^19.2.8",

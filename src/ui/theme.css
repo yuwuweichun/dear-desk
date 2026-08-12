@@ -1,0 +1,208 @@
+:root {
+  --animal-primary-color: #0cc0b5;
+  --animal-primary-color-hover: #11a89b;
+  --animal-primary-color-active: #087f78;
+  --animal-primary-color-bg: #dff8f3;
+  --animal-success-color: #6fba2c;
+  --animal-warning-color: #f5c31c;
+  --animal-error-color: #e05a5a;
+  --animal-error-color-hover: #c94444;
+  --animal-error-color-active: #9f3030;
+  --animal-text-color: #725d42;
+  --animal-text-color-secondary: #8a7b66;
+  --animal-text-color-muted: #a0937f;
+  --animal-border-color: #d4c9b4;
+  --animal-border-color-hover: #0cc0b5;
+  --animal-border-color-light: #e8e2d6;
+  --animal-bg-color: #fffbe7;
+  --animal-bg-color-secondary: #f3ecd9;
+  --animal-bg-color-disabled: #ece8dc;
+  --animal-border-radius-sm: 18px;
+  --animal-border-radius-base: 24px;
+  --animal-border-radius-lg: 28px;
+  --animal-shadow-sm: 0 4px 0 rgba(114, 93, 66, 0.2);
+  --animal-shadow-base: 0 6px 0 rgba(114, 93, 66, 0.18);
+  --animal-shadow-lg: 0 16px 36px rgba(75, 65, 49, 0.18);
+}
+
+.dd-button {
+  letter-spacing: 0;
+}
+
+.dd-button--primary {
+  color: #fff9e3;
+  background: var(--animal-primary-color);
+  border-color: var(--animal-primary-color);
+  box-shadow: 0 5px 0 #087f78;
+}
+
+.dd-button--primary:hover:not(:disabled) {
+  color: #fff9e3;
+  background: var(--animal-primary-color-hover);
+  border-color: var(--animal-primary-color-hover);
+  box-shadow: 0 6px 0 #087f78;
+}
+
+.dd-button--secondary {
+  color: var(--animal-text-color);
+  background: #fffbe7;
+  border-color: #d4c9b4;
+}
+
+.dd-button--quiet {
+  color: inherit;
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.journal-close-button.dd-button--quiet {
+  color: #725d42;
+  background: #fffbe7;
+  border-color: #d4c9b4;
+  box-shadow: 0 4px 0 rgba(61, 52, 40, 0.2);
+}
+
+.journal-close-button.dd-button--quiet:hover:not(:disabled) {
+  color: var(--animal-primary-color-active);
+  background: #e8faf5;
+  border-color: #82d5bb;
+}
+
+.studio-icon-button.dd-button--quiet {
+  color: #725d42;
+  background: #fffbe7;
+  border-color: #d4c9b4;
+  box-shadow: 0 4px 0 rgba(61, 52, 40, 0.18);
+}
+
+.studio-icon-button.dd-button--quiet:hover:not(:disabled) {
+  color: var(--animal-error-color-active);
+  background: #fde8e8;
+  border-color: #f4b6b6;
+}
+
+.dd-button--danger {
+  box-shadow: 0 5px 0 var(--animal-error-color-active);
+}
+
+.dd-icon-button {
+  width: 45px;
+  min-width: 45px;
+  height: 45px;
+  padding: 0;
+  border-radius: 50%;
+}
+
+.dd-icon-button > span,
+.dd-icon-button svg {
+  flex: 0 0 auto;
+}
+
+.dd-segmented {
+  display: grid;
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
+  gap: 5px;
+  padding: 5px;
+  border: 2px solid #e8e2d6;
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.dd-segmented .dd-button {
+  width: 100%;
+  min-width: 0;
+  border-radius: 22px;
+  box-shadow: none;
+}
+
+.dd-segmented .dd-button--primary {
+  box-shadow: 0 3px 0 rgba(61, 52, 40, 0.14);
+}
+
+.dd-text-input {
+  width: 100%;
+}
+
+.journal-mode-toggle.dd-segmented {
+  grid-auto-flow: row;
+  grid-auto-rows: minmax(58px, 1fr);
+  min-height: 132px;
+  padding: 6px;
+  border-color: #e8e2d6;
+  border-radius: 28px;
+  background: #f8f8f0;
+  box-shadow: 0 7px 0 rgba(61, 52, 40, 0.18), 0 16px 30px rgba(31, 24, 18, 0.18);
+  overflow: visible;
+}
+
+.journal-mode-toggle.dd-segmented::before {
+  content: none;
+}
+
+.journal-mode-toggle .dd-button {
+  height: 100%;
+  min-height: 58px;
+  padding: 6px;
+  border-radius: 21px;
+}
+
+.journal-mode-toggle .dd-button > span:last-child,
+.journal-writing-button > span:last-child {
+  line-height: 1.15;
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+}
+
+.journal-mode-toggle .dd-button--secondary {
+  color: #8a7b66;
+  background: transparent;
+  border-color: transparent;
+}
+
+.journal-writing-button.dd-button {
+  height: auto;
+  min-height: 100px;
+  padding: 12px 6px;
+  flex-direction: column;
+  border-radius: 26px;
+}
+
+.source-tabs.dd-segmented {
+  margin-top: 20px;
+}
+
+.source-tabs.dd-segmented,
+.material-control.dd-segmented {
+  overflow: visible;
+}
+
+.material-control.dd-segmented {
+  grid-auto-flow: row;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-radius: 24px;
+}
+
+.material-control.dd-segmented .dd-button {
+  min-height: 42px;
+  padding-inline: 8px;
+}
+
+.sticker-mode-bar .dd-icon-button,
+.sticker-selection-bar .dd-icon-button,
+.sticker-error-toast .dd-icon-button {
+  width: 40px;
+  min-width: 40px;
+  height: 40px;
+}
+
+@media (max-width: 700px) {
+  .dd-button {
+    white-space: normal;
+  }
+
+  .journal-mode-toggle.dd-segmented {
+    grid-template-columns: 1fr;
+  }
+}

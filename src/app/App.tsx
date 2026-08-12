@@ -1,4 +1,4 @@
-import { BookOpen, Database, Sticker } from 'lucide-react'
+import { BookOpen, Sticker } from 'lucide-react'
 import { lazy, Suspense, useEffect } from 'react'
 
 import { formatLocalDate } from '../domain/daily-entry'
@@ -7,6 +7,7 @@ import { StickerControls } from '../features/stickers/StickerControls'
 import { StickerStudio } from '../features/stickers/StickerStudio'
 import { DeskScene } from '../scene/DeskScene'
 import { useAppStore } from '../state/app-store-context'
+import { Button } from '../ui'
 
 type ModelReviewKind = 'desk' | 'mat' | 'notebook'
 
@@ -25,10 +26,13 @@ function SceneFallback() {
   return (
     <div className="scene-fallback" role="status">
       <span>3D 桌面暂时不可用</span>
-      <button type="button" onClick={openNotebookWithoutScene}>
-        <BookOpen aria-hidden="true" size={18} />
+      <Button
+        icon={<BookOpen aria-hidden="true" size={18} />}
+        onClick={openNotebookWithoutScene}
+        variant="primary"
+      >
         打开本子
-      </button>
+      </Button>
     </div>
   )
 }
@@ -89,17 +93,6 @@ function ProductApp() {
         </div>
       )}
 
-      <header className="app-header">
-        <a className="app-brand" href="/" aria-label="Dear Desk 首页">
-          <span className="brand-monogram" aria-hidden="true">DD</span>
-          <span>Dear Desk</span>
-        </a>
-        <div className="local-status" title="数据保存在当前浏览器">
-          <Database aria-hidden="true" size={15} strokeWidth={1.8} />
-          <span>本地</span>
-        </div>
-      </header>
-
       <div
         className={showDeskActions ? 'date-block' : 'date-block is-hidden'}
         aria-live="polite"
@@ -110,22 +103,22 @@ function ProductApp() {
 
       {showDeskActions ? (
         <div className="desk-actions">
-          <button
+          <Button
             className="notebook-button"
-            type="button"
+            icon={<BookOpen aria-hidden="true" size={19} strokeWidth={1.8} />}
             onClick={requestNotebookOpen}
+            variant="primary"
           >
-            <BookOpen aria-hidden="true" size={19} strokeWidth={1.8} />
             <span>打开本子</span>
-          </button>
-          <button
+          </Button>
+          <Button
             className="sticker-workbench-button"
-            type="button"
+            icon={<Sticker aria-hidden="true" size={19} strokeWidth={1.8} />}
             onClick={openStickerStudio}
+            variant="secondary"
           >
-            <Sticker aria-hidden="true" size={19} strokeWidth={1.8} />
             <span>贴纸工作台</span>
-          </button>
+          </Button>
         </div>
       ) : null}
 

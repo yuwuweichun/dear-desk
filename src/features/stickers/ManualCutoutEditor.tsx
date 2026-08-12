@@ -2,6 +2,7 @@ import { Brush, Check, Minus, Scan, X, ZoomIn, ZoomOut } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 
 import type { ProcessedImage } from '../../integrations/image-processing'
+import { Button, IconButton, SegmentedControl } from '../../ui'
 
 type Tool = 'select' | 'brush'
 type Operation = 'add' | 'subtract'
@@ -202,39 +203,29 @@ export function ManualCutoutEditor({
           <p>手动修整</p>
           <strong>框选或涂抹要保留的区域</strong>
         </div>
-        <button type="button" onClick={onCancel} aria-label="关闭手动抠图">
+        <IconButton label="关闭手动抠图" onClick={onCancel} variant="quiet">
           <X aria-hidden="true" size={18} />
-        </button>
+        </IconButton>
       </header>
       <div className="manual-cutout-toolbar">
-        <button
-          type="button"
-          className={tool === 'select' ? 'is-active' : ''}
-          onClick={() => setTool('select')}
-        >
-          <Scan aria-hidden="true" size={16} />框选
-        </button>
-        <button
-          type="button"
-          className={tool === 'brush' ? 'is-active' : ''}
-          onClick={() => setTool('brush')}
-        >
-          <Brush aria-hidden="true" size={16} />画笔
-        </button>
-        <button
-          type="button"
-          className={operation === 'add' ? 'is-active' : ''}
-          onClick={() => setOperation('add')}
-        >
-          添加
-        </button>
-        <button
-          type="button"
-          className={operation === 'subtract' ? 'is-active' : ''}
-          onClick={() => setOperation('subtract')}
-        >
-          <Minus aria-hidden="true" size={16} />移除
-        </button>
+        <SegmentedControl
+          ariaLabel="手动修整工具"
+          onChange={setTool}
+          options={[
+            { icon: <Scan aria-hidden="true" size={16} />, label: '框选', value: 'select' },
+            { icon: <Brush aria-hidden="true" size={16} />, label: '画笔', value: 'brush' },
+          ]}
+          value={tool}
+        />
+        <SegmentedControl
+          ariaLabel="蒙版操作"
+          onChange={setOperation}
+          options={[
+            { label: '添加', value: 'add' },
+            { icon: <Minus aria-hidden="true" size={16} />, label: '移除', value: 'subtract' },
+          ]}
+          value={operation}
+        />
         <label>
           画笔 {brushSize}px
           <input
@@ -245,14 +236,12 @@ export function ManualCutoutEditor({
             onChange={(event) => setBrushSize(Number(event.target.value))}
           />
         </label>
-        <button type="button" onClick={() => setZoom(Math.max(0.5, zoom - 0.25))}>
+        <IconButton label="缩小" onClick={() => setZoom(Math.max(0.5, zoom - 0.25))} variant="quiet">
           <ZoomOut aria-hidden="true" size={16} />
-          <span className="sr-only">缩小</span>
-        </button>
-        <button type="button" onClick={() => setZoom(Math.min(3, zoom + 0.25))}>
+        </IconButton>
+        <IconButton label="放大" onClick={() => setZoom(Math.min(3, zoom + 0.25))} variant="quiet">
           <ZoomIn aria-hidden="true" size={16} />
-          <span className="sr-only">放大</span>
-        </button>
+        </IconButton>
       </div>
       <div className="manual-cutout-frame">
         <canvas
@@ -287,10 +276,13 @@ export function ManualCutoutEditor({
       </div>
       {error ? <p className="studio-error" role="alert">{error}</p> : null}
       <div className="manual-cutout-actions">
-        <button type="button" onClick={onCancel}>取消</button>
-        <button type="button" disabled={!ready} onClick={() => void confirm()}>
-          <Check aria-hidden="true" size={17} />确认修整
-        </button>
+        <Button onClick={onCancel} variant="secondary">取消</Button>
+        <Button
+          disabled={!ready}
+          icon={<Check aria-hidden="true" size={17} />}
+          onClick={() => void confirm()}
+          variant="primary"
+        >确认修整</Button>
       </div>
     </section>
   )

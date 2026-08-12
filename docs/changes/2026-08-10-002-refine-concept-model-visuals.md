@@ -4,11 +4,11 @@
 
 | 字段 | 内容 |
 | --- | --- |
-| 状态 | 待确认 |
+| 状态 | 待验收 |
 | 类型 | 重构 |
 | 创建时间 | 2026-08-10 18:03 CST |
-| 最后更新 | 2026-08-11 18:58 CST |
-| 当前阶段 | 用户未通过当前模型视觉验收；已完成卡通化重定向及第三方组件库适配方案，等待确认后再改业务源码与依赖 |
+| 最后更新 | 2026-08-12 CST |
+| 当前阶段 | 第一轮仅底座迁移未通过视觉验收；第二轮已按授权删除旧控件样式并重写通用界面和贴纸工作台，自动检查与双视口验证完成，等待用户验收 |
 | 源码基线 | Git commit `c7a3660` |
 | 实现提交 | `9833d6750ba448bda616b8fec4f1466e8b6b311d` |
 | 关联任务 | 优化项目概念图在 Three.js 中的模型质量与视觉效果，使其更接近原概念设计 |
@@ -394,3 +394,79 @@ DOM 控件层同步引入 `animal-island-ui`，但采用渐进式适配而不是
 推荐用户批准“温暖手作卡通 3D + `animal-island-ui` 渐进式 DOM 适配”方向，并采用“本子/核心控件样板 -> 全场景/其余控件”的两阶段验收。批准前不修改业务源码或依赖。
 
 仍有一个会实质影响依赖选择的待确认项：Dear Desk 是否确定只用于个人学习、研究、评估、测试或非商业展示。若答案为是，可按 `CC-BY-NC-4.0` 保留署名并引入该库；若可能用于商业产品、企业项目、外部服务或收费模板，则当前许可证不允许直接引入，必须先取得作者额外授权或改用允许商业使用的同类组件库。若用户坚持接近现有概念图的写实质感，还需另行确认是否接受 Blender/glTF 美术资产管线与相应资产成本，这会改变上一轮批准的纯程序化实现边界。
+
+### 15.7 UI 重构批准与执行清单
+
+用户于 2026-08-12 明确确认 Dear Desk 不用于商业用途，并要求“完成 UI 重构，最大程度可替换 UI 的进行替换”。该回复解除 `CC-BY-NC-4.0` 依赖门槛，并批准第 15.4 至 15.6 节中的渐进式适配方向。本轮最终执行清单为：
+
+1. 固定引入 `animal-island-ui` 及其必需 peer dependency，保留许可证署名与来源说明。
+2. 建立项目内 `src/ui/` 适配层，统一业务语义、图标、可访问性、测试查询和 Dear Desk 主题覆盖；业务模块不直接散落第三方导入。
+3. 最大范围替换 App、Journal、Sticker Studio、Sticker Controls 和 Manual Cutout 中可由通用组件承担的按钮、输入、Tabs、Switch、Tooltip、反馈与选择控件。
+4. 保留日记纸页、贴纸交互层、Forge mount、抠图 Canvas、颜色 swatch 和滑杆等领域专用界面所有权，不为追求替换率破坏原交互。
+5. 补充适配层与关键工作流自动测试，运行全量检查，并使用 `ego-browser` 完成桌面和移动端交互与视觉验收。
+6. 按真实差异同步产品、架构和本文，实施完成后状态更新为“待验收”。
+
+### 15.8 UI 重构实施结果
+
+当前源码事实：
+
+- `package.json` 与 lockfile 固定加入 `animal-island-ui@1.5.1` 和其必需的 `classnames@2.5.1`；`src/main.tsx` 载入第三方样式后再载入 `src/ui/theme.css`。`vite.config.ts` 在 Vitest server 中 inline 该 ESM 依赖，`src/animal-island-ui.d.ts` 补齐包未声明的 style subpath 类型。
+- `src/ui/` 新增 `Button`、`IconButton`、`TextInput`、`SegmentedControl` 及统一出口。业务组件只从该适配层导入；`Button` 把 loading 映射为原生 disabled，图标按钮固定可访问名称，主题层统一 Dear Desk 色彩、阴影、尺寸与日记竖排布局。
+- 已替换 `App` 的桌面入口，`JournalPanel` 的关闭、阅读/编辑与书写/收笔，`StickerStudio` 的来源、文字输入、抠图动作、材质和目标动作，`ManualCutoutEditor` 的工具/蒙版模式、缩放与确认动作，以及 `StickerControls` 的取消、旋转、删除和错误关闭。
+- 最大替换不等于强制替换。日记 textarea/纸本布局、文件 input 与上传 drop zone、颜色 swatch、画笔 range、Forge mount、手动抠图 Canvas、可拖拽日记贴纸和页缘导航命中区继续由项目拥有，因为它们包含原生输入能力、空间坐标或领域交互。
+- `THIRD_PARTY_NOTICES.md` 已记录作者、来源、CC BY-NC 4.0 和用户确认的非商业用途。若 Dear Desk 后续转为商业用途，继续使用该库前必须取得额外授权或替换依赖。
+
+实际方案偏差与已知成本：第 15.7 节列出的 Switch、Tooltip 和反馈组件没有为了数量而新增，因为当前涉及模块没有等价的既有 Switch/Tooltip 交互，错误反馈也需要保留业务 live region；Modal/Drawer 同理没有替换领域工作台布局。第三方包的根导入会带入未使用装饰资源及约 3.5 MB 中文字体，生产构建继续报告大 chunk；当前包未提供已验证、类型安全的官方按组件样式入口，因此本轮保留根入口并明确记录成本。
+
+验证结果：
+
+- `npm run check` 通过：ESLint、12 个 Vitest 文件共 43 个测试、TypeScript/Vite production build 和文档引用检查均成功。新增适配层测试覆盖点击、loading/disabled、分段选择和输入事件，日记测试同步覆盖新的双按钮模式组。
+- `git diff --check` 通过。
+- `npm audit --omit=dev --json` 报告 4 个既有 high，均位于 `@huggingface/transformers -> onnxruntime-node / sharp / adm-zip`，当前无可用修复；`animal-island-ui` 与 `classnames` 未引入新审计项。
+- `ego-browser` 在桌面 `1440 x 900` 与移动 `390 x 844`、DPR 2 验证桌面入口、日记阅读/编辑/书写、空草稿禁用收笔、贴纸来源/材质/文字输入、目标动作和关闭流程。两端均保持单 Canvas、无页面横向溢出、无按钮文字裁切或控件重叠；移动贴纸工作台按设计纵向滚动。
+- 按 `$bun-html-docs` 直接打开更新后的 `docs/index.html` 与 `docs/architecture/system-overview.html`：桌面 `1440 x 900` 和移动 `390 x 844` 均无页面级横向溢出；新增 UI 架构内容可全文搜索，搜索成功、空结果、ArrowDown、Enter、Escape、术语点击和移动目录均通过。复制按钮沿用既有文档脚本，本轮未改其实现；自动化点击未观察到反馈文字变化，保留为手动验收项。
+- 本轮没有修改 store、repository、领域数据、IndexedDB schema、贴纸坐标或 WebGL 所有权。自动测试与浏览器检查支持 UI 重构未改变产品行为。
+
+文档同步：已回写 `docs/product/mvp.md`、使用 `$bun-html-docs` 内容契约更新 `docs/architecture/system-overview.html` 与 `docs/index.html`，并补齐本文实施结果。任务状态现为“待验收”，不自行标记“已完成”。
+
+### 15.9 UI 重构审阅记录
+
+| 时间 | 参与者 | 记录 |
+| --- | --- | --- |
+| 2026-08-12 | 用户 | 明确确认 Dear Desk 不用于商业用途，并要求完成 UI 重构、最大程度替换适用 UI。 |
+| 2026-08-12 | Codex | 固定第三方依赖，建立 `src/ui/` 适配层，完成 App、Journal 与 Sticker 相关通用控件迁移；保留领域专用输入、命中和 Canvas。 |
+| 2026-08-12 | Codex | 通过 43 个自动测试、lint、production build、文档引用、diff whitespace 检查及桌面/移动产品验收；完成产品、架构、入口和任务记录回写，状态进入待验收。 |
+| 2026-08-12 | 用户 | 反馈第一轮替换视觉几乎没有变化，明确要求大胆重构、直接移除旧样式，以组件库样式为主要参考，并允许重写贴纸工作台背景。 |
+| 2026-08-12 | Codex | 核对运行 DOM 与 computed style，确认第三方组件虽已挂载，但 Dear Desk theme 与旧页面 class 覆盖了库的胶囊圆角、立体阴影和色彩，第一轮实际只是组件底座迁移；任务退回实施中。 |
+
+### 15.10 第二轮视觉重写授权与范围
+
+本轮不再以“保持旧外观的渐进适配”为目标，而以 `animal-island-ui` 的视觉语言为主要参考直接重写：保留库默认的圆润胶囊、厚实阴影、明亮浅色 surface、清晰 active/hover/pressed 反馈和 Nunito/Noto Sans 字体；Dear Desk 只提供产品色彩和必要领域布局，不再用 `!important` 把控件恢复成旧样式。
+
+预计改动覆盖桌面主入口、日记模式/书写/关闭控件、贴纸状态条，以及贴纸工作台的整页背景、预览舞台、控制侧栏、来源/材质选择、上传区和目标动作。贴纸 Forge、自动/手动抠图算法、Canvas、状态机、持久化、坐标和单 Canvas 所有权不变。响应式目标仍为桌面 `1440 x 900` 与移动 `390 x 844`；实现完成后重新回写实际差异与验证结果，状态再进入待验收。
+
+### 15.11 第二轮视觉重写实施与验证
+
+实际改动：
+
+- 重写 `src/ui/theme.css`，移除第一轮覆盖组件库默认形态的 `!important` 规则；主题现在保留 18-28px 圆角、50px 主按钮、厚实按压阴影、Nunito/Noto Sans、青绿 active、暖白 secondary 和珊瑚次目标，只对日记竖排、图标尺寸等领域布局做约束。
+- 重写 `src/sticker-workbench.css`，删除旧深色/小圆角按钮规则和胡桃木抠图壳；桌面入口使用组件库式胶囊，手动抠图使用浅薄荷网格与暖白工具面板，领域 Canvas 与 range 保持不变。
+- 大幅删除 `src/styles.css` 中对按钮、分段选择、输入、材质格和状态条的旧外观控制；该阶段曾把应用顶栏、品牌、Local 状态和日期状态改为浅色圆润层，日记关闭/模式/书写命令改为组件库式外置控件。用户随后判断常驻顶栏没有足够职责，最终实现已删除顶栏结构与相关样式，只保留桌面日期状态。
+- 贴纸工作台由旧胡桃木/深苔网格背景和窄纸侧栏整体改写为浅薄荷点阵全屏制作空间、暖白厚边预览框、独立点阵圆角控制面板、青绿来源/材质 active、圆形色板，以及青绿/珊瑚双目标动作。页面仍以 Forge 预览为主，未新增介绍性文案或营销布局。
+- 用户反馈核对确认第一轮虽然存在第三方 class，但 computed style 把库默认 50px 胶囊与 5px 阴影覆盖为 7px、无阴影；第二轮已消除该冲突。当前日记选中按钮为 21px 圆角、青绿背景和 3px 按压阴影，贴纸主按钮为 50px 胶囊，工作台背景实际计算为 `rgb(201, 240, 229)`。
+
+验证：
+
+- `npm run lint && npm run test` 通过，12 个测试文件共 43 个测试；`git diff --check` 通过。
+- `ego-browser` 桌面 `1440 x 900` 验证日期状态、桌面主入口、日记模式条和贴纸工作台文字态；页面宽度等于视口宽度，无横向溢出。视觉检查发现日记关闭按钮曾被当时存在的顶栏裁切，已移入纸页右上并恢复暖白圆形底座；后续顶栏已整体删除。
+- `ego-browser` 移动 `390 x 844`、DPR 2 验证桌面两个 50px 主入口、日记纸页/关闭/模式条、贴纸工作台文字态与图片来源上传态；页面宽度保持 390px，预览与控制面板不重叠，控制面板在固定视口内独立纵向滚动。
+- 截图证据：`/tmp/dear-desk-bold-desk.png`、`/tmp/dear-desk-bold-journal.png`、`/tmp/dear-desk-bold-studio.png`、`/tmp/dear-desk-bold-desk-mobile.png`、`/tmp/dear-desk-bold-journal-mobile.png`、`/tmp/dear-desk-bold-studio-mobile.png`、`/tmp/dear-desk-bold-studio-mobile-image.png`。
+- 本轮仅重写 DOM/CSS 视觉，没有修改 store、repository、IndexedDB schema、领域数据、Forge session、抠图算法、贴纸坐标、R3F 场景或单 Canvas 所有权。
+
+### 15.12 删除常驻顶栏
+
+用户于 2026-08-12 质疑顶栏存在意义，随后明确要求删除。当前事实是该栏只重复显示 Dear Desk 品牌与静态“本地”说明，没有导航、工作流切换或动态状态职责，却在桌面占用 76px、移动占用 68px，并把 3D 场景与贴纸工作台切成上下两层。
+
+实际改动：从 `ProductApp` 删除 `app-header`、品牌链接、DD monogram、Database 图标和“本地”文本，同时移除 `src/styles.css` 中全部对应样式；贴纸工作台、scene fallback 的 `inset` 改为 `0`，桌面日期状态移至左上 `28px`/移动 `18px`。品牌和“本地”没有迁移成新的常驻浮层；本地存储仍是架构事实，但不是需要永久占据视野的状态。
+
+验证：`npm run lint && npm run test` 通过，12 个测试文件共 43 个测试；`git diff --check` 通过。`ego-browser` 在 `1440 x 900` 与 `390 x 844` 验证 DOM 中不存在 `.app-header`，桌面 Canvas、贴纸工作台均从 `y=0` 开始，工作台矩形分别为 `1440 x 900` 与 `390 x 844`，两端页面宽度均等于视口宽度。截图为 `/tmp/dear-desk-no-header-desk.png`、`/tmp/dear-desk-no-header-studio.png` 和 `/tmp/dear-desk-no-header-studio-mobile.png`。
