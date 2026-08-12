@@ -1,5 +1,6 @@
 import {
   easeInOutCubic,
+  getDeskCameraTransitionDuration,
   getNotebookTransitionDuration,
   isNotebookModelVisible,
 } from './notebook-transition'
@@ -13,8 +14,8 @@ describe('notebook transition timing', () => {
       getNotebookTransitionDuration('closing', false) +
       getNotebookTransitionDuration('retreating', false)
 
-    expect(opening).toBeCloseTo(1.83)
-    expect(closing).toBeCloseTo(1.3)
+    expect(opening).toBeCloseTo(2.08)
+    expect(closing).toBeCloseTo(1.54)
   })
 
   it('settles each reduced-motion direction in no more than 150ms', () => {
@@ -37,14 +38,20 @@ describe('notebook transition timing', () => {
       getNotebookTransitionDuration('closing', false, true) +
       getNotebookTransitionDuration('retreating', false, true)
 
-    expect(opening).toBeCloseTo(1.08)
-    expect(closing).toBeCloseTo(0.78)
+    expect(opening).toBeCloseTo(1.24)
+    expect(closing).toBeCloseTo(0.94)
   })
 
   it('eases between exact stable endpoints', () => {
     expect(easeInOutCubic(0)).toBe(0)
     expect(easeInOutCubic(0.5)).toBe(0.5)
     expect(easeInOutCubic(1)).toBe(1)
+  })
+
+  it('uses a compact and reduced schedule for one-preset camera switches', () => {
+    expect(getDeskCameraTransitionDuration(false)).toBeCloseTo(0.72)
+    expect(getDeskCameraTransitionDuration(false, true)).toBeCloseTo(0.48)
+    expect(getDeskCameraTransitionDuration(true)).toBeLessThanOrEqual(0.06)
   })
 
   it('hides the 3D notebook only while the DOM journal owns the open pages', () => {

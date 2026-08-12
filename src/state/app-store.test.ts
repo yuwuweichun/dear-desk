@@ -111,6 +111,57 @@ const createStickerRepository = (): StickerRepository => ({
 })
 
 describe('app store', () => {
+  it('cycles one camera control through far, front, and near with a transition lock', () => {
+    const store = createAppStore(createRepository(), date)
+    expect(store.getState()).toMatchObject({
+      deskCameraPreset: 'far',
+      deskCameraTransitioning: false,
+    })
+
+    store.getState().cycleDeskCameraPreset()
+    expect(store.getState()).toMatchObject({
+      deskCameraPreset: 'front',
+      deskCameraTransitioning: true,
+    })
+    store.getState().cycleDeskCameraPreset()
+    expect(store.getState().deskCameraPreset).toBe('front')
+
+    store.getState().settleDeskCameraPreset()
+    store.getState().cycleDeskCameraPreset()
+    store.getState().settleDeskCameraPreset()
+    expect(store.getState().deskCameraPreset).toBe('near')
+
+    store.getState().cycleDeskCameraPreset()
+    expect(store.getState().deskCameraPreset).toBe('far')
+
+    store.getState().settleDeskCameraPreset()
+    store.getState().requestNotebookOpen()
+    store.getState().cycleDeskCameraPreset()
+    expect(store.getState().deskCameraPreset).toBe('far')
+  })
+
+  it('opens directly from near and preserves the selected preset across close', () => {
+    const store = createAppStore(createRepository(), date)
+    store.getState().cycleDeskCameraPreset()
+    store.getState().settleDeskCameraPreset()
+    store.getState().cycleDeskCameraPreset()
+    store.getState().settleDeskCameraPreset()
+
+    store.getState().requestNotebookOpen()
+    expect(store.getState()).toMatchObject({
+      deskCameraPreset: 'near',
+      notebookPhase: 'opening',
+    })
+    store.getState().advanceNotebookPhase('opening')
+    store.getState().requestNotebookClose()
+    store.getState().advanceNotebookPhase('closing')
+    store.getState().advanceNotebookPhase('retreating')
+    expect(store.getState()).toMatchObject({
+      deskCameraPreset: 'near',
+      notebookPhase: 'desk',
+    })
+  })
+
   it('advances the notebook through one legal open and close sequence', () => {
     const store = createAppStore(createRepository(), date)
     store.getState().requestNotebookOpen()

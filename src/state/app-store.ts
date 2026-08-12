@@ -25,6 +25,14 @@ type JournalLoadStatus = 'idle' | 'loading' | 'ready' | 'error'
 export type JournalTurnDirection = 'previous' | 'next'
 export type JournalTurnPhase = 'idle' | 'loading' | 'turning'
 
+export type DeskCameraPreset = 'far' | 'front' | 'near'
+
+const nextDeskCameraPreset: Record<DeskCameraPreset, DeskCameraPreset> = {
+  far: 'front',
+  front: 'near',
+  near: 'far',
+}
+
 export type StickerWorkflow =
   | 'idle'
   | 'composing'
@@ -50,6 +58,8 @@ export interface AppState {
   selectedDate: LocalDate
   entry: DailyEntry | null
   notebookPhase: NotebookPhase
+  deskCameraPreset: DeskCameraPreset
+  deskCameraTransitioning: boolean
   loadStatus: LoadStatus
   saveStatus: SaveStatus
   errorMessage: string | null
@@ -75,6 +85,8 @@ export interface AppState {
   requestJournalTurn: (direction: JournalTurnDirection) => Promise<boolean>
   settleJournalTurn: () => void
   requestNotebookOpen: () => void
+  cycleDeskCameraPreset: () => void
+  settleDeskCameraPreset: () => void
   advanceNotebookPhase: (from: NotebookPhase) => void
   requestNotebookClose: () => void
   openNotebookWithoutScene: () => void
@@ -140,6 +152,8 @@ export const createAppStore = (
     selectedDate,
     entry: null,
     notebookPhase: 'desk',
+    deskCameraPreset: 'far',
+    deskCameraTransitioning: false,
     loadStatus: 'idle',
     saveStatus: 'idle',
     errorMessage: null,
@@ -326,10 +340,32 @@ export const createAppStore = (
 
     requestNotebookOpen: () =>
       set((state) =>
-        state.notebookPhase === 'desk' && state.stickerWorkflow === 'idle'
-          ? { notebookPhase: 'approaching', selectedStickerId: null }
+        state.notebookPhase === 'desk' &&
+        state.stickerWorkflow === 'idle' &&
+        !state.deskCameraTransitioning
+          ? {
+              notebookPhase: state.deskCameraPreset === 'near'
+                ? 'opening'
+                : 'approaching',
+              selectedStickerId: null,
+            }
           : state,
       ),
+
+    cycleDeskCameraPreset: () =>
+      set((state) =>
+        state.notebookPhase === 'desk' &&
+        state.stickerWorkflow === 'idle' &&
+        !state.deskCameraTransitioning
+          ? {
+              deskCameraPreset: nextDeskCameraPreset[state.deskCameraPreset],
+              deskCameraTransitioning: true,
+              selectedStickerId: null,
+            }
+          : state,
+      ),
+
+    settleDeskCameraPreset: () => set({ deskCameraTransitioning: false }),
 
     advanceNotebookPhase: (from) =>
       set((state) => {

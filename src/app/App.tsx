@@ -1,4 +1,4 @@
-import { BookOpen, Sticker } from 'lucide-react'
+import { BookOpen, Camera, Sticker } from 'lucide-react'
 import { lazy, Suspense, useEffect } from 'react'
 
 import { formatLocalDate } from '../domain/daily-entry'
@@ -38,6 +38,13 @@ function SceneFallback() {
 }
 
 function ProductApp() {
+  const cycleDeskCameraPreset = useAppStore(
+    (state) => state.cycleDeskCameraPreset,
+  )
+  const deskCameraPreset = useAppStore((state) => state.deskCameraPreset)
+  const deskCameraTransitioning = useAppStore(
+    (state) => state.deskCameraTransitioning,
+  )
   const selectedDate = useAppStore((state) => state.selectedDate)
   const entry = useAppStore((state) => state.entry)
   const loadStatus = useAppStore((state) => state.loadStatus)
@@ -79,9 +86,22 @@ function ProductApp() {
     stickerWorkflow === 'idle' &&
     !selectedStickerId
 
+  const cameraPresetLabels = {
+    far: '远处',
+    front: '正面',
+    near: '近处',
+  } as const
+  const nextCameraPreset = {
+    far: 'front',
+    front: 'near',
+    near: 'far',
+  } as const
+
   return (
     <main
       className="app-shell"
+      data-camera-preset={deskCameraPreset}
+      data-camera-transitioning={deskCameraTransitioning}
       data-notebook-phase={notebookPhase}
       data-sticker-workflow={stickerWorkflow}
     >
@@ -103,6 +123,17 @@ function ProductApp() {
 
       {showDeskActions ? (
         <div className="desk-actions">
+          <Button
+            aria-label={`当前${cameraPresetLabels[deskCameraPreset]}，切换到${cameraPresetLabels[nextCameraPreset[deskCameraPreset]]}`}
+            className="camera-preset-button"
+            disabled={deskCameraTransitioning}
+            icon={<Camera aria-hidden="true" size={19} strokeWidth={1.8} />}
+            onClick={cycleDeskCameraPreset}
+            title={`切换到${cameraPresetLabels[nextCameraPreset[deskCameraPreset]]}`}
+            variant="secondary"
+          >
+            <span>{cameraPresetLabels[deskCameraPreset]}</span>
+          </Button>
           <Button
             className="notebook-button"
             icon={<BookOpen aria-hidden="true" size={19} strokeWidth={1.8} />}

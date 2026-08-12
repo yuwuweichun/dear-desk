@@ -5,7 +5,11 @@ import * as THREE from 'three'
 
 import type { PlacedSticker, StickerPosition } from '../domain/sticker'
 import { useAppStore } from '../state/app-store-context'
-import type { NotebookPhase, StickerWorkflow } from '../state/app-store'
+import type {
+  DeskCameraPreset,
+  NotebookPhase,
+  StickerWorkflow,
+} from '../state/app-store'
 import { NotebookObject } from './NotebookObject'
 import { createDeskMatModel } from './models/create-desk-mat-model'
 import { createDeskModel } from './models/create-desk-model'
@@ -19,6 +23,7 @@ import { SceneEnvironment } from './models/SceneEnvironment'
 import { StickerObject } from './StickerObject'
 import {
   easeInOutCubic,
+  getDeskCameraTransitionDuration,
   getNotebookTransitionDuration,
   type AnimatedNotebookPhase,
 } from './notebook-transition'
@@ -94,10 +99,13 @@ const cameraPose = (
 })
 
 const getCameraPoses = (mobile: boolean) => ({
-  desk: mobile
+  far: mobile
     ? cameraPose([6.7, 7.7, 11.5], [0, -0.45, 0.15], 37)
     : cameraPose([8.9, 5.7, 11.3], [0, -0.9, 0.2], 35),
-  focus: mobile
+  front: mobile
+    ? cameraPose([0.1, 8.4, 14.2], [0, -0.5, 0.15], 42)
+    : cameraPose([0.15, 6.8, 13.6], [0, -0.75, 0.15], 36),
+  near: mobile
     ? cameraPose([0.1, 10.6, 6.2], [-2.05, 0.22, 0.25], 39)
     : cameraPose([0.2, 8.6, 5.1], [-2.05, 0.22, 0.25], 33),
 })
@@ -117,22 +125,47 @@ const applyCameraPose = (camera: THREE.PerspectiveCamera, pose: CameraPose) => {
   camera.updateMatrixWorld(true)
 }
 
+interface CameraKeyframe {
+  fov: number
+  position: THREE.Vector3
+  quaternion: THREE.Quaternion
+}
+
+const keyframeForPose = (pose: CameraPose): CameraKeyframe => ({
+  fov: pose.fov,
+  position: pose.position.clone(),
+  quaternion: quaternionForPose(pose),
+})
+
+const keyframeForCamera = (camera: THREE.PerspectiveCamera): CameraKeyframe => ({
+  fov: camera.fov,
+  position: camera.position.clone(),
+  quaternion: camera.quaternion.clone(),
+})
+
 interface CameraRigProps {
+  deskCameraPreset: DeskCameraPreset
+  deskCameraTransitioning: boolean
   notebookPhase: NotebookPhase
   onAdvance: (from: NotebookPhase) => void
+  onCameraSettled: () => void
   reducedMotion: boolean
 }
 
-function CameraRig({ notebookPhase, onAdvance, reducedMotion }: CameraRigProps) {
+function CameraRig({
+  deskCameraPreset,
+  deskCameraTransitioning,
+  notebookPhase,
+  onAdvance,
+  onCameraSettled,
+  reducedMotion,
+}: CameraRigProps) {
   const { camera, size } = useThree()
   const transition = useRef<{
-    fromFov: number
-    fromPosition: THREE.Vector3
-    fromQuaternion: THREE.Quaternion
-    phase: AnimatedNotebookPhase
+    from: CameraKeyframe
+    kind: AnimatedNotebookPhase | 'preset'
     startedAt: number
-    toPose: CameraPose
-    toQuaternion: THREE.Quaternion
+    to: CameraKeyframe
   } | null>(null)
 
   useEffect(() => {
@@ -140,44 +173,49 @@ function CameraRig({ notebookPhase, onAdvance, reducedMotion }: CameraRigProps) 
     const poses = getCameraPoses(size.width < 700)
 
     if (notebookPhase === 'desk') {
-      transition.current = null
-      applyCameraPose(camera, poses.desk)
+      if (deskCameraTransitioning) {
+        transition.current = {
+          from: keyframeForCamera(camera),
+          kind: 'preset',
+          startedAt: performance.now(),
+          to: keyframeForPose(poses[deskCameraPreset]),
+        }
+      } else {
+        transition.current = null
+        applyCameraPose(camera, poses[deskCameraPreset])
+      }
       return
     }
     if (notebookPhase === 'editing') {
       transition.current = null
-      applyCameraPose(camera, poses.focus)
+      applyCameraPose(camera, poses.near)
       return
     }
     if (notebookPhase === 'opening' || notebookPhase === 'closing') {
       transition.current = null
-      applyCameraPose(camera, poses.focus)
+      applyCameraPose(camera, poses.near)
       return
     }
 
-    const toPose = notebookPhase === 'approaching' ? poses.focus : poses.desk
     transition.current = {
-      fromFov: camera.fov,
-      fromPosition: camera.position.clone(),
-      fromQuaternion: camera.quaternion.clone(),
-      phase: notebookPhase,
+      from: keyframeForCamera(camera),
+      kind: notebookPhase,
       startedAt: performance.now(),
-      toPose,
-      toQuaternion: quaternionForPose(toPose),
+      to: keyframeForPose(
+        notebookPhase === 'approaching' ? poses.near : poses[deskCameraPreset],
+      ),
     }
-  }, [camera, notebookPhase, size.width])
+  }, [camera, deskCameraPreset, deskCameraTransitioning, notebookPhase, size.width])
 
   useFrame((state) => {
     if (!(state.camera instanceof THREE.PerspectiveCamera)) return
     const frameCamera = state.camera
     const active = transition.current
-    if (!active || active.phase !== notebookPhase) return
+    if (!active) return
 
-    const duration = getNotebookTransitionDuration(
-      active.phase,
-      reducedMotion,
-      size.width < 700,
-    )
+    const duration = active.kind === 'preset'
+      ? getDeskCameraTransitionDuration(reducedMotion, size.width < 700)
+      : getNotebookTransitionDuration(active.kind, reducedMotion, size.width < 700)
     const elapsed = Math.min(
       (performance.now() - active.startedAt) / 1000,
       duration,
@@ -185,18 +223,18 @@ function CameraRig({ notebookPhase, onAdvance, reducedMotion }: CameraRigProps) 
     const progress = easeInOutCubic(elapsed / duration)
 
     frameCamera.position.lerpVectors(
-      active.fromPosition,
-      active.toPose.position,
+      active.from.position,
+      active.to.position,
       progress,
     )
     frameCamera.quaternion.slerpQuaternions(
-      active.fromQuaternion,
-      active.toQuaternion,
+      active.from.quaternion,
+      active.to.quaternion,
       progress,
     )
     frameCamera.fov = THREE.MathUtils.lerp(
-      active.fromFov,
-      active.toPose.fov,
+      active.from.fov,
+      active.to.fov,
       progress,
     )
     frameCamera.updateProjectionMatrix()
@@ -204,7 +242,8 @@ function CameraRig({ notebookPhase, onAdvance, reducedMotion }: CameraRigProps) 
 
     if (elapsed >= duration) {
       transition.current = null
-      onAdvance(active.phase)
+      if (active.kind === 'preset') onCameraSettled()
+      else onAdvance(active.kind)
     }
   })
 
@@ -262,11 +301,14 @@ interface DeskContentsProps {
     instanceId: string,
     position: StickerPosition,
   ) => Promise<boolean>
+  deskCameraPreset: DeskCameraPreset
+  deskCameraTransitioning: boolean
   notebookPhase: NotebookPhase
   placePendingDeskSticker: (position: StickerPosition) => Promise<boolean>
   previewStickerPosition: (instanceId: string, position: StickerPosition) => void
   reducedMotion: boolean
   requestNotebookOpen: () => void
+  settleDeskCameraPreset: () => void
   selectSticker: (instanceId: string | null) => void
   selectedStickerId: string | null
   stickers: PlacedSticker[]
@@ -276,11 +318,14 @@ interface DeskContentsProps {
 function DeskContents({
   advanceNotebookPhase,
   commitStickerPosition,
+  deskCameraPreset,
+  deskCameraTransitioning,
   notebookPhase,
   placePendingDeskSticker,
   previewStickerPosition,
   reducedMotion,
   requestNotebookOpen,
+  settleDeskCameraPreset,
   selectSticker,
   selectedStickerId,
   stickers,
@@ -333,8 +378,11 @@ function DeskContents({
       <directionalLight color="#9eb6a8" intensity={0.15} position={[7, 5, -6]} />
       <SceneEnvironment intensity={0.32} />
       <CameraRig
+        deskCameraPreset={deskCameraPreset}
+        deskCameraTransitioning={deskCameraTransitioning}
         notebookPhase={notebookPhase}
         onAdvance={advanceNotebookPhase}
+        onCameraSettled={settleDeskCameraPreset}
         reducedMotion={reducedMotion}
       />
 
@@ -410,6 +458,10 @@ export function DeskScene({ fallback }: DeskSceneProps) {
   const [unavailable, setUnavailable] = useState(false)
   const [reducedMotion, setReducedMotion] = useState(false)
   const advanceNotebookPhase = useAppStore((state) => state.advanceNotebookPhase)
+  const deskCameraPreset = useAppStore((state) => state.deskCameraPreset)
+  const deskCameraTransitioning = useAppStore(
+    (state) => state.deskCameraTransitioning,
+  )
   const commitStickerPosition = useAppStore(
     (state) => state.commitStickerPosition,
   )
@@ -419,6 +471,9 @@ export function DeskScene({ fallback }: DeskSceneProps) {
     (state) => state.previewStickerPosition,
   )
   const requestNotebookOpen = useAppStore((state) => state.requestNotebookOpen)
+  const settleDeskCameraPreset = useAppStore(
+    (state) => state.settleDeskCameraPreset,
+  )
   const selectSticker = useAppStore((state) => state.selectSticker)
   const selectedStickerId = useAppStore((state) => state.selectedStickerId)
   const stickers = useAppStore((state) => state.stickers)
@@ -426,11 +481,14 @@ export function DeskScene({ fallback }: DeskSceneProps) {
   const latestSceneProps = useRef<DeskContentsProps>({
     advanceNotebookPhase,
     commitStickerPosition,
+    deskCameraPreset,
+    deskCameraTransitioning,
     notebookPhase,
     placePendingDeskSticker,
     previewStickerPosition,
     reducedMotion,
     requestNotebookOpen,
+    settleDeskCameraPreset,
     selectSticker,
     selectedStickerId,
     stickers,
@@ -470,6 +528,19 @@ export function DeskScene({ fallback }: DeskSceneProps) {
     )
     return () => window.clearTimeout(timer)
   }, [advanceNotebookPhase, notebookPhase, reducedMotion])
+
+  useEffect(() => {
+    if (!deskCameraTransitioning) return
+    if (reducedMotion) {
+      settleDeskCameraPreset()
+      return
+    }
+    const timer = window.setTimeout(
+      settleDeskCameraPreset,
+      getDeskCameraTransitionDuration(false, window.innerWidth < 700) * 1000,
+    )
+    return () => window.clearTimeout(timer)
+  }, [deskCameraTransitioning, reducedMotion, settleDeskCameraPreset])
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -542,11 +613,14 @@ export function DeskScene({ fallback }: DeskSceneProps) {
     latestSceneProps.current = {
       advanceNotebookPhase,
       commitStickerPosition,
+      deskCameraPreset,
+      deskCameraTransitioning,
       notebookPhase,
       placePendingDeskSticker,
       previewStickerPosition,
       reducedMotion,
       requestNotebookOpen,
+      settleDeskCameraPreset,
       selectSticker,
       selectedStickerId,
       stickers,
@@ -558,11 +632,14 @@ export function DeskScene({ fallback }: DeskSceneProps) {
   }, [
     advanceNotebookPhase,
     commitStickerPosition,
+    deskCameraPreset,
+    deskCameraTransitioning,
     notebookPhase,
     placePendingDeskSticker,
     previewStickerPosition,
     reducedMotion,
     requestNotebookOpen,
+    settleDeskCameraPreset,
     selectSticker,
     selectedStickerId,
     stickers,
