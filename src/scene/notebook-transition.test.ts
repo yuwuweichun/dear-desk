@@ -14,7 +14,7 @@ describe('notebook transition timing', () => {
       getNotebookTransitionDuration('closing', false) +
       getNotebookTransitionDuration('retreating', false)
 
-    expect(opening).toBeCloseTo(2.08)
+    expect(opening).toBeCloseTo(2.92)
     expect(closing).toBeCloseTo(1.54)
   })
 
@@ -38,7 +38,7 @@ describe('notebook transition timing', () => {
       getNotebookTransitionDuration('closing', false, true) +
       getNotebookTransitionDuration('retreating', false, true)
 
-    expect(opening).toBeCloseTo(1.24)
+    expect(opening).toBeCloseTo(1.74)
     expect(closing).toBeCloseTo(0.94)
   })
 

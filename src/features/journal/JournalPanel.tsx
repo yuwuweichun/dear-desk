@@ -268,7 +268,6 @@ function JournalBook() {
         ) : null}
         </div>
 
-        <div className="journal-bookmark" aria-hidden="true" />
       </div>
 
       <div className="journal-mode-controls" aria-label="日记模式与书写动作">

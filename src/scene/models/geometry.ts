@@ -89,33 +89,6 @@ export function createCurvedPageGeometry(
   return geometry
 }
 
-export function createRibbonGeometry(
-  width: number,
-  startZ: number,
-  endZ: number,
-  thickness = 0.012,
-) {
-  const halfWidth = width / 2
-  const notchDepth = width * 0.75
-  const shape = new THREE.Shape()
-  shape.moveTo(-halfWidth, startZ)
-  shape.lineTo(halfWidth, startZ)
-  shape.lineTo(halfWidth, endZ)
-  shape.lineTo(0, endZ - notchDepth)
-  shape.lineTo(-halfWidth, endZ)
-  shape.closePath()
-  const geometry = new THREE.ExtrudeGeometry(shape, {
-    bevelEnabled: false,
-    curveSegments: 1,
-    depth: thickness,
-    steps: 1,
-  })
-  geometry.translate(0, 0, -thickness / 2)
-  geometry.rotateX(Math.PI / 2)
-  geometry.computeVertexNormals()
-  return geometry
-}
-
 export function createRoundedRectCurve(
   width: number,
   depth: number,

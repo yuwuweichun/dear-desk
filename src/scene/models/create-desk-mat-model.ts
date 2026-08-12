@@ -17,8 +17,7 @@ import {
   type ModelFactoryOptions,
 } from './model-types'
 
-export interface DeskMatModelNodes
-  extends Record<string, THREE.Object3D> {
+export interface DeskMatModelNodes extends Record<string, THREE.Object3D> {
   binding: THREE.Object3D
   body: THREE.Mesh
   field: THREE.Object3D
@@ -28,149 +27,61 @@ export interface DeskMatModelNodes
   stitches: THREE.Object3D
 }
 
-const createPassPlaceholder = (name: string, requiredPass: ModelBuildPass) => {
-  const placeholder = new THREE.Group()
-  placeholder.name = name
-  placeholder.userData = { enabled: false, requiredPass }
-  return placeholder
+const placeholder = (name: string, requiredPass: ModelBuildPass) => {
+  const group = new THREE.Group()
+  group.name = name
+  group.userData = { enabled: false, requiredPass }
+  return group
 }
 
-const createBinding = (
+const finish = <T extends THREE.Mesh>(
+  mesh: T,
+  name: string,
+  options: ModelFactoryOptions,
+) => markMesh(mesh, name, options)
+
+const makeStitches = (
   material: THREE.Material,
   options: ModelFactoryOptions,
 ) => {
   const spec = DESK_MAT_MODEL_SPEC
   const curve = createRoundedRectCurve(
-    spec.width - spec.bindingRadius * 2,
-    spec.depth - spec.bindingRadius * 2,
-    spec.planRadius - spec.bindingRadius,
-    spec.thickness / 2 - spec.bindingRadius,
+    spec.width - 0.62,
+    spec.depth - 0.62,
+    spec.planRadius - 0.2,
+    spec.thickness / 2 + 0.075,
   )
-  const geometry = new THREE.TubeGeometry(
-    curve,
-    192,
-    spec.bindingRadius,
-    10,
-    true,
-  )
+  const geometry = new THREE.CapsuleGeometry(0.006, 0.075, 3, 6)
   geometry.userData = {
-    planRadius: spec.planRadius,
-    profile: 'rolled-binding',
-    radius: spec.bindingRadius,
+    dashLength: 0.087,
+    distribution: 'spaced-soft-pad-perimeter',
   }
-  const binding = markMesh(
-    new THREE.Mesh(geometry, material),
-    'desk-mat-binding',
-    options,
-  )
-  binding.userData.interactive = false
-  return binding
-}
-
-const createField = (
-  material: THREE.Material,
-  options: ModelFactoryOptions,
-) => {
-  const spec = DESK_MAT_MODEL_SPEC
-  const thickness = 0.016
-  const geometry = scaleGeometryUvs(
-    createRoundedPlateGeometry(
-      spec.width - spec.bindingInset * 2,
-      spec.depth - spec.bindingInset * 2,
-      thickness,
-      spec.planRadius - spec.bindingInset,
-      0.003,
-    ),
-    7.2,
-    5.2,
-  )
-  geometry.userData.profile = 'inset-padded-field'
-  const field = markMesh(
-    new THREE.Mesh(geometry, material),
-    'desk-mat-field',
-    options,
-  )
-  field.position.y = spec.thickness / 2 - thickness / 2
-  field.userData.interactive = false
-  return field
-}
-
-const createSeam = (
-  material: THREE.Material,
-  options: ModelFactoryOptions,
-) => {
-  const spec = DESK_MAT_MODEL_SPEC
-  const radius = 0.008
-  const curve = createRoundedRectCurve(
-    spec.width - spec.bindingInset * 2,
-    spec.depth - spec.bindingInset * 2,
-    spec.planRadius - spec.bindingInset,
-    spec.thickness / 2 - radius,
-  )
-  const geometry = new THREE.TubeGeometry(curve, 160, radius, 6, true)
-  geometry.userData = {
-    profile: 'inset-recessed-seam',
-    radius,
-  }
-  const seam = markMesh(
-    new THREE.Mesh(geometry, material),
-    'desk-mat-inner-seam',
-    options,
-  )
-  seam.castShadow = false
-  seam.userData.interactive = false
-  return seam
-}
-
-const createStitches = (
-  material: THREE.Material,
-  options: ModelFactoryOptions,
-) => {
-  const spec = DESK_MAT_MODEL_SPEC
-  const radius = 0.004
-  const geometry = new THREE.CapsuleGeometry(radius, 0.047, 3, 6)
-  geometry.userData = {
-    dashLength: 0.055,
-    distribution: 'constant-arc-length-rounded-rectangle',
-  }
-
   const stitches = new THREE.InstancedMesh(
     geometry,
     material,
     spec.stitchCount,
   )
-  markMesh(stitches, 'desk-mat-stitches', options)
-  const curve = createRoundedRectCurve(
-    spec.width - spec.stitchInset * 2,
-    spec.depth - spec.stitchInset * 2,
-    spec.planRadius - spec.stitchInset,
-    spec.thickness / 2 + 0.001,
-  )
-  const sourceAxis = new THREE.Vector3(0, 1, 0)
+  finish(stitches, 'desk-mat-stitches', options)
+  const source = new THREE.Vector3(0, 1, 0)
   const point = new THREE.Vector3()
   const tangent = new THREE.Vector3()
   const quaternion = new THREE.Quaternion()
   const matrix = new THREE.Matrix4()
-  const scale = new THREE.Vector3(1, 1, 1)
-
   for (let index = 0; index < spec.stitchCount; index += 1) {
     const offset = (index + 0.5) / spec.stitchCount
     point.copy(curve.getPointAt(offset))
     tangent.copy(curve.getTangentAt(offset)).setY(0).normalize()
-    quaternion.setFromUnitVectors(sourceAxis, tangent)
-    matrix.compose(point, quaternion, scale)
+    quaternion.setFromUnitVectors(source, tangent)
+    matrix.compose(point, quaternion, new THREE.Vector3(1, 1, 1))
     stitches.setMatrixAt(index, matrix)
   }
-
   stitches.instanceMatrix.needsUpdate = true
-  stitches.computeBoundingBox()
-  stitches.computeBoundingSphere()
   stitches.castShadow = false
   stitches.userData = {
     ...stitches.userData,
     instanceCount: spec.stitchCount,
     interactive: false,
-    seed: 'dd-20260810-002',
+    seed: 'dd-20260812-001-animal-pad',
   }
   return stitches
 }
@@ -181,100 +92,104 @@ export function createDeskMatModel(
 ): THREE.Group {
   const spec = DESK_MAT_MODEL_SPEC
   const pass = options.pass ?? 'optimization-pass'
-  const structuralEnabled = isPassEnabled(pass, 'structural-pass')
-  const formEnabled = isPassEnabled(pass, 'form-refinement')
-  const materialEnabled = isPassEnabled(pass, 'material-pass')
-  const surfaceEnabled = isPassEnabled(pass, 'surface-pass')
-  const lightingEnabled = isPassEnabled(pass, 'lighting-pass')
-  const interactionEnabled = isPassEnabled(pass, 'interaction-pass')
-  const optimizationEnabled = isPassEnabled(pass, 'optimization-pass')
+  const detailed = isPassEnabled(pass, 'material-pass')
+  const showStructure = isPassEnabled(pass, 'structural-pass')
+  const showForm = isPassEnabled(pass, 'form-refinement')
+  const cloth = detailed ? materials.cloth : materials.neutral
+  const clothDark = detailed ? materials.clothDark : materials.neutral
+  const accent = detailed ? materials.brass : materials.neutral
+
   const root = new THREE.Group()
   root.name = 'desk-mat-model'
   root.position.set(...spec.position)
-  root.userData.modelId = 'warm-paper-atelier-desk-mat'
-  root.userData.pass = pass
-  root.userData.passLayers = {
-    blockout: true,
-    form: formEnabled,
-    interaction: interactionEnabled,
-    lighting: lightingEnabled,
-    material: materialEnabled,
-    optimization: optimizationEnabled,
-    structural: structuralEnabled,
-    surface: surfaceEnabled,
+  root.userData = {
+    buildPass: pass,
+    modelId: 'animal-island-soft-pad',
+    pass,
+    structure: 'bumper-well-corner-tabs',
   }
 
-  const bodyThickness = spec.thickness - 0.008
-  const bodyGeometry = scaleGeometryUvs(
-    createRoundedPlateGeometry(
-      spec.width,
-      spec.depth,
-      bodyThickness,
-      spec.planRadius,
-      0.012,
-    ),
-    7.5,
-    5.4,
-  )
-  bodyGeometry.userData.profile = 'large-plan-radius-body'
-  const body = markMesh(
+  // A thick soft bumper establishes a new silhouette instead of a thin cloth sheet.
+  const body = finish(
     new THREE.Mesh(
-      bodyGeometry,
-      materialEnabled ? materials.cloth : materials.neutral,
+      scaleGeometryUvs(
+        createRoundedPlateGeometry(spec.width, spec.depth, 0.18, 0.82, 0.06),
+        4.2,
+        3.2,
+      ),
+      clothDark,
     ),
     'desk-mat-body',
     options,
   )
-  body.position.y = -(spec.thickness - bodyThickness) / 2
+  body.position.y = -0.035
   body.userData = {
     ...body.userData,
     interactive: false,
     planRadius: spec.planRadius,
+    profile: 'thick-soft-bumper',
   }
   root.add(body)
 
-  let binding: THREE.Object3D = createPassPlaceholder(
-    'desk-mat-binding',
-    'structural-pass',
-  )
-  if (structuralEnabled) {
-    binding = createBinding(
-      materialEnabled ? materials.clothDark : materials.neutral,
+  let binding: THREE.Object3D = placeholder('desk-mat-binding', 'structural-pass')
+  if (showStructure) {
+    const curve = createRoundedRectCurve(
+      spec.width - 0.12,
+      spec.depth - 0.12,
+      0.72,
+      0.065,
+    )
+    binding = finish(
+      new THREE.Mesh(new THREE.TubeGeometry(curve, 144, 0.065, 8, true), clothDark),
+      'desk-mat-binding',
       options,
     )
+    binding.userData = {
+      interactive: false,
+      planRadius: spec.planRadius,
+      profile: 'pill-bumper-rim',
+      radius: 0.065,
+    }
     root.add(binding)
   }
 
-  let field: THREE.Object3D = createPassPlaceholder(
-    'desk-mat-field',
-    'form-refinement',
-  )
-  let seam: THREE.Object3D = createPassPlaceholder(
-    'desk-mat-inner-seam',
-    'form-refinement',
-  )
-  if (formEnabled) {
-    field = createField(
-      materialEnabled ? materials.cloth : materials.neutral,
+  let field: THREE.Object3D = placeholder('desk-mat-field', 'form-refinement')
+  let seam: THREE.Object3D = placeholder('desk-mat-inner-seam', 'form-refinement')
+  if (showForm) {
+    field = finish(
+      new THREE.Mesh(
+        scaleGeometryUvs(
+          createRoundedPlateGeometry(spec.width - 0.5, spec.depth - 0.5, 0.055, 0.58, 0.018),
+          4,
+          3,
+        ),
+        cloth,
+      ),
+      'desk-mat-recessed-work-field',
       options,
     )
-    seam = createSeam(
-      materialEnabled ? materials.clothDark : materials.neutral,
-      options,
-    )
+    field.position.y = 0.075
+    field.userData = { interactive: false, profile: 'recessed-work-well' }
+
+    const tabGeometry = createRoundedPlateGeometry(0.72, 0.3, 0.055, 0.15, 0.018)
+    const tabs = new THREE.InstancedMesh(tabGeometry, accent, 2)
+    finish(tabs, 'desk-mat-coral-corner-tabs', options)
+    const left = new THREE.Matrix4().makeTranslation(-3.55, 0.12, 2.76)
+    const right = new THREE.Matrix4().makeTranslation(3.55, 0.12, -2.36)
+    tabs.setMatrixAt(0, left)
+    tabs.setMatrixAt(1, right)
+    tabs.instanceMatrix.needsUpdate = true
+    seam = tabs
     root.add(field, seam)
   }
 
-  let stitches: THREE.Object3D = createPassPlaceholder(
-    'desk-mat-stitches',
-    'structural-pass',
-  )
-  if (structuralEnabled) {
-    stitches = createStitches(materials.stitch, options)
+  let stitches: THREE.Object3D = placeholder('desk-mat-stitches', 'structural-pass')
+  if (showStructure) {
+    stitches = makeStitches(materials.stitch, options)
     root.add(stitches)
   }
 
-  const interactionSurface = new THREE.Object3D()
+  const interactionSurface = new THREE.Group()
   interactionSurface.name = 'desk-mat-interaction-surface'
   interactionSurface.position.y = spec.topY - spec.position[1]
   interactionSurface.userData = {
@@ -286,12 +201,7 @@ export function createDeskMatModel(
     },
     interactionSurface: true,
     ownsPointerEvents: false,
-    stickerBounds: {
-      maxX: 4.05,
-      maxZ: 2.72,
-      minX: -4.05,
-      minZ: -2.72,
-    },
+    stickerBounds: { maxX: 4.05, maxZ: 2.72, minX: -4.05, minZ: -2.72 },
     topY: spec.topY,
   }
   root.add(interactionSurface)
@@ -314,40 +224,29 @@ export function createDeskMatModel(
         type: 'box',
       },
     },
-    destructionGroups: {},
+    destructionGroups: {
+      bumper: [body, binding],
+      surface: [field, seam, stitches],
+    },
     nodes,
     sockets: { interactionSurface },
   })
-  root.userData = {
-    ...root.userData,
-    buildPass: pass,
-    dispose: () => disposeModelGeometry(root),
-    ownsMaterials: false,
-    pointerEvents: 'external-interaction-surface',
-    reviewContract: {
-      criticalFeatureThreshold: 0.82,
-      overallThreshold: 0.85,
-    },
-    stitchCount: structuralEnabled ? spec.stitchCount : 0,
-  }
+  root.userData.dispose = () => disposeModelGeometry(root)
+  root.userData.ownsMaterials = false
+  root.userData.pointerEvents = 'external-interaction-surface'
+  root.userData.reviewContract = { criticalFeatureThreshold: 0.82, overallThreshold: 0.85 }
+  root.userData.stitchCount = showStructure ? spec.stitchCount : 0
 
   const metrics = measureModelResources(root)
-  const measuredTextureCount = materialEnabled ? materials.textureCount : 0
-  root.userData.resourceBudget = {
-    ...MODEL_LIMITS,
-    dpr: [1, 1.5],
-  }
+  root.userData.resourceBudget = { ...MODEL_LIMITS, dpr: [1, 1.5] }
   root.userData.resourceMetrics = metrics
   root.userData.withinResourceBudget =
     metrics.drawCalls <= MODEL_LIMITS.drawCalls &&
     metrics.triangles <= MODEL_LIMITS.triangles &&
-    Math.max(metrics.textures, measuredTextureCount) <= MODEL_LIMITS.textures
-
+    Math.max(metrics.textures, detailed ? materials.textureCount : 0) <= MODEL_LIMITS.textures
   if (!root.userData.withinResourceBudget) {
     disposeModelGeometry(root)
-    throw new Error(
-      `Desk mat model exceeds its fixed budget: ${JSON.stringify(metrics)}`,
-    )
+    throw new Error(`Desk mat model exceeds its fixed budget: ${JSON.stringify(metrics)}`)
   }
   return root
 }

@@ -66,6 +66,7 @@ describe('JournalPanel', () => {
     expect(editingMode).toHaveAttribute('aria-pressed', 'false')
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument()
     expect(container.querySelector('.journal-page-left')).toHaveTextContent('')
+    expect(container.querySelector('.journal-bookmark')).not.toBeInTheDocument()
 
     await user.click(editingMode)
     await user.click(screen.getByRole('button', { name: /上一页/ }))

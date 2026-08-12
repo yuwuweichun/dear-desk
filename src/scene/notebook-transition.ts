@@ -7,14 +7,14 @@ export type AnimatedNotebookPhase = Extract<
 
 const standardDurations: Record<AnimatedNotebookPhase, number> = {
   approaching: 1.4,
-  opening: 0.68,
+  opening: 1.52,
   closing: 0.52,
   retreating: 1.02,
 }
 
 const compactViewportDurations: Record<AnimatedNotebookPhase, number> = {
   approaching: 0.84,
-  opening: 0.4,
+  opening: 0.9,
   closing: 0.32,
   retreating: 0.62,
 }

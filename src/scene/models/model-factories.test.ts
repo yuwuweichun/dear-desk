@@ -7,6 +7,7 @@ import { createNotebookModel } from './create-notebook-model'
 import { createRoundedPlateGeometry } from './geometry'
 import {
   createModelMaterialLibrary,
+  SCENE_PALETTE,
   sampleSurfaceChannels,
   type ModelMaterialLibrary,
 } from './material-library'
@@ -64,6 +65,20 @@ afterEach(() => {
 })
 
 describe('procedural scene model factories', () => {
+  it('uses the animal-ui scene palette and low-metal accent materials', () => {
+    const materials = createTestMaterials()
+
+    expect(SCENE_PALETTE.background).toBe('#c9f0e5')
+    expect(materials.cloth.color.getHexString()).toBe('0cc0b5')
+    expect(materials.notebookCover.color.getHexString()).toBe('173f35')
+    expect(materials.notebookCoverDark.color.getHexString()).toBe('0e2d27')
+    expect(materials.notebookCover).not.toBe(materials.cloth)
+    expect(materials.paper.color.getHexString()).toBe('fffbe7')
+    expect(materials.brass.color.getHexString()).toBe('ee7771')
+    expect(materials.brass.metalness).toBeLessThan(0.1)
+    expect(materials.walnut.bumpScale).toBeLessThan(0.003)
+  })
+
   it('keeps large plan radii independent from thin panel thickness', () => {
     const geometry = createRoundedPlateGeometry(4, 3, 0.1, 0.6, 0)
     looseGeometries.push(geometry)
@@ -100,9 +115,12 @@ describe('procedural scene model factories', () => {
     expect(NOTEBOOK_MODEL_SPEC.cover.planRadius).toBeGreaterThan(
       NOTEBOOK_MODEL_SPEC.cover.thickness / 2,
     )
-    expect(DESK_MODEL_SPEC.drawers[1].width).toBeGreaterThan(
-      DESK_MODEL_SPEC.drawers[0].width * 2,
-    )
+    expect(
+      NOTEBOOK_MODEL_SPEC.cover.depth / NOTEBOOK_MODEL_SPEC.cover.width,
+    ).toBeCloseTo(5 / 3)
+    expect(
+      NOTEBOOK_MODEL_SPEC.cover.depth - NOTEBOOK_MODEL_SPEC.page.depth,
+    ).toBeCloseTo(NOTEBOOK_MODEL_SPEC.page.headTailInset * 2)
     expect(DESK_MODEL_SPEC.leg.topRadius).toBeGreaterThan(
       DESK_MODEL_SPEC.leg.bottomRadius,
     )
@@ -126,17 +144,24 @@ describe('procedural scene model factories', () => {
       DESK_MODEL_SPEC.tabletop.radius,
     )
     expect(deskRuntime.nodes.tabletop.geometry.getAttribute('uv1')).toBeTruthy()
+    expect(desk.userData.structure).toBe('single-top-panel-support-island')
+    expect(deskRuntime.nodes.legAssembly.name).toBe(
+      'desk-panel-support-assembly',
+    )
+    expect(deskRuntime.nodes.apron.userData.profile).toBe(
+      'recessed-capsule-rail',
+    )
     expect(deskRuntime.nodes.legLeftFront.userData.taper).toMatchObject({
       bottomRadius: DESK_MODEL_SPEC.leg.bottomRadius,
-      direction: 'narrows-downward',
+      direction: 'panel-support',
       topRadius: DESK_MODEL_SPEC.leg.topRadius,
     })
     expect(deskRuntime.sockets['socket-apron-front']!.position.toArray()).toEqual(
       [...DESK_MODEL_SPEC.apron.position],
     )
-    expect(deskRuntime.sockets['socket-drawer-center-knob']!.parent?.name).toBe(
-      'drawer-center',
-    )
+    expect(desk.getObjectByName('desk-floating-underlayer')).toBeUndefined()
+    expect(desk.getObjectByName('drawer-center')).toBeUndefined()
+    expect(desk.getObjectByName('desk-knob-crowns')).toBeUndefined()
     expect(deskRuntime.colliders.tabletop).toEqual({
       center: [0, DESK_MODEL_SPEC.tabletop.positionY, 0],
       id: 'tabletop',
@@ -154,6 +179,9 @@ describe('procedural scene model factories', () => {
       DESK_MAT_MODEL_SPEC.planRadius,
     )
     expect(matRuntime.nodes.body.geometry.getAttribute('uv1')).toBeTruthy()
+    expect(mat.userData.structure).toBe('bumper-well-corner-tabs')
+    expect(matRuntime.nodes.body.userData.profile).toBe('thick-soft-bumper')
+    expect(matRuntime.nodes.field.name).toBe('desk-mat-recessed-work-field')
     expect(matRuntime.sockets.interactionSurface).toBe(
       matRuntime.nodes.interactionSurface,
     )
@@ -178,38 +206,183 @@ describe('procedural scene model factories', () => {
     expect(notebook.userData.wrapperPosition).toEqual([
       ...NOTEBOOK_MODEL_SPEC.rootPosition,
     ])
+    expect(NOTEBOOK_MODEL_SPEC.rootPosition[0]).toBe(
+      DESK_MAT_MODEL_SPEC.position[0],
+    )
+    expect(NOTEBOOK_MODEL_SPEC.rootPosition[2]).toBe(
+      DESK_MAT_MODEL_SPEC.position[2],
+    )
+    expect(NOTEBOOK_MODEL_SPEC.deskRotation).toEqual([0, 0, 0])
+    expect(NOTEBOOK_MODEL_SPEC.deskRotation[1]).toBe(0)
+    expect(NOTEBOOK_MODEL_SPEC.deskRotation[2]).toBe(0)
     expect(notebookRuntime.sockets['cover-hinge']).toBe(
       notebookRuntime.nodes.coverPivot,
+    )
+    expect(notebookRuntime.sockets['page-gutter']).toBe(
+      notebookRuntime.nodes.pagePivot,
     )
     expect(notebookRuntime.nodes.coverPivot.position.toArray()).toEqual([
       ...NOTEBOOK_MODEL_SPEC.coverHinge,
     ])
-    const frontCoverShell = notebookRuntime.nodes.frontCover.getObjectByName(
-      'front-cover-cloth-shell',
-    ) as THREE.Mesh
-    expect(frontCoverShell.geometry.getAttribute('uv1')).toBeTruthy()
-    expect(notebookRuntime.sockets['ribbon-anchor']!.position.toArray()).toEqual([
-      NOTEBOOK_MODEL_SPEC.ribbon.worldX,
-      0.39,
-      NOTEBOOK_MODEL_SPEC.ribbon.startZ,
+    expect(notebookRuntime.nodes.pagePivot.position.toArray()).toEqual([
+      ...NOTEBOOK_MODEL_SPEC.pageHinge,
     ])
+    expect(notebookRuntime.nodes.frontCover.parent).toBe(
+      notebookRuntime.nodes.coverPivot,
+    )
+    expect(notebookRuntime.nodes.leftPages.parent).toBe(
+      notebookRuntime.nodes.pagePivot,
+    )
+    expect(notebookRuntime.nodes.coverPivot.children).not.toContain(
+      notebookRuntime.nodes.leftPages,
+    )
+    expect(notebook.userData.structure).toBe(
+      'single-text-block-flat-case-notebook',
+    )
+    expect(
+      notebookRuntime.nodes.frontCover.geometry.getAttribute('uv1'),
+    ).toBeTruthy()
+    expect(notebookRuntime.nodes.frontCover.userData.profile).toBe(
+      'thin-hard-cover-board',
+    )
+    expect(notebookRuntime.nodes.frontCover.material).toBe(
+      materials.notebookCover,
+    )
+    expect(notebookRuntime.nodes.backCover.material).toBe(
+      materials.notebookCover,
+    )
+    expect(notebookRuntime.nodes.textBlock.name).toBe('closed-text-block')
+    expect(notebookRuntime.nodes.textBlock.userData.profile).toBe(
+      'single-bound-text-block',
+    )
+    expect(notebookRuntime.nodes.spineCase.name).toBe('flat-spine-case')
+    expect(notebookRuntime.nodes.spineCase.userData).toMatchObject({
+      endCaps: 'flush-with-covers',
+      profile: 'narrow-flat-case',
+    })
+    expect(notebookRuntime.nodes.spineCase.material).toBe(
+      materials.notebookCover,
+    )
+    expect(notebookRuntime.nodes.bookJoints.material).toBe(
+      materials.notebookCoverDark,
+    )
+    expect(notebookRuntime.nodes.bookJoints.name).toBe('book-joints')
+    expect(notebookRuntime.nodes.bookJoints.count).toBe(2)
+    expect(notebookRuntime.nodes.bookJoints.userData.sharedAxisX).toBe(
+      NOTEBOOK_MODEL_SPEC.joint.axisX,
+    )
+    expect(NOTEBOOK_MODEL_SPEC.coverHinge[0]).toBeCloseTo(
+      -NOTEBOOK_MODEL_SPEC.cover.width / 2,
+    )
+    expect(NOTEBOOK_MODEL_SPEC.pageHinge[0]).toBeCloseTo(
+      0.06 - NOTEBOOK_MODEL_SPEC.page.width / 2,
+    )
+    expect(NOTEBOOK_MODEL_SPEC.cover.thickness).toBeLessThan(
+      NOTEBOOK_MODEL_SPEC.page.stackThickness / 2,
+    )
+    expect(notebook.getObjectByName('planner-soft-spine')).toBeUndefined()
+    expect(notebook.getObjectByName('planner-spine-capsule')).toBeUndefined()
+    expect(notebook.getObjectByName('notebook-binding')).toBeUndefined()
+    expect(notebook.getObjectByName('cover-spine-wrap')).toBeUndefined()
+    expect(notebook.getObjectByName('page-spine')).toBeUndefined()
+    expect(notebook.getObjectByName('right-page-inset-band')).toBeUndefined()
+    expect(notebook.getObjectByName('left-page-inset-band')).toBeUndefined()
+    expect(notebook.getObjectByName('left-page-rules')).toBeUndefined()
+    expect(notebook.getObjectByName('right-page-rules')).toBeUndefined()
+    expect(notebook.getObjectByName('continuous-ribbon-bookmark')).toBeUndefined()
+    expect(notebook.getObjectByName('ribbon-v-tail-mesh')).toBeUndefined()
+    expect(notebookRuntime.sockets['ribbon-anchor']).toBeUndefined()
+    expect(notebook.getObjectByName('planner-corner-badge')).toBeUndefined()
+    expect(notebook.getObjectByName('nameplate-rivet-pair')).toBeUndefined()
     expect(notebookRuntime.colliders['notebook-hit-area']!.size).toEqual([
-      3.18,
-      0.4,
+      NOTEBOOK_MODEL_SPEC.cover.width,
+      NOTEBOOK_MODEL_SPEC.cover.thickness * 2 +
+        NOTEBOOK_MODEL_SPEC.page.stackThickness,
       NOTEBOOK_MODEL_SPEC.cover.depth,
     ])
 
     const setOpenProgress = notebook.userData.setOpenProgress as (
       progress: number,
+      animateRapidPages?: boolean,
     ) => void
+    const getOpenProgress = notebook.userData.getOpenProgress as () => number
     setOpenProgress(1)
+    expect(getOpenProgress()).toBe(1)
     expect(notebookRuntime.nodes.coverPivot.rotation.z).toBeCloseTo(
       NOTEBOOK_MODEL_SPEC.openAngle,
     )
-    expect(notebookRuntime.nodes.rightPages.position.y).toBeCloseTo(0.3)
-    expect(notebookRuntime.nodes.leftPages.position.y).toBeCloseTo(-0.005)
+    expect(notebookRuntime.nodes.pagePivot.rotation.z).toBe(0)
+    expect(notebookRuntime.nodes.textBlock.visible).toBe(true)
+    expect(notebookRuntime.nodes.spineCase.visible).toBe(true)
+    expect(notebookRuntime.nodes.leftPages.visible).toBe(false)
+    expect(notebookRuntime.nodes.rightPages.visible).toBe(false)
+    expect(notebookRuntime.nodes.textBlock.scale.y).toBe(1)
+    expect(notebookRuntime.nodes.spineCase.scale.y).toBe(1)
+    setOpenProgress(0.5)
+    expect(getOpenProgress()).toBe(0.5)
+    expect(notebookRuntime.nodes.coverPivot.rotation.z).toBeCloseTo(
+      NOTEBOOK_MODEL_SPEC.openAngle / 2,
+    )
+    expect(notebookRuntime.nodes.pagePivot.rotation.z).toBe(0)
+    expect(notebookRuntime.nodes.textBlock.scale.y).toBe(1)
+    expect(notebookRuntime.nodes.textBlock.visible).toBe(true)
+    for (let step = 1; step <= 20; step += 1) {
+      setOpenProgress(step / 20)
+      expect(notebookRuntime.nodes.pagePivot.rotation.z).toBe(0)
+      expect(notebookRuntime.nodes.leftPages.visible).toBe(false)
+      expect(notebookRuntime.nodes.rightPages.visible).toBe(false)
+      expect(notebookRuntime.nodes.textBlock.scale.y).toBe(1)
+      expect(notebookRuntime.nodes.spineCase.scale.y).toBe(1)
+      expect(notebookRuntime.nodes.textBlock.visible).toBe(true)
+      expect(notebookRuntime.nodes.spineCase.visible).toBe(true)
+    }
+    setOpenProgress(0.2, true)
+    expect(notebookRuntime.nodes.rapidPageFlipPool.visible).toBe(false)
+    expect(notebookRuntime.nodes.coverPivot.rotation.z).toBeGreaterThan(0)
+    expect(notebookRuntime.nodes.coverPivot.rotation.z).toBeLessThan(
+      NOTEBOOK_MODEL_SPEC.openAngle,
+    )
+    for (const progress of [0.42, 0.56, 0.7, 0.84]) {
+      setOpenProgress(progress, true)
+      expect(notebookRuntime.nodes.coverPivot.rotation.z).toBeCloseTo(
+        NOTEBOOK_MODEL_SPEC.openAngle,
+      )
+      expect(notebookRuntime.nodes.rapidPageFlipPool.visible).toBe(true)
+      const activePages = notebookRuntime.nodes.rapidPageFlipPool.children
+        .filter((page) => page.visible)
+      expect(activePages.length).toBeGreaterThan(0)
+      expect(activePages.length).toBeLessThanOrEqual(2)
+      for (const page of activePages) {
+        expect(page.rotation.z).toBeGreaterThanOrEqual(0)
+        expect(page.rotation.z).toBeLessThanOrEqual(
+          NOTEBOOK_MODEL_SPEC.openAngle,
+        )
+      }
+      expect(notebookRuntime.nodes.textBlock.scale.y).toBe(1)
+      expect(notebookRuntime.nodes.textBlock.visible).toBe(true)
+    }
+    setOpenProgress(0.96, true)
+    expect(notebookRuntime.nodes.rapidPageFlipPool.visible).toBe(false)
+    expect(
+      notebookRuntime.nodes.rapidPageFlipPool.children.every(
+        (page) => !page.visible,
+      ),
+    ).toBe(true)
     setOpenProgress(-1)
+    expect(getOpenProgress()).toBe(0)
     expect(notebookRuntime.nodes.coverPivot.rotation.z).toBe(0)
+    expect(notebookRuntime.nodes.pagePivot.rotation.z).toBe(0)
+    expect(notebookRuntime.nodes.coverPivot.position.toArray()).toEqual([
+      ...NOTEBOOK_MODEL_SPEC.coverHinge,
+    ])
+    expect(notebookRuntime.nodes.pagePivot.position.toArray()).toEqual([
+      ...NOTEBOOK_MODEL_SPEC.pageHinge,
+    ])
+    expect(notebookRuntime.nodes.textBlock.scale.y).toBe(1)
+    expect(notebookRuntime.nodes.textBlock.visible).toBe(true)
+    expect(notebookRuntime.nodes.spineCase.visible).toBe(true)
+    expect(notebookRuntime.nodes.leftPages.visible).toBe(false)
+    expect(notebookRuntime.nodes.rightPages.visible).toBe(false)
   })
 
   it('shows pass-critical repeated details from the structural pass', () => {
@@ -227,50 +400,42 @@ describe('procedural scene model factories', () => {
     expect((matRuntime.nodes.stitches as THREE.InstancedMesh).count).toBe(
       DESK_MAT_MODEL_SPEC.stitchCount,
     )
-    expect(notebookRuntime.nodes.ribbon.parent).toBe(notebook)
+    expect(notebook.getObjectByName('continuous-ribbon-bookmark')).toBeUndefined()
     expect(notebookRuntime.nodes.rightTopPage.parent).toBeNull()
   })
 
-  it('keeps both page blocks behind their curved top pages', () => {
+  it('builds one closed text block and derives opening leaves separately', () => {
     const materials = createTestMaterials()
     const notebook = trackRoot(createNotebookModel(materials))
     const runtime = getRuntime<NotebookModelNodes>(notebook)
-    const rightStack = runtime.nodes.rightPages.getObjectByName(
-      'right-page-stack',
-    ) as THREE.Mesh
-    const leftStack = runtime.nodes.leftPages.getObjectByName(
-      'left-page-stack',
-    ) as THREE.Mesh
+    expect(notebook.getObjectsByProperty('name', 'closed-text-block')).toHaveLength(1)
+    expect(notebook.getObjectByName('right-page-stack')).toBeUndefined()
+    expect(notebook.getObjectByName('left-page-stack')).toBeUndefined()
 
-    for (const mesh of [
-      rightStack,
-      leftStack,
-      runtime.nodes.rightTopPage,
-      runtime.nodes.leftTopPage,
-    ]) {
+    for (const mesh of [runtime.nodes.textBlock, runtime.nodes.spineCase]) {
       mesh.geometry.computeBoundingBox()
       expect(mesh.geometry.boundingBox).not.toBeNull()
     }
-
-    const rightStackTop = rightStack.geometry.boundingBox!.max.y
-    const rightPageBottom =
-      runtime.nodes.rightTopPage.position.y +
-      runtime.nodes.rightTopPage.geometry.boundingBox!.min.y
-    expect(rightPageBottom - rightStackTop).toBeGreaterThan(0.004)
-
-    const leftStackBottom = leftStack.geometry.boundingBox!.min.y
-    const leftPageTop =
-      runtime.nodes.leftTopPage.position.y +
-      runtime.nodes.leftTopPage.geometry.boundingBox!.max.y
-    expect(leftStackBottom - leftPageTop).toBeGreaterThan(0.004)
+    const textBlockSize = runtime.nodes.textBlock.geometry.boundingBox!.getSize(
+      new THREE.Vector3(),
+    )
+    const spineSize = runtime.nodes.spineCase.geometry.boundingBox!.getSize(
+      new THREE.Vector3(),
+    )
+    expect(textBlockSize.y).toBeCloseTo(NOTEBOOK_MODEL_SPEC.page.stackThickness)
+    expect(spineSize.y).toBeCloseTo(
+      NOTEBOOK_MODEL_SPEC.cover.thickness * 2 +
+        NOTEBOOK_MODEL_SPEC.page.stackThickness,
+    )
+    expect(spineSize.z).toBeCloseTo(NOTEBOOK_MODEL_SPEC.cover.depth)
   })
 
-  it('uses independent deterministic PBR channels for wood, cloth, and paper', () => {
+  it('uses independent deterministic PBR channels for every surface family', () => {
     const materials = createTestMaterials()
-    expect(materials.textureCount).toBe(12)
+    expect(materials.textureCount).toBe(16)
     expect(new Set(materials.textures).size).toBe(materials.textureCount)
 
-    for (const family of ['wood', 'cloth', 'paper'] as const) {
+    for (const family of ['wood', 'cloth', 'kraft', 'paper'] as const) {
       const textures = materials.textures.filter(
         (texture) => texture.userData.family === family,
       )
@@ -300,6 +465,7 @@ describe('procedural scene model factories', () => {
     for (const material of [
       materials.walnut,
       materials.cloth,
+      materials.notebookCover,
       materials.paper,
     ]) {
       expect(material.map).toBeInstanceOf(THREE.Texture)
@@ -316,10 +482,6 @@ describe('procedural scene model factories', () => {
       ).toBe(4)
     }
 
-    expect(materials.pageRule.side).toBe(THREE.DoubleSide)
-    expect(materials.pageRule.depthWrite).toBe(false)
-    expect(materials.pageRule.polygonOffset).toBe(true)
-    expect(materials.pageRule.polygonOffsetFactor).toBe(-2)
   })
 
   it('disposes every owned geometry and shared material resource', () => {
@@ -343,12 +505,11 @@ describe('procedural scene model factories', () => {
       materials.brassDark,
       materials.cloth,
       materials.clothDark,
-      materials.ground,
+      materials.notebookCover,
+      materials.notebookCoverDark,
       materials.neutral,
-      materials.pageRule,
       materials.paper,
       materials.paperEdge,
-      materials.ribbon,
       materials.stitch,
       materials.walnut,
       materials.walnutDark,

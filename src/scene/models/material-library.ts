@@ -1,19 +1,23 @@
 import * as THREE from 'three'
 
 export const SCENE_PALETTE = {
-  background: '#171c18',
-  brass: '#8f6a41',
-  brassDark: '#59452d',
-  burgundy: '#6f2028',
-  cloth: '#35382b',
-  clothDark: '#292d22',
-  paper: '#e4d5c3',
-  paperEdge: '#c8b197',
-  walnut: '#64381c',
-  walnutDark: '#432613',
+  background: '#c9f0e5',
+  coral: '#ee7771',
+  coralDark: '#c95757',
+  mint: '#0cc0b5',
+  mintDark: '#087f78',
+  mintSoft: '#83d9c8',
+  notebookCover: '#173f35',
+  notebookCoverDark: '#0e2d27',
+  paper: '#fffbe7',
+  paperEdge: '#e6dcc4',
+  shadow: '#5e766f',
+  wood: '#d9a66f',
+  woodDark: '#9b6947',
+  woodPanel: '#f1c994',
 } as const
 
-export type SurfaceFamily = 'cloth' | 'paper' | 'wood'
+export type SurfaceFamily = 'cloth' | 'kraft' | 'paper' | 'wood'
 export type SurfaceChannel = 'albedo' | 'ao' | 'height' | 'roughness'
 
 export interface SurfaceSample {
@@ -28,12 +32,11 @@ export interface ModelMaterialLibrary {
   brassDark: THREE.MeshPhysicalMaterial
   cloth: THREE.MeshPhysicalMaterial
   clothDark: THREE.MeshPhysicalMaterial
-  ground: THREE.MeshStandardMaterial
+  notebookCover: THREE.MeshStandardMaterial
+  notebookCoverDark: THREE.MeshStandardMaterial
   neutral: THREE.MeshStandardMaterial
-  pageRule: THREE.MeshBasicMaterial
   paper: THREE.MeshStandardMaterial
   paperEdge: THREE.MeshStandardMaterial
-  ribbon: THREE.MeshPhysicalMaterial
   stitch: THREE.MeshStandardMaterial
   textureCount: number
   textures: THREE.Texture[]
@@ -119,12 +122,12 @@ export function sampleSurfaceChannels(
       (macro - 0.5) * 0.9 +
       (meso - 0.5) * 0.62 +
       (micro - 0.5) * 0.2
-    const value = grain * 15 - pore * 4
+    const value = grain * 5 - pore * 1.5
     return {
       albedo: [
-        clampByte(100 + value),
-        clampByte(56 + value * 0.56),
-        clampByte(28 + value * 0.3),
+        clampByte(217 + value),
+        clampByte(166 + value * 0.72),
+        clampByte(111 + value * 0.48),
       ],
       ao: clampByte(241 + (macro - 0.5) * 7 - pore * 11),
       height: clampByte(
@@ -150,9 +153,9 @@ export function sampleSurfaceChannels(
     const value = (macro - 0.5) * 7 + (yarn - 0.5) * 3 + weave * 2.4
     return {
       albedo: [
-        clampByte(53 + value * 0.72),
-        clampByte(56 + value),
-        clampByte(43 + value * 0.68),
+        clampByte(19 + value * 0.42),
+        clampByte(189 + value * 0.72),
+        clampByte(178 + value * 0.68),
       ],
       ao: clampByte(240 - interstice * 11 + (macro - 0.5) * 4),
       height: clampByte(
@@ -164,6 +167,27 @@ export function sampleSurfaceChannels(
     }
   }
 
+  if (family === 'kraft') {
+    const macro = periodicNoise2d(u, v, 3, 3, 131)
+    const pulp = periodicNoise2d(u, v, 17, 15, 137)
+    const longFiber = periodicNoise1d(v + u * 0.08, 83, 139)
+    const crossFiber = periodicNoise1d(u - v * 0.05, 59, 149)
+    const fiber =
+      (longFiber - 0.5) * 0.72 +
+      (crossFiber - 0.5) * 0.28
+    const value = (macro - 0.5) * 5 + (pulp - 0.5) * 3 + fiber * 3
+    return {
+      albedo: [
+        clampByte(232 + value * 0.64),
+        clampByte(226 + value * 0.56),
+        clampByte(207 + value * 0.42),
+      ],
+      ao: clampByte(244 + (macro - 0.5) * 5 - Math.abs(fiber) * 4),
+      height: clampByte(128 + fiber * 10 + (pulp - 0.5) * 5),
+      roughness: clampByte(242 - fiber * 5 + (pulp - 0.5) * 5),
+    }
+  }
+
   const macro = periodicNoise2d(u, v, 2, 2, 71)
   const cloud = periodicNoise2d(u, v, 8, 7, 73)
   const horizontalFiber = periodicNoise1d(v + u * 0.06, 61, 79)
@@ -172,9 +196,9 @@ export function sampleSurfaceChannels(
   const value = (macro - 0.5) * 3 + (cloud - 0.5) * 2 + fiber * 1.4
   return {
     albedo: [
-      clampByte(228 + value),
-      clampByte(213 + value * 0.84),
-      clampByte(195 + value * 0.68),
+      clampByte(255 + value * 0.32),
+      clampByte(251 + value * 0.28),
+      clampByte(231 + value * 0.22),
     ],
     ao: clampByte(246 + (macro - 0.5) * 4 + (cloud - 0.5) * 2),
     height: clampByte(128 + fiber * 8 + (cloud - 0.5) * 3),
@@ -244,106 +268,108 @@ export function createModelMaterialLibrary(
   const anisotropy = options.anisotropy ?? 8
   const wood = createTextureSet('wood', size, anisotropy)
   const cloth = createTextureSet('cloth', size, anisotropy)
+  const kraft = createTextureSet('kraft', size, anisotropy)
   const paper = createTextureSet('paper', size, anisotropy)
-  const textures = [...Object.values(wood), ...Object.values(cloth), ...Object.values(paper)]
+  const textures = [
+    ...Object.values(wood),
+    ...Object.values(cloth),
+    ...Object.values(kraft),
+    ...Object.values(paper),
+  ]
 
   const walnut = new THREE.MeshPhysicalMaterial({
     aoMap: wood.ao,
-    aoMapIntensity: 0.34,
+    aoMapIntensity: 0.18,
     bumpMap: wood.height,
-    bumpScale: 0.006,
-    clearcoat: 0.08,
-    clearcoatRoughness: 0.64,
+    bumpScale: 0.0025,
+    clearcoat: 0.18,
+    clearcoatRoughness: 0.72,
     map: wood.albedo,
-    roughness: 0.76,
+    roughness: 0.72,
     roughnessMap: wood.roughness,
   })
-  walnut.name = 'walnut-top'
+  walnut.name = 'animal-desk-wood-top'
   const walnutDark = walnut.clone()
-  walnutDark.name = 'walnut-frame'
-  walnutDark.color.set('#8c8177')
+  walnutDark.name = 'animal-desk-wood-frame'
+  walnutDark.color.set(SCENE_PALETTE.woodDark)
   walnutDark.roughness = 0.84
   const walnutPanel = walnut.clone()
-  walnutPanel.name = 'walnut-panel'
-  walnutPanel.color.set('#c8bbb0')
+  walnutPanel.name = 'animal-desk-wood-panel'
+  walnutPanel.color.set(SCENE_PALETTE.woodPanel)
   walnutPanel.roughness = 0.79
 
   const clothMaterial = new THREE.MeshPhysicalMaterial({
     aoMap: cloth.ao,
-    aoMapIntensity: 0.38,
+    aoMapIntensity: 0.2,
     anisotropy: 0.18,
     anisotropyRotation: Math.PI / 2,
     bumpMap: cloth.height,
-    bumpScale: 0.0065,
+    bumpScale: 0.0028,
+    color: SCENE_PALETTE.mint,
     map: cloth.albedo,
     roughness: 0.93,
     roughnessMap: cloth.roughness,
-    sheen: 0.11,
-    sheenColor: new THREE.Color('#5f6251'),
+    sheen: 0.18,
+    sheenColor: new THREE.Color('#dff8f3'),
     sheenRoughness: 0.95,
   })
-  clothMaterial.name = 'moss-cloth'
+  clothMaterial.name = 'animal-mint-cloth'
   const clothDark = clothMaterial.clone()
-  clothDark.name = 'moss-cloth-dark'
-  clothDark.color.set('#74796e')
+  clothDark.name = 'animal-mint-cloth-dark'
+  clothDark.color.set(SCENE_PALETTE.mintDark)
   clothDark.roughness = 0.96
+
+  const notebookCover = new THREE.MeshStandardMaterial({
+    aoMap: kraft.ao,
+    aoMapIntensity: 0.3,
+    bumpMap: kraft.height,
+    bumpScale: 0.0014,
+    color: SCENE_PALETTE.notebookCover,
+    map: kraft.albedo,
+    roughness: 0.96,
+    roughnessMap: kraft.roughness,
+  })
+  notebookCover.name = 'ink-green-kraft-cover'
+  const notebookCoverDark = notebookCover.clone()
+  notebookCoverDark.name = 'ink-green-kraft-cover-dark'
+  notebookCoverDark.color.set(SCENE_PALETTE.notebookCoverDark)
+  notebookCoverDark.roughness = 0.98
 
   const paperMaterial = new THREE.MeshStandardMaterial({
     aoMap: paper.ao,
-    aoMapIntensity: 0.24,
+    aoMapIntensity: 0.12,
     bumpMap: paper.height,
-    bumpScale: 0.0035,
+    bumpScale: 0.0018,
+    color: SCENE_PALETTE.paper,
     map: paper.albedo,
     roughness: 0.98,
     roughnessMap: paper.roughness,
     side: THREE.DoubleSide,
   })
-  paperMaterial.name = 'ivory-paper'
+  paperMaterial.name = 'animal-warm-paper'
   const paperEdge = paperMaterial.clone()
-  paperEdge.name = 'ivory-paper-edge'
-  paperEdge.color.set('#dfcbb2')
+  paperEdge.name = 'animal-warm-paper-edge'
+  paperEdge.color.set(SCENE_PALETTE.paperEdge)
   paperEdge.roughness = 0.96
 
   const brass = new THREE.MeshPhysicalMaterial({
     clearcoat: 0.08,
     clearcoatRoughness: 0.72,
-    color: SCENE_PALETTE.brass,
-    envMapIntensity: 0.72,
-    metalness: 0.88,
-    roughness: 0.53,
+    color: SCENE_PALETTE.coral,
+    envMapIntensity: 0.38,
+    metalness: 0.08,
+    roughness: 0.62,
   })
-  brass.name = 'aged-brass'
+  brass.name = 'animal-coral-accent'
   const brassDark = brass.clone()
-  brassDark.name = 'aged-brass-cavity'
-  brassDark.color.set(SCENE_PALETTE.brassDark)
+  brassDark.name = 'animal-coral-accent-dark'
+  brassDark.color.set(SCENE_PALETTE.coralDark)
   brassDark.envMapIntensity = 0.58
   brassDark.roughness = 0.67
 
-  const ribbon = new THREE.MeshPhysicalMaterial({
-    color: SCENE_PALETTE.burgundy,
-    roughness: 0.9,
-    sheen: 0.1,
-    sheenColor: new THREE.Color('#7f3038'),
-    sheenRoughness: 0.95,
-    side: THREE.DoubleSide,
-  })
-  ribbon.name = 'burgundy-ribbon'
-
-  const stitch = new THREE.MeshStandardMaterial({ color: '#555b4b', roughness: 0.94 })
+  const stitch = new THREE.MeshStandardMaterial({ color: '#fffbe7', roughness: 0.94 })
   stitch.name = 'stitch-thread'
-  const pageRule = new THREE.MeshBasicMaterial({
-    color: '#b6a68f',
-    depthWrite: false,
-    opacity: 0.34,
-    polygonOffset: true,
-    polygonOffsetFactor: -2,
-    side: THREE.DoubleSide,
-    transparent: true,
-  })
-  pageRule.name = 'page-rule-ink'
-  const ground = new THREE.MeshStandardMaterial({ color: '#202a24', roughness: 1 })
-  ground.name = 'shadow-ground'
-  const neutral = new THREE.MeshStandardMaterial({ color: '#a9aaa3', roughness: 0.82 })
+  const neutral = new THREE.MeshStandardMaterial({ color: '#d8ded9', roughness: 0.82 })
   neutral.name = 'neutral-blockout'
 
   const materials: THREE.Material[] = [
@@ -352,14 +378,13 @@ export function createModelMaterialLibrary(
     walnutPanel,
     clothMaterial,
     clothDark,
+    notebookCover,
+    notebookCoverDark,
     paperMaterial,
     paperEdge,
     brass,
     brassDark,
-    ribbon,
     stitch,
-    pageRule,
-    ground,
     neutral,
   ]
 
@@ -368,12 +393,11 @@ export function createModelMaterialLibrary(
     brassDark,
     cloth: clothMaterial,
     clothDark,
-    ground,
+    notebookCover,
+    notebookCoverDark,
     neutral,
-    pageRule,
     paper: paperMaterial,
     paperEdge,
-    ribbon,
     stitch,
     textureCount: textures.length,
     textures,

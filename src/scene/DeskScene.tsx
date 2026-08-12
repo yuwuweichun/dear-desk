@@ -106,8 +106,8 @@ const getCameraPoses = (mobile: boolean) => ({
     ? cameraPose([0.1, 8.4, 14.2], [0, -0.5, 0.15], 42)
     : cameraPose([0.15, 6.8, 13.6], [0, -0.75, 0.15], 36),
   near: mobile
-    ? cameraPose([0.1, 10.6, 6.2], [-2.05, 0.22, 0.25], 39)
-    : cameraPose([0.2, 8.6, 5.1], [-2.05, 0.22, 0.25], 33),
+    ? cameraPose([0, 10.6, 6.2], [0, 0.22, 0.2], 39)
+    : cameraPose([0, 8.6, 5.1], [0, 0.22, 0.2], 33),
 })
 
 const quaternionForPose = (pose: CameraPose) => {
@@ -349,7 +349,7 @@ function DeskContents({
     return (
       <>
         <color attach="background" args={[SCENE_PALETTE.background]} />
-        <fog attach="fog" args={[SCENE_PALETTE.background, 25, 39]} />
+        <fog attach="fog" args={[SCENE_PALETTE.background, 28, 43]} />
       </>
     )
   }
@@ -357,17 +357,17 @@ function DeskContents({
   return (
     <>
       <color attach="background" args={[SCENE_PALETTE.background]} />
-      <fog attach="fog" args={[SCENE_PALETTE.background, 25, 39]} />
-      <hemisphereLight args={['#aeb8aa', '#07100b', 0.25]} />
+      <fog attach="fog" args={[SCENE_PALETTE.background, 28, 43]} />
+      <hemisphereLight args={['#fffbe7', '#79b8aa', 1.15]} />
       <directionalLight
         castShadow
-        color="#ffdca8"
-        intensity={2.25}
+        color="#fff4d6"
+        intensity={2.05}
         position={[-5.5, 10.5, 7]}
         shadow-mapSize={[1536, 1536]}
         shadow-bias={-0.00016}
         shadow-normalBias={0.025}
-        shadow-radius={2.2}
+        shadow-radius={3.5}
         shadow-camera-left={-9}
         shadow-camera-right={9}
         shadow-camera-top={9}
@@ -375,8 +375,8 @@ function DeskContents({
         shadow-camera-near={1}
         shadow-camera-far={24}
       />
-      <directionalLight color="#9eb6a8" intensity={0.15} position={[7, 5, -6]} />
-      <SceneEnvironment intensity={0.32} />
+      <directionalLight color="#8de0d1" intensity={0.42} position={[7, 5, -6]} />
+      <SceneEnvironment intensity={0.42} />
       <CameraRig
         deskCameraPreset={deskCameraPreset}
         deskCameraTransitioning={deskCameraTransitioning}
@@ -387,14 +387,6 @@ function DeskContents({
       />
 
       <DeskBody materials={materials} />
-      <mesh
-        position={[0, -3.45, 0]}
-        rotation={[-Math.PI / 2, 0, 0]}
-        receiveShadow
-      >
-        <planeGeometry args={[40, 40]} />
-        <meshStandardMaterial color="#070d09" roughness={1} />
-      </mesh>
       <DeskMat materials={materials} />
       <mesh
         name="desk-mat-hit-surface"
@@ -437,6 +429,7 @@ function DeskContents({
         />
       ))}
       <NotebookObject
+        deskCameraPreset={deskCameraPreset}
         materials={materials}
         notebookPhase={notebookPhase}
         onAdvance={advanceNotebookPhase}
@@ -571,7 +564,7 @@ export function DeskScene({ fallback }: DeskSceneProps) {
           state.gl.outputColorSpace = THREE.SRGBColorSpace
           state.gl.shadowMap.type = THREE.PCFShadowMap
           state.gl.toneMapping = THREE.ACESFilmicToneMapping
-          state.gl.toneMappingExposure = 0.9
+          state.gl.toneMappingExposure = 1.04
           state.events.connect?.(container)
           state.setEvents({
             compute: (event, eventState) => {

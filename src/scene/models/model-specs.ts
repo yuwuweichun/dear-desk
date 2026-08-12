@@ -13,16 +13,6 @@ export const DESK_MODEL_SPEC = {
     radius: 0.12,
     width: 11.36,
   },
-  drawers: [
-    { id: 'drawer-left', positionX: -4.05, width: 2.2 },
-    { id: 'drawer-center', positionX: 0, width: 5.55 },
-    { id: 'drawer-right', positionX: 4.05, width: 2.2 },
-  ],
-  drawerDepth: 0.18,
-  drawerHeight: 0.64,
-  drawerPositionY: -0.82,
-  drawerPositionZ: 3.79,
-  drawerRadius: 0.14,
   leg: {
     bottomRadius: 0.22,
     height: 2.96,
@@ -38,8 +28,8 @@ export const DESK_MODEL_SPEC = {
   tabletop: {
     depth: 8,
     positionY: -0.24,
-    radius: 0.3,
-    thickness: 0.48,
+    radius: 0.72,
+    thickness: 0.58,
     width: 12,
   },
 } as const
@@ -48,7 +38,7 @@ export const DESK_MAT_MODEL_SPEC = {
   bindingInset: 0.16,
   bindingRadius: 0.045,
   depth: 6.25,
-  planRadius: 0.55,
+  planRadius: 0.7,
   position: [0, 0.055, 0.2] as const,
   stitchCount: 274,
   stitchInset: 0.27,
@@ -59,24 +49,36 @@ export const DESK_MAT_MODEL_SPEC = {
 
 export const NOTEBOOK_MODEL_SPEC = {
   cover: {
-    depth: 3.82,
-    planRadius: 0.19,
-    thickness: 0.14,
+    depth: (3.2 * 5) / 3,
+    overhang: 0.13,
+    planRadius: 0.12,
+    thickness: 0.055,
     width: 3.2,
   },
-  coverHinge: [-1.5, 0.3, 0] as const,
+  coverHinge: [-1.6, 0.2925, 0] as const,
+  deskRotation: [0, 0, 0] as const,
+  joint: {
+    axisX: -1.38,
+    inset: 0.16,
+    width: 0.018,
+  },
   openAngle: Math.PI * 0.97,
   page: {
-    depth: 3.54,
-    planRadius: 0.15,
-    stackThickness: 0.15,
+    depth: (3.2 * 5) / 3 - 0.28,
+    foreEdgeInset: 0.18,
+    headTailInset: 0.14,
+    planRadius: 0.08,
+    stackThickness: 0.21,
     width: 2.92,
   },
-  ribbon: {
-    endZ: 2.38,
-    startZ: -1.5,
-    width: 0.12,
-    worldX: -1.46,
+  pageHinge: [
+    -1.4,
+    0.2365,
+    0,
+  ] as const,
+  rootPosition: [0, 0.34, DESK_MAT_MODEL_SPEC.position[2]] as const,
+  spine: {
+    depth: (3.2 * 5) / 3,
+    width: 0.05,
   },
-  rootPosition: [-0.65, 0.34, 0.25] as const,
 } as const

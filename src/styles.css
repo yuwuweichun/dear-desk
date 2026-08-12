@@ -1,28 +1,28 @@
 :root {
   color: #f7f1e5;
-  background: #151d1a;
+  background: #c9f0e5;
   font-family: Nunito, "Noto Sans SC", -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   --ink: #f7f1e5;
   --muted: #b9c4bd;
   --line: rgba(230, 216, 190, 0.24);
-  --dark: #151d1a;
-  --dark-raised: #203029;
-  --walnut: #6b4934;
-  --walnut-highlight: #a7744f;
-  --moss: #314b43;
-  --moss-dark: #203730;
-  --paper: #f3e9d5;
-  --paper-soft: #f8f0df;
-  --paper-line: #d8c8ad;
-  --paper-ink: #2d2923;
-  --accent: #a4484f;
-  --accent-dark: #733239;
-  --brass: #c49a5a;
-  --brass-dark: #8e6938;
-  --shadow-warm: rgba(48, 30, 21, 0.24);
-  --paper-fibers: rgba(113, 88, 57, 0.035);
+  --dark: #c9f0e5;
+  --dark-raised: #dff8f3;
+  --walnut: #d9a66f;
+  --walnut-highlight: #f1c994;
+  --moss: #0cc0b5;
+  --moss-dark: #087f78;
+  --paper: #fffbe7;
+  --paper-soft: #fffdf2;
+  --paper-line: #e5dcc8;
+  --paper-ink: #725d42;
+  --accent: #ee7771;
+  --accent-dark: #c95757;
+  --brass: #ee7771;
+  --brass-dark: #c95757;
+  --shadow-warm: rgba(71, 94, 86, 0.2);
+  --paper-fibers: rgba(114, 93, 66, 0.025);
 }
 
 * {
@@ -154,13 +154,13 @@ textarea:focus-visible {
   background: transparent;
   color: var(--paper-ink);
   perspective: 1800px;
-  animation: journal-reveal 180ms ease-out both;
+  animation: journal-reveal 120ms ease-out both;
 }
 
 @keyframes journal-reveal {
   from {
-    opacity: 0;
-    transform: translateX(-50%) translateY(8px);
+    opacity: 0.72;
+    transform: translateX(-50%) translateY(4px);
   }
   to {
     opacity: 1;
@@ -172,12 +172,12 @@ textarea:focus-visible {
   width: fit-content;
   margin: 0 0 7px;
   padding: 3px 7px;
-  border: 1px solid rgba(164, 72, 79, 0.42);
-  border-radius: 4px;
+  border: 2px solid rgba(238, 119, 113, 0.5);
+  border-radius: 12px;
   color: var(--accent-dark);
   font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  font-weight: 800;
+  letter-spacing: 0;
   text-transform: uppercase;
 }
 
@@ -210,18 +210,13 @@ textarea:focus-visible {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   transform-style: preserve-3d;
-  border: 14px solid #273e37;
-  border-radius: 30px 30px 23px 23px;
-  background-color: #273e37;
-  background-image:
-    repeating-linear-gradient(0deg, transparent 0 5px, rgba(238, 228, 207, 0.018) 5px 6px),
-    repeating-linear-gradient(90deg, transparent 0 4px, rgba(8, 20, 16, 0.045) 4px 5px),
-    linear-gradient(135deg, #314b43, #243a33 72%);
+  border: 14px solid #173f35;
+  border-radius: 32px 32px 25px 25px;
+  background-color: #173f35;
+  background-image: linear-gradient(135deg, #1c4a3e, #12362e 76%);
   box-shadow:
-    0 32px 68px rgba(7, 12, 10, 0.4),
-    0 7px 0 #192d27,
-    0 0 0 1px rgba(196, 154, 90, 0.22),
-    inset 0 1px rgba(244, 233, 211, 0.08);
+    0 24px 48px rgba(42, 107, 90, 0.22),
+    inset 0 2px rgba(255, 255, 255, 0.24);
   overflow: hidden;
 }
 
@@ -236,53 +231,31 @@ textarea:focus-visible {
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  border: 1px solid rgba(126, 101, 68, 0.16);
-  background-color: #f3e7d1;
+  border: 1px solid rgba(114, 93, 66, 0.14);
+  background-color: var(--paper);
   box-shadow:
-    inset 0 1px rgba(255, 252, 242, 0.86),
-    inset 0 -9px 18px rgba(98, 71, 40, 0.08);
-}
-
-.journal-page::before {
-  content: '';
-  position: absolute;
-  z-index: 0;
-  top: 94px;
-  right: 42px;
-  bottom: 34px;
-  left: 42px;
-  pointer-events: none;
-  background-image: repeating-linear-gradient(
-    to bottom,
-    transparent 0,
-    transparent 49px,
-    rgba(128, 104, 74, 0.105) 49px,
-    rgba(128, 104, 74, 0.105) 50px
-  );
+    inset 0 2px rgba(255, 255, 255, 0.9),
+    inset 0 -7px 14px rgba(114, 93, 66, 0.055);
 }
 
 .journal-page-left {
   border-radius: 18px 3px 9px 20px;
   background-image:
-    repeating-linear-gradient(2deg, transparent 0 17px, rgba(106, 80, 49, 0.018) 17px 18px),
-    repeating-linear-gradient(91deg, transparent 0 29px, rgba(255, 255, 255, 0.025) 29px 30px),
-    linear-gradient(90deg, #dfcfb4 0%, #f6ecd9 5%, #f5ead6 84%, #d4bf9f 100%);
+    linear-gradient(90deg, #ede3ca 0%, #fffdf2 6%, #fffbe7 95%, #e8dec8 100%);
   box-shadow:
-    inset 10px 0 16px rgba(104, 78, 48, 0.07),
-    inset -25px 0 31px rgba(82, 57, 33, 0.14),
-    inset 0 -9px 18px rgba(98, 71, 40, 0.08);
+    inset 8px 0 14px rgba(114, 93, 66, 0.045),
+    inset -10px 0 14px rgba(114, 93, 66, 0.055),
+    inset 0 -7px 14px rgba(114, 93, 66, 0.055);
 }
 
 .journal-page-right {
   border-radius: 3px 18px 20px 9px;
   background-image:
-    repeating-linear-gradient(2deg, transparent 0 17px, rgba(106, 80, 49, 0.018) 17px 18px),
-    repeating-linear-gradient(91deg, transparent 0 29px, rgba(255, 255, 255, 0.025) 29px 30px),
-    linear-gradient(90deg, #d4bf9f 0%, #f5ead6 16%, #f6ecd9 95%, #dfcfb4 100%);
+    linear-gradient(90deg, #e8dec8 0%, #fffbe7 5%, #fffdf2 94%, #ede3ca 100%);
   box-shadow:
-    inset 25px 0 31px rgba(82, 57, 33, 0.14),
-    inset -10px 0 16px rgba(104, 78, 48, 0.07),
-    inset 0 -9px 18px rgba(98, 71, 40, 0.08);
+    inset 10px 0 14px rgba(114, 93, 66, 0.055),
+    inset -8px 0 14px rgba(114, 93, 66, 0.045),
+    inset 0 -7px 14px rgba(114, 93, 66, 0.055);
 }
 
 .journal-page-left::after,
@@ -297,10 +270,10 @@ textarea:focus-visible {
   opacity: 0.68;
   background: repeating-linear-gradient(
     90deg,
-    #c7b18e 0,
-    #c7b18e 1px,
-    #eadcc2 1px,
-    #eadcc2 3px
+    #d7c8aa 0,
+    #d7c8aa 1px,
+    #fff7df 1px,
+    #fff7df 3px
   );
   box-shadow: 0 0 8px rgba(83, 59, 35, 0.11);
 }
@@ -318,43 +291,27 @@ textarea:focus-visible {
 .journal-spine {
   position: absolute;
   z-index: 12;
-  top: 0;
-  bottom: 0;
+  top: 2px;
+  bottom: 2px;
   left: 50%;
-  width: 30px;
+  width: 16px;
   transform: translateX(-50%);
   pointer-events: none;
   background: linear-gradient(
     90deg,
-    rgba(66, 44, 28, 0.28),
-    rgba(44, 29, 19, 0.08) 24%,
-    rgba(255, 251, 238, 0.13) 49%,
-    rgba(45, 29, 19, 0.09) 76%,
-    rgba(64, 42, 27, 0.3)
+    rgba(255, 255, 255, 0.08),
+    rgba(114, 93, 66, 0.055) 32%,
+    rgba(91, 70, 46, 0.17) 49%,
+    rgba(114, 93, 66, 0.06) 68%,
+    rgba(255, 255, 255, 0.1)
   );
-  box-shadow: 0 0 24px rgba(62, 40, 27, 0.26);
-}
-
-.journal-bookmark {
-  position: absolute;
-  z-index: 13;
-  top: 10px;
-  bottom: -26px;
-  left: 50%;
-  width: 30px;
-  transform: translateX(-50%);
-  pointer-events: none;
-  background-color: #6e242d;
-  background-image:
-    linear-gradient(90deg, rgba(42, 12, 17, 0.4), transparent 15% 78%, rgba(44, 13, 18, 0.34)),
-    repeating-linear-gradient(90deg, transparent 0 2px, rgba(244, 208, 198, 0.04) 2px 3px),
-    repeating-linear-gradient(0deg, transparent 0 7px, rgba(39, 10, 14, 0.055) 7px 8px),
-    linear-gradient(90deg, #5d1d25 0%, #762730 32%, #87323b 58%, #67212a 100%);
-  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% calc(100% - 9px), 0 100%);
-  box-shadow:
-    0 3px 8px rgba(49, 14, 19, 0.42),
-    inset 1px 0 rgba(255, 221, 211, 0.07),
-    inset -1px 0 rgba(35, 9, 13, 0.18);
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 24px,
+    #000 calc(100% - 24px),
+    transparent 100%
+  );
 }
 
 .journal-page-body,
@@ -383,7 +340,6 @@ textarea:focus-visible {
   justify-content: space-between;
   gap: 16px;
   padding-bottom: 16px;
-  border-bottom: 1px solid rgba(164, 72, 79, 0.22);
 }
 
 .journal-page-head p {
@@ -464,11 +420,11 @@ textarea:focus-visible {
 }
 
 .journal-page-navigation:hover:not(:disabled) {
-  background: rgba(177, 133, 75, 0.045);
+  background: rgba(12, 192, 181, 0.06);
 }
 
 .journal-page-navigation:focus-visible {
-  outline: 3px solid #b87949;
+  outline: 3px solid var(--animal-primary-color);
   outline-offset: -7px;
 }
 
@@ -909,8 +865,8 @@ textarea:focus-visible {
 
   @keyframes journal-reveal-mobile {
     from {
-      opacity: 0;
-      transform: translateY(8px);
+      opacity: 0.72;
+      transform: translateY(4px);
     }
     to {
       opacity: 1;
@@ -931,20 +887,6 @@ textarea:focus-visible {
     border-radius: 18px 18px 14px 14px;
   }
 
-  .journal-page::before {
-    top: 74px;
-    right: 15px;
-    bottom: 22px;
-    left: 15px;
-    background-image: repeating-linear-gradient(
-      to bottom,
-      transparent 0,
-      transparent 37px,
-      rgba(128, 104, 74, 0.1) 37px,
-      rgba(128, 104, 74, 0.1) 38px
-    );
-  }
-
   .journal-page-body,
   .journal-form {
     padding: 16px 12px 14px;
@@ -953,6 +895,19 @@ textarea:focus-visible {
   .journal-page-head {
     min-height: 52px;
     padding-bottom: 10px;
+  }
+
+  .journal-page-right .journal-page-head {
+    padding-right: 36px;
+  }
+
+  .journal-date {
+    max-width: 100%;
+    padding: 3px 5px;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    font-size: 9px;
+    line-height: 1.2;
   }
 
   .journal-page-head h2 {
@@ -997,13 +952,7 @@ textarea:focus-visible {
   }
 
   .journal-spine {
-    width: 14px;
-  }
-
-  .journal-bookmark {
-    top: 7px;
-    bottom: -14px;
-    width: 14px;
+    width: 10px;
   }
 
   .page-turn-face {
