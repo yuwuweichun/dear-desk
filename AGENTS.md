@@ -51,6 +51,15 @@ YYYY-MM-DD-NNN-concise-kebab-case-name.md
 
 若文档、源码和测试不一致，在任务记录中显式标记冲突。不得静默选择其中一方或把推断写成事实。
 
+## Spec Kit 使用边界
+
+- Spec Kit 是复杂功能的规格拆解工具，不替代本文件、`docs/changes/`、`docs/product/`、`docs/architecture/` 或 `docs/decisions/`。
+- 多模块、需求复杂或高风险功能可以在对应变更记录获批后使用 `$speckit-specify`、`$speckit-clarify`、`$speckit-plan`、`$speckit-tasks` 和 `$speckit-analyze`；小型明确改动不强制创建完整 Spec Kit 产物。
+- `specs/<编号>-<功能名>/` 保存功能级 `spec.md`、`plan.md`、`tasks.md` 和设计附件；对应 `docs/changes/` 记录仍负责批准、实施事实、验证结果和验收状态。两者结论不一致时必须暂停并写明冲突。
+- `$speckit-implement` 只有在对应 `docs/changes/` 记录已经明确批准、最终执行清单已经写入后才能运行；它不得扩大批准范围，也不得自行把任务标记为已完成。
+- `.specify/memory/constitution.md` 是现有项目原则的 Spec Kit 映射，不是新的上位事实来源。修改其中长期规则时必须同步本文件或对应 ADR，并经过任务审批。
+- Spec Kit 不默认创建 Git 分支。需要创建时仍遵守本文件的 Conventional Commits 类型前缀，且未经用户明确要求不提交、推送或创建 PR。
+
 ## 任务记录内容要求
 
 所有任务记录必须保留模板中的一级章节。小任务可以简写，但不适用的章节要说明原因。内容必须区分：

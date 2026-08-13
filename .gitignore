@@ -1,2 +1,7 @@
 node_modules
 dist
+
+# Spec Kit may place machine-local state beside its project skills.
+.agents/*
+!.agents/skills/
+!.agents/skills/**
