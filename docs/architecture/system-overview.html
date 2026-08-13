@@ -240,9 +240,9 @@
         <p><code>NotebookObject</code> 用透明命中几何发出打开意图，并驱动 <code>createNotebookModel</code> 的封面铰链、左右页堆、中缝和书签；它不读取正文或 Blob。<code>JournalPanel</code> 对齐聚焦后的本子，提供空白左页、统一右页、局部模式控件、按日期 textarea 和纸页贴纸。旧 <code>RoundedBox</code> / <code>scene-visuals</code> 已不在当前桌子、桌垫、本子模型路径中。</p>
         <p>renderer 使用 ACES filmic tone mapping、显式曝光、PCF 阴影和 DPR <code>[1, 1.5]</code>；<code>SceneEnvironment</code> 生成并释放 PMREM 环境反射。场景只有一盏投影方向光，另有不投影的低强度补光；雾从主体之外开始，避免吞掉桌体层次。</p>
         <p><code>JournalStickerLayer</code> 的坐标是纸页内 <code>0..1</code> 归一化值。今天页保留 pointer capture、预览位置和 pointer up 提交；历史页即使进入正文书写也只复用 PNG 投影并关闭贴纸 pointer events。桌面 <code>StickerObject</code> 仍创建对象 URL 和 Three.js Texture，并在卸载时释放两者。</p>
-        <p><code>src/ui/</code> 是业务模块与 <code>animal-island-ui@1.5.1</code> 之间的唯一适配边界：<code>Button</code> 将 loading 映射为原生 disabled，<code>IconButton</code> 固化可访问名称，<code>TextInput</code> 和 <code>SegmentedControl</code> 统一输入与选择语义。第二轮重写删除了让组件回到旧式深色小圆角外观的覆盖，<code>theme.css</code> 现在保留库的胶囊、按压阴影、Nunito/Noto Sans、青绿 active 与暖白 surface，只补 Dear Desk 的业务色彩和领域布局。App、Journal 和 Sticker 功能从该层导入；领域专用 textarea、文件输入、颜色 swatch、range、纸页命中区、Forge mount 与抠图 Canvas 不进入通用组件库。</p>
+        <p><code>src/ui/</code> 是业务交互控件与 <code>animal-island-ui@1.5.1</code> 之间的适配边界：<code>Button</code> 将 loading 映射为原生 disabled，<code>IconButton</code> 固化可访问名称，<code>TextInput</code> 和 <code>SegmentedControl</code> 统一输入与选择语义。第二轮重写删除了让组件回到旧式深色小圆角外观的覆盖，<code>theme.css</code> 现在保留库的胶囊、按压阴影、Nunito/Noto Sans、青绿 active 与暖白 surface，只补 Dear Desk 的业务色彩和领域布局。App、Journal 和 Sticker 的交互控件从该层导入；<code>ProductApp</code> 对无需业务语义适配的纯展示型 <code>Time</code> 直接传入 <code>type="hud"</code>。领域专用 textarea、文件输入、颜色 swatch、range、纸页命中区、Forge mount 与抠图 Canvas 不进入通用组件库。</p>
         <p><code>StickerStudio</code> 的页面骨架仍由业务组件拥有，但 <code>src/styles.css</code> 和 <code>src/sticker-workbench.css</code> 已把旧胡桃木/深苔网格背景、窄纸侧栏和方形控件整体替换为浅薄荷点阵制作空间、暖白预览框、圆角点阵控制面板、青绿来源/材质选择与青绿/珊瑚双目标动作。Forge Canvas、来源更新、抠图 session、capture 和 placement action 没有变化。</p>
-        <p><code>ProductApp</code> 不再渲染 <code>app-header</code>、品牌链接或“本地”常驻状态。<code>DeskScene</code> Canvas、<code>StickerStudio</code> 和 scene fallback 都从视口 <code>y=0</code> 开始；日期状态只在桌面 idle 阶段显示于左上角。该删除没有改变本地持久化事实，“本地”仍是 IndexedDB 架构边界而不是需要持续显示的运行状态。</p>
+        <p><code>ProductApp</code> 不再渲染 <code>app-header</code>、品牌链接或“本地”常驻状态。<code>DeskScene</code> Canvas、<code>StickerStudio</code> 和 scene fallback 都从视口 <code>y=0</code> 开始；左上角只在桌面 idle 阶段挂载 <code>animal-island-ui</code> 的 <code>Time type="hud"</code>，按浏览器本地时间显示英文星期、英文月日与 24 小时时间。旧的所选日记日期以及“今天还是空白 / 今天有一页”等记录状态不再由桌面 HUD 呈现；<code>loadToday()</code> 仍照常执行并服务日记链路。该视觉替换没有改变本地持久化事实，“本地”仍是 IndexedDB 架构边界而不是需要持续显示的运行状态。</p>
         <div class="note">
           <strong>为什么正文不进入 WebGL</strong>
           <p>textarea、键盘焦点、选择文本、错误反馈和屏幕阅读器语义都更适合 DOM。只有相机、光照、遮挡和桌面空间坐标进入 R3F；仿真翻页的视觉价值不需要牺牲表单质量。</p>
@@ -305,6 +305,8 @@ edit historical text:
         <p class="section-index">11 · 源码地图</p>
         <h2>先读状态协议，再沿 repository 和两种投影向下</h2>
         <div class="source-map">
+          <div><code><a href="../../src/app/App.tsx">src/app/App.tsx</a></code><span><code>ProductApp</code> 组合桌面工作流，并在 idle 阶段直接挂载 <code>Time type="hud"</code></span></div>
+          <div><code><a href="../../src/app/App.test.tsx">src/app/App.test.tsx</a></code><span>固定浏览器本地时间验证 HUD 文案、旧记录状态删除与离开桌面态后的卸载</span></div>
           <div><code><a href="../../src/state/app-store.ts">src/state/app-store.ts</a></code><span><code>loadJournalPages</code>、<code>requestJournalTurn</code>、<code>saveJournalEntry</code> 与贴纸工作流</span></div>
           <div><code><a href="../../src/features/journal/JournalPanel.tsx">JournalPanel.tsx</a></code><span><code>JournalBook</code> 组合竖排单按钮上下滑动模式切换、图标/文字竖排书写动作、dirty guard、按日期保存与翻页</span></div>
           <div><code><a href="../../src/features/journal/JournalPage.tsx">JournalPage.tsx</a></code><span>空白左页、统一右页阅读内容与窄页缘导航</span></div>
@@ -337,7 +339,7 @@ edit historical text:
       <section id="verification" data-search-title="验证证据与未覆盖边界">
         <p class="section-index">12 · 验证</p>
         <h2>自动证据、模型规格和双视口 UI 检查均已通过</h2>
-        <p>当前 13 个测试文件共 55 个测试覆盖既有日期、保存、翻页、贴纸和迁移行为，也覆盖模型层级、材质与资源释放、九项调色键、HEX 校验、连续调色节点稳定性、复制配置、独立桌腿绑定、本子/纸张边界，以及 UI 适配层的点击和输入透传。ESLint、TypeScript/Vite production build、文档引用检查和 <code>git diff --check</code> 均通过。</p>
+        <p>当前 14 个测试文件共 56 个测试覆盖既有日期、保存、翻页、贴纸和迁移行为，也覆盖模型层级、材质与资源释放、九项调色键、HEX 校验、连续调色节点稳定性、复制配置、独立桌腿绑定、本子/纸张边界、HUD 时钟和 UI 适配层的点击与输入透传。ESLint、TypeScript/Vite production build、文档引用检查和 <code>git diff --check</code> 均通过。</p>
         <div class="table-wrap">
           <table>
             <thead><tr><th>能力</th><th>当前状态</th><th>证据边界</th></tr></thead>
@@ -349,6 +351,7 @@ edit historical text:
               <tr><td>程序化桌子、桌垫与本子</td><td><span class="status status-review">待重评</span></td><td>三个 strict-quality spec 均 complete，但用户已否决 V1-V10 全部配色并质疑模型造型；默认仍为运行回退值 <code>V2.0</code>，十版只作为负向证据保留</td></tr>
               <tr><td>临时场景颜色编辑器</td><td><span class="status status-review">待验收</span></td><td>九项表面独立实时改色、重置、复制和刷新恢复已通过 1440 × 900 与 390 × 844；桌腿/桌框高辨识测试色证明材质分离，保持单 Canvas</td></tr>
               <tr><td>通用 DOM 与贴纸工作台重写</td><td><span class="status status-review">待验收</span></td><td><code>animal-island-ui@1.5.1</code> 经 <code>src/ui/</code> 接入；旧控件样式和旧工作台背景已删除，桌面、日记、文字/图片贴纸制作与抠图关键流程在桌面/移动端通过</td></tr>
+              <tr><td>左上角 Animal Island 时间 HUD</td><td><span class="status status-review">待验收</span></td><td><code>ProductApp</code> 直接使用 <code>Time type="hud"</code>；针对性测试及 1440 × 900、390 × 844 浏览器检查确认旧记录状态已删除、无重叠与页面横向溢出</td></tr>
               <tr><td>桌面/移动产品与本地 HTML 交互</td><td><span class="status status-review">已验证</span></td><td><code>ego-browser</code> 已覆盖 1440 × 900、390 × 844、DPR 2 与 reduced-motion；单 Canvas、无页面横向溢出</td></tr>
             </tbody>
           </table>
@@ -359,7 +362,7 @@ edit historical text:
         </div>
       </section>
 
-      <footer>Dear Desk 当前系统架构 · 基于可运行源码、55 个自动测试与 DD-20260813-005 实施结果 · 2026-08-13</footer>
+      <footer>Dear Desk 当前系统架构 · 基于可运行源码、56 个自动测试与 DD-20260813-007 实施结果 · 2026-08-13</footer>
     </main>
   </div>
 

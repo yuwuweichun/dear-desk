@@ -1,7 +1,7 @@
+import { Time } from 'animal-island-ui'
 import { BookOpen, Camera, Sticker } from 'lucide-react'
 import { lazy, Suspense, useEffect, useState } from 'react'
 
-import { formatLocalDate } from '../domain/daily-entry'
 import { JournalPanel } from '../features/journal/JournalPanel'
 import { StickerControls } from '../features/stickers/StickerControls'
 import { StickerStudio } from '../features/stickers/StickerStudio'
@@ -55,9 +55,6 @@ function ProductApp() {
   const deskCameraTransitioning = useAppStore(
     (state) => state.deskCameraTransitioning,
   )
-  const selectedDate = useAppStore((state) => state.selectedDate)
-  const entry = useAppStore((state) => state.entry)
-  const loadStatus = useAppStore((state) => state.loadStatus)
   const loadToday = useAppStore((state) => state.loadToday)
   const loadStickers = useAppStore((state) => state.loadStickers)
   const notebookPhase = useAppStore((state) => state.notebookPhase)
@@ -81,15 +78,6 @@ function ProductApp() {
     document.addEventListener('visibilitychange', settleWhenHidden)
     return () => document.removeEventListener('visibilitychange', settleWhenHidden)
   }, [settleNotebookTransition])
-
-  const entryState =
-    loadStatus === 'loading'
-      ? '正在打开'
-      : loadStatus === 'error'
-        ? '本地记录不可用'
-        : entry
-          ? '今天有一页'
-          : '今天还是空白'
 
   const showDeskActions =
     notebookPhase === 'desk' &&
@@ -123,13 +111,7 @@ function ProductApp() {
         </div>
       )}
 
-      <div
-        className={showDeskActions ? 'date-block' : 'date-block is-hidden'}
-        aria-live="polite"
-      >
-        <span>{formatLocalDate(selectedDate)}</span>
-        <strong>{entryState}</strong>
-      </div>
+      {showDeskActions ? <Time className="desk-time-hud" type="hud" /> : null}
 
       {showDeskActions ? (
         <div className="desk-actions">

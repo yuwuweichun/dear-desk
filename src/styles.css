@@ -103,35 +103,13 @@ textarea:focus-visible {
   touch-action: manipulation;
 }
 
-.date-block {
+.desk-time-hud {
   position: absolute;
   z-index: 5;
   top: 28px;
   left: 28px;
-  display: grid;
-  gap: 5px;
-  padding: 12px 17px;
-  border: 2px solid rgba(232, 226, 214, 0.92);
-  border-radius: 22px;
-  background: rgba(248, 248, 240, 0.92);
-  box-shadow: 0 5px 0 rgba(61, 52, 40, 0.13), 0 12px 26px rgba(31, 24, 18, 0.12);
   pointer-events: none;
-  transition: opacity 180ms ease;
-}
-
-.date-block.is-hidden {
-  opacity: 0;
-}
-
-.date-block span {
-  color: #8a7b66;
-  font-size: 13px;
-}
-
-.date-block strong {
-  color: #725d42;
-  font-size: 24px;
-  font-weight: 900;
+  box-shadow: 0 12px 26px rgba(31, 24, 18, 0.12);
 }
 
 .scene-color-editor-button {
@@ -999,13 +977,9 @@ textarea:focus-visible {
     border-radius: 8px 8px 0 0;
   }
 
-  .date-block {
+  .desk-time-hud {
     top: 18px;
     left: 16px;
-  }
-
-  .date-block strong {
-    font-size: 21px;
   }
 
   .notebook-button {
