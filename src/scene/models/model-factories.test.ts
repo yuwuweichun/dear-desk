@@ -337,7 +337,8 @@ describe('procedural scene model factories', () => {
       DESK_MAT_MODEL_SPEC.planRadius,
     )
     expect(matRuntime.nodes.body.geometry.getAttribute('uv1')).toBeTruthy()
-    expect(mat.userData.structure).toBe('bumper-well-corner-tabs')
+    expect(mat.userData.structure).toBe('bumper-well')
+    expect(mat.getObjectByName('desk-mat-coral-corner-tabs')).toBeUndefined()
     expect(matRuntime.nodes.body.userData.profile).toBe('thick-soft-bumper')
     expect(matRuntime.nodes.field.name).toBe('desk-mat-recessed-work-field')
     expect(matRuntime.sockets.interactionSurface).toBe(

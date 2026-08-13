@@ -23,7 +23,6 @@ export interface DeskMatModelNodes extends Record<string, THREE.Object3D> {
   field: THREE.Object3D
   interactionSurface: THREE.Object3D
   root: THREE.Group
-  seam: THREE.Object3D
   stitches: THREE.Object3D
 }
 
@@ -97,8 +96,6 @@ export function createDeskMatModel(
   const showForm = isPassEnabled(pass, 'form-refinement')
   const cloth = detailed ? materials.cloth : materials.neutral
   const clothDark = detailed ? materials.clothDark : materials.neutral
-  const accent = detailed ? materials.brass : materials.neutral
-
   const root = new THREE.Group()
   root.name = 'desk-mat-model'
   root.position.set(...spec.position)
@@ -106,7 +103,7 @@ export function createDeskMatModel(
     buildPass: pass,
     modelId: 'animal-island-soft-pad',
     pass,
-    structure: 'bumper-well-corner-tabs',
+    structure: 'bumper-well',
   }
 
   // A thick soft bumper establishes a new silhouette instead of a thin cloth sheet.
@@ -154,7 +151,6 @@ export function createDeskMatModel(
   }
 
   let field: THREE.Object3D = placeholder('desk-mat-field', 'form-refinement')
-  let seam: THREE.Object3D = placeholder('desk-mat-inner-seam', 'form-refinement')
   if (showForm) {
     field = finish(
       new THREE.Mesh(
@@ -171,16 +167,7 @@ export function createDeskMatModel(
     field.position.y = 0.075
     field.userData = { interactive: false, profile: 'recessed-work-well' }
 
-    const tabGeometry = createRoundedPlateGeometry(0.72, 0.3, 0.055, 0.15, 0.018)
-    const tabs = new THREE.InstancedMesh(tabGeometry, accent, 2)
-    finish(tabs, 'desk-mat-coral-corner-tabs', options)
-    const left = new THREE.Matrix4().makeTranslation(-3.55, 0.12, 2.76)
-    const right = new THREE.Matrix4().makeTranslation(3.55, 0.12, -2.36)
-    tabs.setMatrixAt(0, left)
-    tabs.setMatrixAt(1, right)
-    tabs.instanceMatrix.needsUpdate = true
-    seam = tabs
-    root.add(field, seam)
+    root.add(field)
   }
 
   let stitches: THREE.Object3D = placeholder('desk-mat-stitches', 'structural-pass')
@@ -212,7 +199,6 @@ export function createDeskMatModel(
     field,
     interactionSurface,
     root,
-    seam,
     stitches,
   }
   setSculptRuntime(root, {
@@ -226,7 +212,7 @@ export function createDeskMatModel(
     },
     destructionGroups: {
       bumper: [body, binding],
-      surface: [field, seam, stitches],
+      surface: [field, stitches],
     },
     nodes,
     sockets: { interactionSurface },
