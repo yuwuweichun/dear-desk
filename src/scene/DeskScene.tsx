@@ -14,9 +14,10 @@ import { NotebookObject } from './NotebookObject'
 import { createDeskMatModel } from './models/create-desk-mat-model'
 import { createDeskModel } from './models/create-desk-model'
 import {
+  applySceneColors,
   createModelMaterialLibrary,
-  SCENE_PALETTE,
   type ModelMaterialLibrary,
+  type SceneColorConfig,
 } from './models/material-library'
 import { DESK_MAT_MODEL_SPEC } from './models/model-specs'
 import { SceneEnvironment } from './models/SceneEnvironment'
@@ -305,6 +306,7 @@ interface DeskContentsProps {
   deskCameraTransitioning: boolean
   notebookPhase: NotebookPhase
   placePendingDeskSticker: (position: StickerPosition) => Promise<boolean>
+  colors: SceneColorConfig
   previewStickerPosition: (instanceId: string, position: StickerPosition) => void
   reducedMotion: boolean
   requestNotebookOpen: () => void
@@ -322,6 +324,7 @@ function DeskContents({
   deskCameraTransitioning,
   notebookPhase,
   placePendingDeskSticker,
+  colors,
   previewStickerPosition,
   reducedMotion,
   requestNotebookOpen,
@@ -332,9 +335,10 @@ function DeskContents({
   stickerWorkflow,
 }: DeskContentsProps) {
   const [materials, setMaterials] = useState<ModelMaterialLibrary | null>(null)
+  const initialColors = useRef(colors)
 
   useEffect(() => {
-    const nextMaterials = createModelMaterialLibrary()
+    const nextMaterials = createModelMaterialLibrary({ sceneColors: initialColors.current })
     let disposed = false
     queueMicrotask(() => {
       if (!disposed) setMaterials(nextMaterials)
@@ -345,19 +349,23 @@ function DeskContents({
     }
   }, [])
 
+  useEffect(() => {
+    if (materials) applySceneColors(materials, colors)
+  }, [colors, materials])
+
   if (!materials) {
     return (
       <>
-        <color attach="background" args={[SCENE_PALETTE.background]} />
-        <fog attach="fog" args={[SCENE_PALETTE.background, 28, 43]} />
+        <color attach="background" args={[colors.background]} />
+        <fog attach="fog" args={[colors.background, 28, 43]} />
       </>
     )
   }
 
   return (
     <>
-      <color attach="background" args={[SCENE_PALETTE.background]} />
-      <fog attach="fog" args={[SCENE_PALETTE.background, 28, 43]} />
+      <color attach="background" args={[colors.background]} />
+      <fog attach="fog" args={[colors.background, 28, 43]} />
       <hemisphereLight args={['#fffbe7', '#79b8aa', 1.15]} />
       <directionalLight
         castShadow
@@ -441,10 +449,11 @@ function DeskContents({
 }
 
 interface DeskSceneProps {
+  colors: SceneColorConfig
   fallback: ReactNode
 }
 
-export function DeskScene({ fallback }: DeskSceneProps) {
+export function DeskScene({ colors, fallback }: DeskSceneProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const rootRef = useRef<ReconcilerRoot<HTMLCanvasElement> | null>(null)
@@ -478,6 +487,7 @@ export function DeskScene({ fallback }: DeskSceneProps) {
     deskCameraTransitioning,
     notebookPhase,
     placePendingDeskSticker,
+    colors,
     previewStickerPosition,
     reducedMotion,
     requestNotebookOpen,
@@ -610,6 +620,7 @@ export function DeskScene({ fallback }: DeskSceneProps) {
       deskCameraTransitioning,
       notebookPhase,
       placePendingDeskSticker,
+      colors,
       previewStickerPosition,
       reducedMotion,
       requestNotebookOpen,
@@ -629,6 +640,7 @@ export function DeskScene({ fallback }: DeskSceneProps) {
     deskCameraTransitioning,
     notebookPhase,
     placePendingDeskSticker,
+    colors,
     previewStickerPosition,
     reducedMotion,
     requestNotebookOpen,
@@ -640,7 +652,11 @@ export function DeskScene({ fallback }: DeskSceneProps) {
   ])
 
   return (
-    <div ref={containerRef} className="canvas-root">
+    <div
+      ref={containerRef}
+      className="canvas-root"
+      data-scene-colors="custom"
+    >
       <canvas ref={canvasRef} aria-label="Dear Desk 三维桌面" />
       {unavailable ? fallback : null}
     </div>

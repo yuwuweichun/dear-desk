@@ -22,7 +22,7 @@
         <kbd aria-hidden="true">/</kbd>
         <div id="search-results" class="search-results" role="listbox" aria-label="搜索结果" hidden></div>
       </div>
-      <span class="top-meta">2026-08-12 · 模型与 UI 待验收</span>
+      <span class="top-meta">2026-08-13 · 场景颜色编辑待验收</span>
       <button class="toc-toggle" type="button" aria-controls="sidebar" aria-expanded="false">目录</button>
     </div>
   </header>
@@ -69,6 +69,7 @@
               <tr><td>历史 Minecraft 像素场景</td><td><span class="status status-neutral">已取消</span></td><td>编号 006 从未批准或实施，用户已于 2026-08-09 明确弃用，不再作为实现依据。</td></tr>
               <tr><td>历史统一空间视觉</td><td><span class="status status-neutral">已替代</span></td><td>DD-20260809-002 的历史实现与反馈保留，未完成的模型视觉验收由 DD-20260810-002 接管。</td></tr>
               <tr><td>概念模型与通用 UI 重构</td><td><span class="status status-review">待验收</span></td><td>DD-20260810-002 已完成三个模型工厂，并在非商业许可边界内删除旧控件外观、重写通用界面和贴纸工作台；领域数据与 Canvas 保持独立。</td></tr>
+              <tr><td>开放场景颜色编辑</td><td><span class="status status-review">待验收</span></td><td>DD-20260813-005 已实现九项实时调色、桌腿/桌框材质分离、重置和复制 JSON；刷新恢复 V2，不进入持久化。</td></tr>
               <tr><td>日记阅读与书写模式</td><td><span class="status status-review">待验收</span></td><td>DD-20260809-004 已实现左页留白、右页统一日期、“阅 / 读 / 编 / 辑”竖排单按钮上下滑动、“图标 / 书 / 写”竖排动作、按右页日期保存和 dirty 离开保护。</td></tr>
               <tr><td>当前分支</td><td><code>main</code></td><td>本轮任务源码基线为 <code>c7a3660</code>；实现仍在工作区，尚未创建提交。</td></tr>
             </tbody>
@@ -109,6 +110,7 @@
               <tr><td><a href="./changes/2026-08-06-002-technical-foundation-and-first-slice.md">技术基础与首个切片</a></td><td>查看技术栈、状态所有权、实际实现、验证结果和方案偏差。</td><td>已完成</td></tr>
               <tr><td><a href="./architecture/system-overview.html">当前系统架构</a></td><td>从零理解运行时、保存链路、失败路径、状态边界和源码地图。</td><td>当前事实</td></tr>
               <tr><td><a href="./architecture/sticker-system.md">贴纸系统架构</a></td><td>理解本地抠图、图片资产、双 surface placement 与 v3 数据边界。</td><td>当前事实</td></tr>
+              <tr><td><a href="./palette-review/index.html">V1-V10 配色对比档案</a></td><td>保留十个已全部否决方案的精确色值、远景与近景截图，作为后续设计的负向证据。</td><td>已全部否决</td></tr>
               <tr><td><a href="./changes/2026-08-09-001-two-page-journal-page-turn.md">双页日记与仿真翻页</a></td><td>查看 MVP 决策替代、页面序列、实施范围、自动测试和开发者验收记录。</td><td>已完成</td></tr>
               <tr><td><a href="./changes/2026-08-06-003-notebook-focus-transition.md">本子聚焦转场</a></td><td>查看镜头走近、转正、开本、二维 UI 衔接与验证证据。</td><td>已完成</td></tr>
               <tr><td><a href="./changes/2026-08-06-004-basic-sticker-system.md">历史自研贴纸方案</a></td><td>保留 004 被 Sticker Forge 集成方案替代的审阅轨迹，不再作为实施依据。</td><td>已替代</td></tr>
@@ -117,6 +119,7 @@
               <tr><td><a href="./changes/2026-08-06-006-crafting-table-desk-texture.md">历史 Minecraft 像素场景方案</a></td><td>保留已弃用的工作台、火把灯、像素书和公开资源调研轨迹，不再作为实现依据。</td><td>已取消</td></tr>
               <tr><td><a href="./changes/2026-08-09-002-unified-desk-visual-direction.md">暖木纸本工坊视觉方向</a></td><td>保留早期桌面减法、内页打磨和用户反馈，由后续模型重建任务接管验收。</td><td>已替代</td></tr>
               <tr><td><a href="./changes/2026-08-10-002-refine-concept-model-visuals.md">概念模型与通用 UI 重构</a></td><td>查看程序化模型、UI 适配层、非商业许可证边界、双视口与验证记录。</td><td>待验收</td></tr>
+              <tr><td><a href="./changes/2026-08-13-005-live-scene-color-editor.md">开放场景颜色编辑面板</a></td><td>验收九项实时试色、独立桌腿材质、复制/重置、移动底部抽屉和非持久化边界。</td><td>待验收</td></tr>
               <tr><td><a href="./changes/2026-08-09-004-journal-reading-writing-modes.md">日记阅读与书写模式</a></td><td>验收左页留白、右页单日期、历史可编辑、本子外两级模式控件和未保存保护。</td><td>待验收</td></tr>
               <tr><td><a href="./decisions/2026-08-06-001-documentation-as-review-interface.md">文档审核界面决策</a></td><td>理解为什么采用先审批、后实施、再回写。</td><td>已接受</td></tr>
               <tr><td><a href="./decisions/2026-08-06-002-local-first-data-and-scene-projection.md">本地数据与场景投影决策</a></td><td>理解 IndexedDB、Zustand、DOM 和 Three.js 的长期所有权边界。</td><td>已接受</td></tr>

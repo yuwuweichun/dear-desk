@@ -7,7 +7,14 @@ import { createNotebookModel } from './create-notebook-model'
 import { createRoundedPlateGeometry } from './geometry'
 import {
   createModelMaterialLibrary,
+  applySceneColors,
+  getSceneColorConfig,
+  DEFAULT_SCENE_PALETTE_VERSION,
+  getScenePalette,
+  SCENE_MATERIAL_VERSION,
   SCENE_PALETTE,
+  SCENE_PALETTE_PRESETS,
+  resolveScenePaletteVersion,
   sampleSurfaceChannels,
   type ModelMaterialLibrary,
 } from './material-library'
@@ -65,18 +72,163 @@ afterEach(() => {
 })
 
 describe('procedural scene model factories', () => {
-  it('uses the animal-ui scene palette and low-metal accent materials', () => {
+  it('keeps ten immutable palette candidates while v2 remains the default', () => {
+    expect(Object.keys(SCENE_PALETTE_PRESETS)).toEqual([
+      'v1', 'v2', 'v3', 'v4', 'v5', 'v6', 'v7', 'v8', 'v9', 'v10',
+    ])
+    expect(DEFAULT_SCENE_PALETTE_VERSION).toBe('v2')
+    expect(SCENE_PALETTE_PRESETS.v1).toEqual({
+      background: '#dce4e0',
+      mint: '#78958a',
+      mintDark: '#526f65',
+      wood: '#ad927c',
+      woodDark: '#705e50',
+      woodPanel: '#bca28b',
+    })
+    expect(SCENE_PALETTE_PRESETS.v2).toEqual({
+      background: '#d5dad8',
+      mint: '#73858a',
+      mintDark: '#4c5e63',
+      wood: '#927054',
+      woodDark: '#5f4939',
+      woodPanel: '#aa8768',
+    })
+
+    for (const [version, preset] of Object.entries(SCENE_PALETTE_PRESETS)) {
+      expect(version).toMatch(/^v(?:[1-9]|10)$/)
+      Object.values(preset).forEach((value) => expect(value).toMatch(/^#[0-9a-f]{6}$/))
+      expect(getScenePalette(version as keyof typeof SCENE_PALETTE_PRESETS)).toMatchObject({
+        ...preset,
+        notebookCover: '#173f35',
+        notebookCoverDark: '#0e2d27',
+        paper: '#fffbe7',
+        paperEdge: '#e6dcc4',
+      })
+    }
+
+    expect(resolveScenePaletteVersion('', true)).toBe('v2')
+    expect(resolveScenePaletteVersion('?palette=V10', true)).toBe('v10')
+    expect(resolveScenePaletteVersion('?palette=v7', true)).toBe('v7')
+    expect(resolveScenePaletteVersion('?palette=v11', true)).toBe('v2')
+    expect(resolveScenePaletteVersion('?palette=v9', false)).toBe('v2')
+  })
+
+  it('uses the v2 walnut and blue-gray surface roles while preserving notebook materials', () => {
     const materials = createTestMaterials()
 
-    expect(SCENE_PALETTE.background).toBe('#c9f0e5')
-    expect(materials.cloth.color.getHexString()).toBe('0cc0b5')
+    expect(SCENE_MATERIAL_VERSION).toBe('V2.0')
+    expect(SCENE_PALETTE.background).toBe('#d5dad8')
+    expect(SCENE_PALETTE.wood).toBe('#927054')
+    expect(SCENE_PALETTE.woodDark).toBe('#5f4939')
+    expect(SCENE_PALETTE.woodPanel).toBe('#aa8768')
+    expect(SCENE_PALETTE.mint).toBe('#73858a')
+    expect(SCENE_PALETTE.mintDark).toBe('#4c5e63')
+    expect(materials.walnut.color.getHexString()).toBe('927054')
+    expect(materials.walnutDark.color.getHexString()).toBe('5f4939')
+    expect(materials.walnutLegs.color.getHexString()).toBe('5f4939')
+    expect(materials.walnutPanel.color.getHexString()).toBe('aa8768')
+    expect(materials.cloth.color.getHexString()).toBe('73858a')
+    expect(materials.clothDark.color.getHexString()).toBe('4c5e63')
     expect(materials.notebookCover.color.getHexString()).toBe('173f35')
     expect(materials.notebookCoverDark.color.getHexString()).toBe('0e2d27')
+    expect(materials.notebookCover.aoMapIntensity).toBe(0.3)
+    expect(materials.notebookCover.bumpScale).toBe(0.0014)
+    expect(materials.notebookCover.roughness).toBe(0.96)
+    expect(materials.notebookCoverDark.roughness).toBe(0.98)
     expect(materials.notebookCover).not.toBe(materials.cloth)
     expect(materials.paper.color.getHexString()).toBe('fffbe7')
+    expect(materials.paper.aoMapIntensity).toBe(0.12)
+    expect(materials.paper.bumpScale).toBe(0.0018)
+    expect(materials.paper.roughness).toBe(0.98)
+    expect(materials.paperEdge.color.getHexString()).toBe('e6dcc4')
+    expect(materials.paperEdge.roughness).toBe(0.96)
     expect(materials.brass.color.getHexString()).toBe('ee7771')
     expect(materials.brass.metalness).toBeLessThan(0.1)
-    expect(materials.walnut.bumpScale).toBeLessThan(0.003)
+    expect(materials.walnut).toMatchObject({
+      aoMapIntensity: 0.18,
+      bumpScale: 0.0025,
+      clearcoat: 0.1,
+      clearcoatRoughness: 0.78,
+      roughness: 0.76,
+    })
+    expect(materials.cloth).toMatchObject({
+      aoMapIntensity: 0.18,
+      bumpScale: 0.0023,
+      roughness: 0.94,
+      sheen: 0.12,
+      sheenRoughness: 0.95,
+    })
+  })
+
+  it('updates all editable scene surfaces without replacing material objects', () => {
+    const materials = createTestMaterials()
+    const colors = {
+      ...getSceneColorConfig(),
+      deskFrame: '#112233',
+      deskLegs: '#445566',
+      notebookCover: '#778899',
+    }
+    const deskFrame = materials.walnutDark
+    const deskLegs = materials.walnutLegs
+
+    applySceneColors(materials, colors)
+
+    expect(materials.walnutDark).toBe(deskFrame)
+    expect(materials.walnutLegs).toBe(deskLegs)
+    expect(materials.walnutDark.color.getHexString()).toBe('112233')
+    expect(materials.walnutLegs.color.getHexString()).toBe('445566')
+    expect(materials.notebookCover.color.getHexString()).toBe('778899')
+    expect(materials.paper.color.getHexString()).toBe('fffbe7')
+  })
+
+  it('applies each candidate only to scene surfaces', () => {
+    for (const version of Object.keys(SCENE_PALETTE_PRESETS) as Array<keyof typeof SCENE_PALETTE_PRESETS>) {
+      const materials = createModelMaterialLibrary({
+        anisotropy: 1,
+        palette: getScenePalette(version),
+        textureSize: 4,
+      })
+      libraries.push(materials)
+      const preset = SCENE_PALETTE_PRESETS[version]
+
+      expect(materials.walnut.color.getHexString()).toBe(preset.wood.slice(1))
+      expect(materials.walnutDark.color.getHexString()).toBe(preset.woodDark.slice(1))
+      expect(materials.walnutPanel.color.getHexString()).toBe(preset.woodPanel.slice(1))
+      expect(materials.cloth.color.getHexString()).toBe(preset.mint.slice(1))
+      expect(materials.clothDark.color.getHexString()).toBe(preset.mintDark.slice(1))
+      expect(materials.notebookCover.color.getHexString()).toBe('173f35')
+      expect(materials.notebookCoverDark.color.getHexString()).toBe('0e2d27')
+      expect(materials.paper.color.getHexString()).toBe('fffbe7')
+      expect(materials.paperEdge.color.getHexString()).toBe('e6dcc4')
+    }
+  })
+
+  it('keeps notebook texture samples frozen while wood and cloth stay neutral', () => {
+    const coordinates = [
+      [0, 0],
+      [5, 7],
+      [8, 12],
+    ] as const
+    const kraft = [
+      { albedo: [230, 225, 206], ao: 242, height: 124, roughness: 242 },
+      { albedo: [232, 226, 207], ao: 243, height: 131, roughness: 242 },
+      { albedo: [232, 226, 207], ao: 243, height: 131, roughness: 241 },
+    ]
+    const paper = [
+      { albedo: [255, 251, 231], ao: 246, height: 130, roughness: 237 },
+      { albedo: [255, 251, 231], ao: 247, height: 128, roughness: 238 },
+      { albedo: [255, 251, 231], ao: 248, height: 129, roughness: 240 },
+    ]
+
+    coordinates.forEach(([x, y], index) => {
+      expect(sampleSurfaceChannels('kraft', x, y, 16)).toEqual(kraft[index])
+      expect(sampleSurfaceChannels('paper', x, y, 16)).toEqual(paper[index])
+
+      for (const family of ['wood', 'cloth'] as const) {
+        const { albedo } = sampleSurfaceChannels(family, x, y, 16)
+        expect(new Set(albedo).size).toBe(1)
+      }
+    })
   })
 
   it('keeps large plan radii independent from thin panel thickness', () => {
@@ -156,6 +308,12 @@ describe('procedural scene model factories', () => {
       direction: 'panel-support',
       topRadius: DESK_MODEL_SPEC.leg.topRadius,
     })
+    expect(deskRuntime.nodes.legLeftFront.material).toBe(materials.walnutLegs)
+    expect(deskRuntime.nodes.legRightFront.material).toBe(materials.walnutLegs)
+    expect(deskRuntime.nodes.apron.material).toBe(materials.walnutDark)
+    expect(deskRuntime.nodes.legLeftFront.material).not.toBe(
+      deskRuntime.nodes.apron.material,
+    )
     expect(deskRuntime.sockets['socket-apron-front']!.position.toArray()).toEqual(
       [...DESK_MODEL_SPEC.apron.position],
     )

@@ -1,11 +1,17 @@
 import { BookOpen, Camera, Sticker } from 'lucide-react'
-import { lazy, Suspense, useEffect } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 
 import { formatLocalDate } from '../domain/daily-entry'
 import { JournalPanel } from '../features/journal/JournalPanel'
 import { StickerControls } from '../features/stickers/StickerControls'
 import { StickerStudio } from '../features/stickers/StickerStudio'
 import { DeskScene } from '../scene/DeskScene'
+import { SceneColorEditor, SceneColorEditorButton } from '../scene/SceneColorEditor'
+import {
+  getSceneColorConfig,
+  getScenePalette,
+  resolveScenePaletteVersion,
+} from '../scene/models/material-library'
 import { useAppStore } from '../state/app-store-context'
 import { Button } from '../ui'
 
@@ -38,6 +44,10 @@ function SceneFallback() {
 }
 
 function ProductApp() {
+  const [sceneColors, setSceneColors] = useState(() => getSceneColorConfig(
+    getScenePalette(resolveScenePaletteVersion(window.location.search, import.meta.env.DEV)),
+  ))
+  const [showColorEditor, setShowColorEditor] = useState(false)
   const cycleDeskCameraPreset = useAppStore(
     (state) => state.cycleDeskCameraPreset,
   )
@@ -109,7 +119,7 @@ function ProductApp() {
         <StickerStudio />
       ) : (
         <div className="scene-shell">
-          <DeskScene fallback={<SceneFallback />} />
+          <DeskScene colors={sceneColors} fallback={<SceneFallback />} />
         </div>
       )}
 
@@ -137,7 +147,10 @@ function ProductApp() {
           <Button
             className="notebook-button"
             icon={<BookOpen aria-hidden="true" size={19} strokeWidth={1.8} />}
-            onClick={requestNotebookOpen}
+            onClick={() => {
+              setShowColorEditor(false)
+              requestNotebookOpen()
+            }}
             variant="primary"
           >
             <span>打开本子</span>
@@ -145,12 +158,28 @@ function ProductApp() {
           <Button
             className="sticker-workbench-button"
             icon={<Sticker aria-hidden="true" size={19} strokeWidth={1.8} />}
-            onClick={openStickerStudio}
+            onClick={() => {
+              setShowColorEditor(false)
+              openStickerStudio()
+            }}
             variant="secondary"
           >
             <span>贴纸工作台</span>
           </Button>
         </div>
+      ) : null}
+
+      {showDeskActions ? (
+        showColorEditor ? (
+          <SceneColorEditor
+            colors={sceneColors}
+            onChange={setSceneColors}
+            onClose={() => setShowColorEditor(false)}
+            onReset={() => setSceneColors(getSceneColorConfig())}
+          />
+        ) : (
+          <SceneColorEditorButton onClick={() => setShowColorEditor(true)} />
+        )
       ) : null}
 
       <JournalPanel />

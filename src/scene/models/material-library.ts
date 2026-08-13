@@ -1,21 +1,150 @@
 import * as THREE from 'three'
 
-export const SCENE_PALETTE = {
-  background: '#c9f0e5',
+export const SCENE_MATERIAL_VERSION = 'V2.0' as const
+export const DEFAULT_SCENE_PALETTE_VERSION = 'v2' as const
+
+export const SCENE_PALETTE_PRESETS = {
+  v1: {
+    background: '#dce4e0',
+    mint: '#78958a',
+    mintDark: '#526f65',
+    wood: '#ad927c',
+    woodDark: '#705e50',
+    woodPanel: '#bca28b',
+  },
+  v2: {
+    background: '#d5dad8',
+    mint: '#73858a',
+    mintDark: '#4c5e63',
+    wood: '#927054',
+    woodDark: '#5f4939',
+    woodPanel: '#aa8768',
+  },
+  v3: {
+    background: '#d8dee2',
+    mint: '#536b7b',
+    mintDark: '#344b59',
+    wood: '#a9794f',
+    woodDark: '#654832',
+    woodPanel: '#bf9268',
+  },
+  v4: {
+    background: '#ddd8d2',
+    mint: '#8a5d59',
+    mintDark: '#603f3c',
+    wood: '#856047',
+    woodDark: '#573e31',
+    woodPanel: '#a77b5c',
+  },
+  v5: {
+    background: '#d3d5d5',
+    mint: '#5c6263',
+    mintDark: '#3b4142',
+    wood: '#9a6c46',
+    woodDark: '#59402f',
+    woodPanel: '#b5845c',
+  },
+  v6: {
+    background: '#ddd9de',
+    mint: '#71697a',
+    mintDark: '#4e4857',
+    wood: '#89634d',
+    woodDark: '#503a2f',
+    woodPanel: '#a77e66',
+  },
+  v7: {
+    background: '#d9d8d1',
+    mint: '#9a8354',
+    mintDark: '#6d5c38',
+    wood: '#795640',
+    woodDark: '#463228',
+    woodPanel: '#956e54',
+  },
+  v8: {
+    background: '#d7dadd',
+    mint: '#596d82',
+    mintDark: '#3d5064',
+    wood: '#a4866b',
+    woodDark: '#625044',
+    woodPanel: '#b99a7e',
+  },
+  v9: {
+    background: '#dad6d2',
+    mint: '#985f4f',
+    mintDark: '#693f35',
+    wood: '#805943',
+    woodDark: '#4b352a',
+    woodPanel: '#9b7057',
+  },
+  v10: {
+    background: '#d5d7d7',
+    mint: '#4f5555',
+    mintDark: '#303535',
+    wood: '#8b6548',
+    woodDark: '#49372b',
+    woodPanel: '#a67e5d',
+  },
+} as const
+
+export type ScenePaletteVersion = keyof typeof SCENE_PALETTE_PRESETS
+export type ScenePalettePreset = (typeof SCENE_PALETTE_PRESETS)[ScenePaletteVersion]
+
+const SCENE_PALETTE_FIXED = {
   coral: '#ee7771',
   coralDark: '#c95757',
-  mint: '#0cc0b5',
-  mintDark: '#087f78',
   mintSoft: '#83d9c8',
   notebookCover: '#173f35',
   notebookCoverDark: '#0e2d27',
   paper: '#fffbe7',
   paperEdge: '#e6dcc4',
   shadow: '#5e766f',
-  wood: '#d9a66f',
-  woodDark: '#9b6947',
-  woodPanel: '#f1c994',
 } as const
+
+export type ScenePalette = ScenePalettePreset & typeof SCENE_PALETTE_FIXED
+
+export interface SceneColorConfig {
+  background: string
+  deskFrame: string
+  deskInset: string
+  deskLegs: string
+  deskTop: string
+  matBinding: string
+  matField: string
+  notebookCover: string
+  notebookJoint: string
+}
+
+export const getScenePalette = (version: ScenePaletteVersion): ScenePalette => ({
+  ...SCENE_PALETTE_FIXED,
+  ...SCENE_PALETTE_PRESETS[version],
+})
+
+export const SCENE_PALETTE = getScenePalette(DEFAULT_SCENE_PALETTE_VERSION)
+
+export const getSceneColorConfig = (
+  palette: ScenePalette = SCENE_PALETTE,
+): SceneColorConfig => ({
+  background: palette.background,
+  deskFrame: palette.woodDark,
+  deskInset: palette.woodPanel,
+  deskLegs: palette.woodDark,
+  deskTop: palette.wood,
+  matBinding: palette.mintDark,
+  matField: palette.mint,
+  notebookCover: palette.notebookCover,
+  notebookJoint: palette.notebookCoverDark,
+})
+
+export const resolveScenePaletteVersion = (
+  search: string,
+  development: boolean,
+): ScenePaletteVersion => {
+  if (!development) return DEFAULT_SCENE_PALETTE_VERSION
+  const requested = new URLSearchParams(search).get('palette')?.toLowerCase()
+  return requested && requested in SCENE_PALETTE_PRESETS
+    ? requested as ScenePaletteVersion
+    : DEFAULT_SCENE_PALETTE_VERSION
+}
 
 export type SurfaceFamily = 'cloth' | 'kraft' | 'paper' | 'wood'
 export type SurfaceChannel = 'albedo' | 'ao' | 'height' | 'roughness'
@@ -42,8 +171,23 @@ export interface ModelMaterialLibrary {
   textures: THREE.Texture[]
   walnut: THREE.MeshPhysicalMaterial
   walnutDark: THREE.MeshPhysicalMaterial
+  walnutLegs: THREE.MeshPhysicalMaterial
   walnutPanel: THREE.MeshPhysicalMaterial
   dispose: () => void
+}
+
+export const applySceneColors = (
+  materials: ModelMaterialLibrary,
+  colors: SceneColorConfig,
+) => {
+  materials.walnut.color.set(colors.deskTop)
+  materials.walnutDark.color.set(colors.deskFrame)
+  materials.walnutLegs.color.set(colors.deskLegs)
+  materials.walnutPanel.color.set(colors.deskInset)
+  materials.cloth.color.set(colors.matField)
+  materials.clothDark.color.set(colors.matBinding)
+  materials.notebookCover.color.set(colors.notebookCover)
+  materials.notebookCoverDark.color.set(colors.notebookJoint)
 }
 
 const clampByte = (value: number) => Math.max(0, Math.min(255, Math.round(value)))
@@ -122,13 +266,10 @@ export function sampleSurfaceChannels(
       (macro - 0.5) * 0.9 +
       (meso - 0.5) * 0.62 +
       (micro - 0.5) * 0.2
-    const value = grain * 5 - pore * 1.5
+    const value = grain * 4.5 - pore * 1.2
+    const albedo = clampByte(246 + value)
     return {
-      albedo: [
-        clampByte(217 + value),
-        clampByte(166 + value * 0.72),
-        clampByte(111 + value * 0.48),
-      ],
+      albedo: [albedo, albedo, albedo],
       ao: clampByte(241 + (macro - 0.5) * 7 - pore * 11),
       height: clampByte(
         128 + (macro - 0.5) * 7 + (meso - 0.5) * 12 + (micro - 0.5) * 5 - pore * 5,
@@ -150,13 +291,10 @@ export function sampleSurfaceChannels(
     const twill = threadRidge((u + v) * twillCount)
     const weave = (warp - 0.23) * 0.58 + (weft - 0.23) * 0.3 + (twill - 0.23) * 0.12
     const interstice = 1 - Math.min(1, warp * 0.64 + weft * 0.36)
-    const value = (macro - 0.5) * 7 + (yarn - 0.5) * 3 + weave * 2.4
+    const value = (macro - 0.5) * 4 + (yarn - 0.5) * 2 + weave * 1.6
+    const albedo = clampByte(247 + value)
     return {
-      albedo: [
-        clampByte(19 + value * 0.42),
-        clampByte(189 + value * 0.72),
-        clampByte(178 + value * 0.68),
-      ],
+      albedo: [albedo, albedo, albedo],
       ao: clampByte(240 - interstice * 11 + (macro - 0.5) * 4),
       height: clampByte(
         124 + warp * 15 + weft * 9 + twill * 3 + (yarn - 0.5) * 4,
@@ -262,10 +400,17 @@ const createTextureSet = (
 }
 
 export function createModelMaterialLibrary(
-  options: { anisotropy?: number; textureSize?: number } = {},
+  options: {
+    anisotropy?: number
+    palette?: ScenePalette
+    sceneColors?: SceneColorConfig
+    textureSize?: number
+  } = {},
 ): ModelMaterialLibrary {
   const size = options.textureSize ?? 1024
   const anisotropy = options.anisotropy ?? 8
+  const palette = options.palette ?? SCENE_PALETTE
+  const sceneColors = options.sceneColors ?? getSceneColorConfig(palette)
   const wood = createTextureSet('wood', size, anisotropy)
   const cloth = createTextureSet('cloth', size, anisotropy)
   const kraft = createTextureSet('kraft', size, anisotropy)
@@ -282,41 +427,45 @@ export function createModelMaterialLibrary(
     aoMapIntensity: 0.18,
     bumpMap: wood.height,
     bumpScale: 0.0025,
-    clearcoat: 0.18,
-    clearcoatRoughness: 0.72,
+    clearcoat: 0.1,
+    clearcoatRoughness: 0.78,
+    color: sceneColors.deskTop,
     map: wood.albedo,
-    roughness: 0.72,
+    roughness: 0.76,
     roughnessMap: wood.roughness,
   })
   walnut.name = 'animal-desk-wood-top'
   const walnutDark = walnut.clone()
   walnutDark.name = 'animal-desk-wood-frame'
-  walnutDark.color.set(SCENE_PALETTE.woodDark)
-  walnutDark.roughness = 0.84
+  walnutDark.color.set(sceneColors.deskFrame)
+  walnutDark.roughness = 0.82
+  const walnutLegs = walnutDark.clone()
+  walnutLegs.name = 'animal-desk-wood-legs'
+  walnutLegs.color.set(sceneColors.deskLegs)
   const walnutPanel = walnut.clone()
   walnutPanel.name = 'animal-desk-wood-panel'
-  walnutPanel.color.set(SCENE_PALETTE.woodPanel)
-  walnutPanel.roughness = 0.79
+  walnutPanel.color.set(sceneColors.deskInset)
+  walnutPanel.roughness = 0.78
 
   const clothMaterial = new THREE.MeshPhysicalMaterial({
     aoMap: cloth.ao,
-    aoMapIntensity: 0.2,
+    aoMapIntensity: 0.18,
     anisotropy: 0.18,
     anisotropyRotation: Math.PI / 2,
     bumpMap: cloth.height,
-    bumpScale: 0.0028,
-    color: SCENE_PALETTE.mint,
+    bumpScale: 0.0023,
+    color: sceneColors.matField,
     map: cloth.albedo,
-    roughness: 0.93,
+    roughness: 0.94,
     roughnessMap: cloth.roughness,
-    sheen: 0.18,
-    sheenColor: new THREE.Color('#dff8f3'),
+    sheen: 0.12,
+    sheenColor: new THREE.Color('#aebdc0'),
     sheenRoughness: 0.95,
   })
   clothMaterial.name = 'animal-mint-cloth'
   const clothDark = clothMaterial.clone()
   clothDark.name = 'animal-mint-cloth-dark'
-  clothDark.color.set(SCENE_PALETTE.mintDark)
+  clothDark.color.set(sceneColors.matBinding)
   clothDark.roughness = 0.96
 
   const notebookCover = new THREE.MeshStandardMaterial({
@@ -324,7 +473,7 @@ export function createModelMaterialLibrary(
     aoMapIntensity: 0.3,
     bumpMap: kraft.height,
     bumpScale: 0.0014,
-    color: SCENE_PALETTE.notebookCover,
+    color: sceneColors.notebookCover,
     map: kraft.albedo,
     roughness: 0.96,
     roughnessMap: kraft.roughness,
@@ -332,7 +481,7 @@ export function createModelMaterialLibrary(
   notebookCover.name = 'ink-green-kraft-cover'
   const notebookCoverDark = notebookCover.clone()
   notebookCoverDark.name = 'ink-green-kraft-cover-dark'
-  notebookCoverDark.color.set(SCENE_PALETTE.notebookCoverDark)
+  notebookCoverDark.color.set(sceneColors.notebookJoint)
   notebookCoverDark.roughness = 0.98
 
   const paperMaterial = new THREE.MeshStandardMaterial({
@@ -375,6 +524,7 @@ export function createModelMaterialLibrary(
   const materials: THREE.Material[] = [
     walnut,
     walnutDark,
+    walnutLegs,
     walnutPanel,
     clothMaterial,
     clothDark,
@@ -403,6 +553,7 @@ export function createModelMaterialLibrary(
     textures,
     walnut,
     walnutDark,
+    walnutLegs,
     walnutPanel,
     dispose: () => {
       materials.forEach((material) => material.dispose())

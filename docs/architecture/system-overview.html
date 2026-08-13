@@ -22,7 +22,7 @@
         <kbd aria-hidden="true">/</kbd>
         <div id="search-results" class="search-results" role="listbox" aria-label="搜索结果" hidden></div>
       </div>
-      <span class="top-meta">CURRENT · 2026-08-12</span>
+      <span class="top-meta">CURRENT · 2026-08-13</span>
       <button class="toc-toggle" type="button" aria-controls="sidebar" aria-expanded="false">目录</button>
     </div>
   </header>
@@ -125,11 +125,12 @@
        -> userData.setOpenProgress(t)    // existing NotebookPhase timing
   -> unmount
        -> model.userData.dispose()       // factory-owned geometry
-       -> materials.dispose()            // shared material + 12 textures
+       -> materials.dispose()            // shared material + 16 textures
        -> SceneEnvironment cleanup       // PMREM + RoomEnvironment</code></pre>
         </div>
         <p>本子工厂保留稳定根位置、透明命中盒和封面铰链；<code>NotebookObject</code> 把既有状态机进度传给 <code>setOpenProgress</code>。只有 <code>notebookPhase === 'editing'</code> 时隐藏 3D 本子，避免它穿出 DOM 日记；approaching、opening、closing 和 retreating 阶段仍显示模型，关闭后恢复。</p>
-        <p>桌垫的可见织物模型与透明 placement hit surface 分离，所以材质和滚边几何不承担贴纸事件。重复织线、页缘、页线与铆钉使用实例化几何；材质库以确定性 1024px 程序纹理提供 wood、cloth、paper 的独立 albedo、AO、height 和 roughness 通道。</p>
+        <p>桌垫的可见织物模型与透明 placement hit surface 分离，所以材质和滚边几何不承担贴纸事件。重复织线、页缘、页线与铆钉使用实例化几何；材质库以确定性 1024px 程序纹理为 wood、cloth、kraft、paper 四个 family 各提供 albedo、AO、height 和 roughness，共 16 张纹理。当前 <code>SCENE_MATERIAL_VERSION</code> 为 <code>V2.0</code>；<code>SCENE_PALETTE_PRESETS</code> 保存已全部否决的 V1-V10 历史角色色，默认 <code>SCENE_PALETTE</code> 仍解析为运行回退值 V2。开发环境可用 <code>?palette=v1..v10</code> 决定调色器初始值，production 和无效参数均回到 V2；该选择与实时试色都不进入 store、IndexedDB 或 localStorage。</p>
+        <p><code>ProductApp</code> 以组件级 <code>SceneColorConfig</code> 持有九项临时 HEX，并把它传给 <code>SceneColorEditor</code> 与 <code>DeskScene</code>。材质库只创建一次 16 张程序纹理；后续输入通过 <code>applySceneColors()</code> 原位更新八个材质颜色，背景/fog 由 R3F prop 同步，不重建纹理、相机或 Canvas。桌面、桌框、板式桌腿、支撑嵌板、桌垫工作面、垫体/包边、本子外壳和书脊/接缝各有明确材质所有权；纸张、贴纸、PBR 与灯光不进入调色配置。</p>
       </section>
 
       <section id="journal-flow" data-search-title="双页日记链路">
@@ -264,7 +265,7 @@
               <tr><td>贴纸创建事务失败</td><td>不加入内存集合并显示错误</td><td>不会留下部分 source/definition/render/instance</td></tr>
               <tr><td>贴纸移动提交失败</td><td>显示错误并重新加载持久化位置</td><td>最后一次成功位置</td></tr>
               <tr><td>WebGL 初始化失败</td><td>显示 DOM 降级入口</td><td>双页 DOM 与 IndexedDB 日记链路</td></tr>
-              <tr><td>模型卸载或 StrictMode 重挂载</td><td>工厂释放自有 geometry；共享材质库释放 12 张纹理和材质；环境释放 PMREM</td><td>可序列化业务状态与 IndexedDB 数据</td></tr>
+              <tr><td>模型卸载或 StrictMode 重挂载</td><td>工厂释放自有 geometry；共享材质库释放 16 张纹理和材质；环境释放 PMREM</td><td>可序列化业务状态与 IndexedDB 数据</td></tr>
               <tr><td>模型超过预算</td><td>工厂测试失败；上限为 45 draw calls、80,000 triangles、16 textures 和一盏投影光</td><td>critical feature 不以静默删减换取通过</td></tr>
               <tr><td>reduced-motion</td><td>纸张大角度旋转改为 120ms 淡出</td><td>相同游标提交和边界语义</td></tr>
             </tbody>
@@ -316,8 +317,10 @@ edit historical text:
           <div><code><a href="../../src/persistence/database.ts">src/persistence/database.ts</a></code><span>IndexedDB v1/v2/v3 schema 与旧实例迁移</span></div>
           <div><code><a href="../../src/scene/NotebookObject.tsx">NotebookObject.tsx</a></code><span>封面铰链、内侧纸面、空间轮廓和打开意图</span></div>
           <div><code><a href="../../src/scene/DeskScene.tsx">src/scene/DeskScene.tsx</a></code><span>R3F root、相机转场、桌面 placement 与单 Canvas 生命周期</span></div>
+          <div><code><a href="../../src/scene/SceneColorEditor.tsx">src/scene/SceneColorEditor.tsx</a></code><span>九项临时色块/HEX、重置、复制反馈与桌面/移动面板命令</span></div>
+          <div><code><a href="../../src/scene/scene-color.ts">src/scene/scene-color.ts</a></code><span>完整六位 HEX 校验与可复制配置序列化</span></div>
           <div><code><a href="../../src/scene/models/model-specs.ts">models/model-specs.ts</a></code><span><code>MODEL_LIMITS</code> 与三对象可序列化尺寸规格</span></div>
-          <div><code><a href="../../src/scene/models/material-library.ts">models/material-library.ts</a></code><span><code>createModelMaterialLibrary</code> 与 wood/cloth/paper 独立 PBR 通道</span></div>
+          <div><code><a href="../../src/scene/models/material-library.ts">models/material-library.ts</a></code><span><code>SceneColorConfig</code>、<code>applySceneColors</code>、独立桌腿材质、默认 V2 解析与 wood/cloth/kraft/paper 的 16 张 PBR 通道</span></div>
           <div><code><a href="../../src/scene/models/create-desk-model.ts">models/create-desk-model.ts</a></code><span><code>createDeskModel</code>、抽屉梁、锥形桌腿、黄铜把手与释放入口</span></div>
           <div><code><a href="../../src/scene/models/create-desk-mat-model.ts">models/create-desk-mat-model.ts</a></code><span><code>createDeskMatModel</code>、平面圆角、滚边与实例化织线</span></div>
           <div><code><a href="../../src/scene/models/create-notebook-model.ts">models/create-notebook-model.ts</a></code><span><code>createNotebookModel</code>、<code>setOpenProgress</code>、页堆、中缝与连续书签</span></div>
@@ -334,7 +337,7 @@ edit historical text:
       <section id="verification" data-search-title="验证证据与未覆盖边界">
         <p class="section-index">12 · 验证</p>
         <h2>自动证据、模型规格和双视口 UI 检查均已通过</h2>
-        <p>当前 12 个测试文件共 43 个测试覆盖既有日期、保存、翻页、贴纸和迁移行为，也覆盖模型层级、材质与资源释放，以及 UI 适配层的点击、loading/disabled、分段选择和输入透传。ESLint、TypeScript/Vite production build、文档引用检查和 <code>git diff --check</code> 均通过。</p>
+        <p>当前 13 个测试文件共 55 个测试覆盖既有日期、保存、翻页、贴纸和迁移行为，也覆盖模型层级、材质与资源释放、九项调色键、HEX 校验、连续调色节点稳定性、复制配置、独立桌腿绑定、本子/纸张边界，以及 UI 适配层的点击和输入透传。ESLint、TypeScript/Vite production build、文档引用检查和 <code>git diff --check</code> 均通过。</p>
         <div class="table-wrap">
           <table>
             <thead><tr><th>能力</th><th>当前状态</th><th>证据边界</th></tr></thead>
@@ -343,7 +346,8 @@ edit historical text:
               <tr><td>独立贴纸工作台与双 surface</td><td><span class="status status-review">已完成</span></td><td>自动测试、构建与开发者验收；浏览器证据边界见 DD-20260808-002</td></tr>
               <tr><td>双页本子与仿真翻页</td><td><span class="status status-review">已完成</span></td><td>DD-20260809-001 自动测试、lint、build 与开发者验收</td></tr>
               <tr><td>统一阅读与历史正文书写</td><td><span class="status status-review">待验收</span></td><td>43 个全量测试、lint、build 及桌面/移动打开与关闭恢复流程通过</td></tr>
-              <tr><td>程序化桌子、桌垫与本子</td><td><span class="status status-review">待验收</span></td><td>三个 strict-quality spec 均 complete；最终视觉分数依次为 0.86、0.87、0.85，所有适用 critical feature 均不低于 0.82</td></tr>
+              <tr><td>程序化桌子、桌垫与本子</td><td><span class="status status-review">待重评</span></td><td>三个 strict-quality spec 均 complete，但用户已否决 V1-V10 全部配色并质疑模型造型；默认仍为运行回退值 <code>V2.0</code>，十版只作为负向证据保留</td></tr>
+              <tr><td>临时场景颜色编辑器</td><td><span class="status status-review">待验收</span></td><td>九项表面独立实时改色、重置、复制和刷新恢复已通过 1440 × 900 与 390 × 844；桌腿/桌框高辨识测试色证明材质分离，保持单 Canvas</td></tr>
               <tr><td>通用 DOM 与贴纸工作台重写</td><td><span class="status status-review">待验收</span></td><td><code>animal-island-ui@1.5.1</code> 经 <code>src/ui/</code> 接入；旧控件样式和旧工作台背景已删除，桌面、日记、文字/图片贴纸制作与抠图关键流程在桌面/移动端通过</td></tr>
               <tr><td>桌面/移动产品与本地 HTML 交互</td><td><span class="status status-review">已验证</span></td><td><code>ego-browser</code> 已覆盖 1440 × 900、390 × 844、DPR 2 与 reduced-motion；单 Canvas、无页面横向溢出</td></tr>
             </tbody>
@@ -355,7 +359,7 @@ edit historical text:
         </div>
       </section>
 
-      <footer>Dear Desk 当前系统架构 · 基于可运行源码、43 个自动测试与 DD-20260810-002 实施结果 · 2026-08-12</footer>
+      <footer>Dear Desk 当前系统架构 · 基于可运行源码、55 个自动测试与 DD-20260813-005 实施结果 · 2026-08-13</footer>
     </main>
   </div>
 

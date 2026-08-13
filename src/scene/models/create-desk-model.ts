@@ -69,6 +69,7 @@ export function createDeskModel(
   const showStructure = isPassEnabled(pass, 'structural-pass')
   const wood = detailed ? materials.walnut : materials.neutral
   const woodDark = detailed ? materials.walnutDark : materials.neutral
+  const woodLegs = detailed ? materials.walnutLegs : materials.neutral
   const panel = detailed ? materials.walnutPanel : materials.neutral
 
   const root = new THREE.Group()
@@ -129,8 +130,8 @@ export function createDeskModel(
   const legAssembly = new THREE.Group()
   legAssembly.name = 'desk-panel-support-assembly'
   const supportGeometry = createRoundedPanelGeometry(1.05, 2.9, 5.3, 0.5, 0.1)
-  const leftSupport = createMesh(supportGeometry, woodDark, 'desk-left-panel-support', options)
-  const rightSupport = createMesh(supportGeometry.clone(), woodDark, 'desk-right-panel-support', options)
+  const leftSupport = createMesh(supportGeometry, woodLegs, 'desk-left-panel-support', options)
+  const rightSupport = createMesh(supportGeometry.clone(), woodLegs, 'desk-right-panel-support', options)
   leftSupport.position.set(-4.65, -2.02, 0)
   rightSupport.position.set(4.65, -2.02, 0)
   leftSupport.userData.taper = {
