@@ -1,0 +1,139 @@
+{
+  "integralMeshes": 1,
+  "model": "warm-paper-atelier-desk",
+  "parts": [
+    {
+      "kind": "part",
+      "name": "tabletop-slab",
+      "triangles": 524
+    },
+    {
+      "kind": "part",
+      "name": "front-apron",
+      "triangles": 524
+    },
+    {
+      "kind": "part",
+      "name": "rear-apron",
+      "triangles": 524
+    },
+    {
+      "kind": "part",
+      "name": "left-side-rail",
+      "triangles": 524
+    },
+    {
+      "kind": "part",
+      "name": "right-side-rail",
+      "triangles": 524
+    },
+    {
+      "kind": "part",
+      "name": "left-rear-leg",
+      "triangles": 524
+    },
+    {
+      "kind": "part",
+      "name": "right-rear-leg",
+      "triangles": 524
+    },
+    {
+      "kind": "part",
+      "name": "left-front-leg",
+      "triangles": 524
+    },
+    {
+      "kind": "part",
+      "name": "right-front-leg",
+      "triangles": 524
+    },
+    {
+      "kind": "action-pivot",
+      "name": "drawer-left",
+      "triangles": 0
+    },
+    {
+      "kind": "part",
+      "name": "drawer-left-face",
+      "triangles": 524
+    },
+    {
+      "kind": "part",
+      "name": "drawer-left-body",
+      "triangles": 12
+    },
+    {
+      "kind": "action-pivot",
+      "name": "drawer-center",
+      "triangles": 0
+    },
+    {
+      "kind": "part",
+      "name": "drawer-center-face",
+      "triangles": 524
+    },
+    {
+      "kind": "part",
+      "name": "drawer-center-body",
+      "triangles": 12
+    },
+    {
+      "kind": "action-pivot",
+      "name": "drawer-right",
+      "triangles": 0
+    },
+    {
+      "kind": "part",
+      "name": "drawer-right-face",
+      "triangles": 524
+    },
+    {
+      "kind": "part",
+      "name": "drawer-right-body",
+      "triangles": 12
+    },
+    {
+      "kind": "instanced-part",
+      "name": "desk-knob-bases",
+      "triangles": 216
+    },
+    {
+      "kind": "instanced-part",
+      "name": "desk-knob-crowns",
+      "triangles": 1320
+    },
+    {
+      "kind": "integral",
+      "name": "tabletop-edge-band",
+      "objectName": "tabletop-slab"
+    },
+    {
+      "kind": "module",
+      "name": "leg-set",
+      "objectName": "desk-leg-assembly"
+    },
+    {
+      "kind": "module",
+      "name": "drawer-bank",
+      "objectName": "desk-model"
+    },
+    {
+      "kind": "module",
+      "name": "knob-assemblies",
+      "objectName": "desk-instanced-hardware"
+    },
+    {
+      "instanceId": 0,
+      "kind": "instance",
+      "name": "knob-left",
+      "objectName": "desk-knob-crowns"
+    },
+    {
+      "instanceId": 2,
+      "kind": "instance",
+      "name": "knob-right",
+      "objectName": "desk-knob-crowns"
+    }
+  ],
+  "unnamedMeshes": 0
+}

@@ -1,0 +1,87 @@
+{
+  "ok": true,
+  "verdict": "pass",
+  "confidence": 0.786,
+  "estimatedFidelity": 0.786,
+  "targetThreshold": 0.7,
+  "materialId": "aged-brass",
+  "sourceImage": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260816-002/pbr-crops/aged-brass.png",
+  "outDir": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260816-002/pbr-evidence/aged-brass",
+  "palette": [
+    "#492A11",
+    "#371F0C",
+    "#1F1104",
+    "#6D471E",
+    "#B0814B"
+  ],
+  "maps": {
+    "albedo": {
+      "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260816-002/pbr-evidence/aged-brass/aged-brass_albedo.png",
+      "url": "aged-brass_albedo.png",
+      "channel": "albedo",
+      "source": "reference-pixel-extraction"
+    },
+    "roughness": {
+      "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260816-002/pbr-evidence/aged-brass/aged-brass_roughness.png",
+      "url": "aged-brass_roughness.png",
+      "channel": "roughness",
+      "source": "reference-pixel-extraction"
+    },
+    "height": {
+      "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260816-002/pbr-evidence/aged-brass/aged-brass_height.png",
+      "url": "aged-brass_height.png",
+      "channel": "height",
+      "source": "reference-pixel-extraction"
+    },
+    "normal": {
+      "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260816-002/pbr-evidence/aged-brass/aged-brass_normal.png",
+      "url": "aged-brass_normal.png",
+      "channel": "normal",
+      "source": "reference-pixel-extraction"
+    },
+    "ao": {
+      "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260816-002/pbr-evidence/aged-brass/aged-brass_ao.png",
+      "url": "aged-brass_ao.png",
+      "channel": "ao",
+      "source": "reference-pixel-extraction"
+    }
+  },
+  "diagnostics": {
+    "sourceWidth": 125,
+    "sourceHeight": 125,
+    "mapSize": 1024,
+    "cropBBoxPixels": {
+      "x": 0,
+      "y": 0,
+      "width": 125,
+      "height": 125
+    },
+    "mask": {
+      "backgroundColor": "#3D210F",
+      "backgroundNoise": 8.775,
+      "transparentPixelFraction": 0.0,
+      "foregroundCoverage": 1.0
+    },
+    "mapStats": {
+      "valueRange": 0.3059,
+      "heightP90Gradient": 0.02749,
+      "roughnessBase": 0.704,
+      "roughnessVariation": 0.05,
+      "normalStrength": 0.188,
+      "blurRadius": 21
+    },
+    "palette": [
+      "#492A11",
+      "#371F0C",
+      "#1F1104",
+      "#6D471E",
+      "#B0814B"
+    ]
+  },
+  "warnings": [
+    "image is not clearly isolated from background; using most pixels as material evidence",
+    "object/background separation is weak",
+    "single-image inverse rendering cannot prove true physical PBR; confidence is capped"
+  ],
+  "limitation": "single-image PBR extraction is an estimate; 70%+ extraction confidence still needs render screenshot review"
+}

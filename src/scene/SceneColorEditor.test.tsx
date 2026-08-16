@@ -4,9 +4,17 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { getSceneColorConfig } from './models/material-library'
 import { isSceneHexColor, serializeSceneColors } from './scene-color'
-import { SceneColorEditor } from './SceneColorEditor'
+import { SceneColorEditor, SceneColorEditorButton } from './SceneColorEditor'
 
 describe('SceneColorEditor', () => {
+  it('keeps the palette button accessible without a native hover title', () => {
+    render(<SceneColorEditorButton onClick={vi.fn()} />)
+
+    expect(
+      screen.getByRole('button', { name: '打开场景颜色编辑器' }),
+    ).not.toHaveAttribute('title')
+  })
+
   it('recognizes only complete six-digit HEX colors', () => {
     expect(isSceneHexColor('#12aBcF')).toBe(true)
     expect(isSceneHexColor('#123')).toBe(false)

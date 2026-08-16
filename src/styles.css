@@ -112,16 +112,37 @@ textarea:focus-visible {
   box-shadow: 0 12px 26px rgba(31, 24, 18, 0.12);
 }
 
-.scene-color-editor-button {
+.scene-tool-stack {
   position: absolute;
   z-index: 8;
   top: 28px;
   right: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.scene-tool-stack .dd-icon-button {
   width: 48px;
   min-width: 48px;
   height: 48px;
   padding: 0;
   box-shadow: 0 5px 0 rgba(61, 52, 40, 0.2);
+}
+
+.free-camera-button[aria-pressed="true"] {
+  color: var(--animal-primary-color-active);
+  background: #fffbe7;
+  border-color: var(--animal-primary-color);
+  transform: translateY(3px);
+  box-shadow: 0 2px 0 var(--animal-primary-color-active);
+}
+
+.free-camera-button[aria-pressed="false"]:hover:not(:disabled),
+.free-camera-button[aria-pressed="true"]:hover:not(:disabled) {
+  color: var(--animal-primary-color-active);
+  background: #fffbe7;
+  border-color: var(--animal-primary-color);
 }
 
 .scene-color-editor {
@@ -958,7 +979,7 @@ textarea:focus-visible {
 }
 
 @media (max-width: 700px) {
-  .scene-color-editor-button {
+  .scene-tool-stack {
     top: 18px;
     right: 16px;
   }

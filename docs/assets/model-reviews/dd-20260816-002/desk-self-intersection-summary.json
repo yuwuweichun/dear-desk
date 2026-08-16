@@ -1,0 +1,12 @@
+{
+  "result": "pass",
+  "selfIntersecting": false,
+  "meshCount": 17,
+  "insideVertexCount": 0,
+  "undecidedVertexCount": 62,
+  "sampledVertexCount": 9889,
+  "totalVertexCount": 19321,
+  "normalSource": "exported vertex normals",
+  "meshEvidence": "desk-meshes.json",
+  "notes": "All 17 exported runtime geometries were checked after the leg, drawer-bank and tabletop proportion corrections. The deterministic stride-limited pass sampled 9,889 of 19,321 vertices; undecided samples were grazing or edge-adjacent ray cases and were not rounded into failures."
+}

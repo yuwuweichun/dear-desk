@@ -87,6 +87,13 @@ input {
   gap: 24px;
 }
 
+.topbar-inner > *,
+.page-layout > *,
+main,
+section {
+  min-width: 0;
+}
+
 .brand {
   display: inline-flex;
   align-items: center;
@@ -641,7 +648,7 @@ footer {
 
 @media (max-width: 900px) {
   .topbar-inner {
-    grid-template-columns: auto minmax(180px, 1fr) auto;
+    grid-template-columns: auto minmax(0, 1fr) auto;
     gap: 12px;
     padding: 0 20px;
   }

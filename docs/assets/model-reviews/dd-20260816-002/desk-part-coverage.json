@@ -1,0 +1,178 @@
+{
+  "model": "warm-paper-atelier-desk",
+  "specifiedComponents": 16,
+  "builtParts": 26,
+  "errors": 0,
+  "warnings": 16,
+  "result": "pass",
+  "findings": [
+    {
+      "check": "detail-dangling",
+      "severity": "warning",
+      "subject": "desk-detail-tabletop-plan-radius",
+      "detail": "mapsTo 'tabletop-slab/tabletop-plan-corner-radius' matches no component, localFeature or localOverride"
+    },
+    {
+      "check": "detail-dangling",
+      "severity": "warning",
+      "subject": "desk-detail-tabletop-edge-bevel",
+      "detail": "mapsTo 'tabletop-slab/tabletop-perimeter-bevel' matches no component, localFeature or localOverride"
+    },
+    {
+      "check": "detail-dangling",
+      "severity": "warning",
+      "subject": "desk-detail-top-grain",
+      "detail": "mapsTo 'walnut-top/longitudinal-top-grain' matches no component, localFeature or localOverride"
+    },
+    {
+      "check": "detail-dangling",
+      "severity": "warning",
+      "subject": "desk-detail-edge-darkening",
+      "detail": "mapsTo 'walnut-top/perimeter-edge-darkening' matches no component, localFeature or localOverride"
+    },
+    {
+      "check": "detail-dangling",
+      "severity": "warning",
+      "subject": "desk-detail-under-top-reveal",
+      "detail": "mapsTo 'front-apron/top-shadow-reveal' matches no component, localFeature or localOverride"
+    },
+    {
+      "check": "detail-dangling",
+      "severity": "warning",
+      "subject": "desk-detail-drawer-width-hierarchy",
+      "detail": "mapsTo 'drawer-bank/wide-center-narrow-side-layout' matches no component, localFeature or localOverride"
+    },
+    {
+      "check": "detail-dangling",
+      "severity": "warning",
+      "subject": "desk-detail-drawer-front-bevel",
+      "detail": "mapsTo 'drawer-bank/drawer-front-soft-bevel' matches no component, localFeature or localOverride"
+    },
+    {
+      "check": "detail-dangling",
+      "severity": "warning",
+      "subject": "desk-detail-drawer-gap",
+      "detail": "mapsTo 'drawer-bank/drawer-perimeter-recess' matches no component, localFeature or localOverride"
+    },
+    {
+      "check": "detail-dangling",
+      "severity": "warning",
+      "subject": "desk-detail-drawer-grain",
+      "detail": "mapsTo 'walnut-drawer/horizontal-drawer-grain' matches no component, localFeature or localOverride"
+    },
+    {
+      "check": "detail-dangling",
+      "severity": "warning",
+      "subject": "desk-detail-knob-profile",
+      "detail": "mapsTo 'knob-assemblies/mushroom-knob-profile' matches no component, localFeature or localOverride"
+    },
+    {
+      "check": "detail-dangling",
+      "severity": "warning",
+      "subject": "desk-detail-brass-highlight",
+      "detail": "mapsTo 'aged-brass/crown-polish-highlight' matches no component, localFeature or localOverride"
+    },
+    {
+      "check": "detail-dangling",
+      "severity": "warning",
+      "subject": "desk-detail-brass-patina",
+      "detail": "mapsTo 'aged-brass/rim-tarnish-mottle' matches no component, localFeature or localOverride"
+    },
+    {
+      "check": "detail-dangling",
+      "severity": "warning",
+      "subject": "desk-detail-leg-taper",
+      "detail": "mapsTo 'leg-set/downward-leg-taper' matches no component, localFeature or localOverride"
+    },
+    {
+      "check": "detail-dangling",
+      "severity": "warning",
+      "subject": "desk-detail-leg-edge-bevel",
+      "detail": "mapsTo 'leg-set/leg-soft-edge-and-foot' matches no component, localFeature or localOverride"
+    },
+    {
+      "check": "detail-dangling",
+      "severity": "warning",
+      "subject": "desk-detail-leg-grain",
+      "detail": "mapsTo 'walnut-frame/vertical-leg-grain' matches no component, localFeature or localOverride"
+    },
+    {
+      "check": "detail-dangling",
+      "severity": "warning",
+      "subject": "desk-detail-contact-cavity",
+      "detail": "mapsTo 'walnut-frame/joinery-cavity-darkening' matches no component, localFeature or localOverride"
+    },
+    {
+      "check": "component-folded",
+      "severity": "info",
+      "subject": "underside-panel",
+      "detail": "no mesh of its own \u2014 folded into 'tabletop-slab', which is built. Correct for relief; a real gap only if this needed to be separable."
+    },
+    {
+      "check": "part-not-specified",
+      "severity": "info",
+      "subject": "desk-knob-bases",
+      "detail": "built part has no matching component in the spec (fine for detail groups; a sign of spec drift for anything larger)"
+    },
+    {
+      "check": "part-not-specified",
+      "severity": "info",
+      "subject": "desk-knob-crowns",
+      "detail": "built part has no matching component in the spec (fine for detail groups; a sign of spec drift for anything larger)"
+    },
+    {
+      "check": "part-not-specified",
+      "severity": "info",
+      "subject": "drawer-center",
+      "detail": "built part has no matching component in the spec (fine for detail groups; a sign of spec drift for anything larger)"
+    },
+    {
+      "check": "part-not-specified",
+      "severity": "info",
+      "subject": "drawer-center-body",
+      "detail": "built part has no matching component in the spec (fine for detail groups; a sign of spec drift for anything larger)"
+    },
+    {
+      "check": "part-not-specified",
+      "severity": "info",
+      "subject": "drawer-center-face",
+      "detail": "built part has no matching component in the spec (fine for detail groups; a sign of spec drift for anything larger)"
+    },
+    {
+      "check": "part-not-specified",
+      "severity": "info",
+      "subject": "drawer-left-body",
+      "detail": "built part has no matching component in the spec (fine for detail groups; a sign of spec drift for anything larger)"
+    },
+    {
+      "check": "part-not-specified",
+      "severity": "info",
+      "subject": "drawer-left-face",
+      "detail": "built part has no matching component in the spec (fine for detail groups; a sign of spec drift for anything larger)"
+    },
+    {
+      "check": "part-not-specified",
+      "severity": "info",
+      "subject": "drawer-right-body",
+      "detail": "built part has no matching component in the spec (fine for detail groups; a sign of spec drift for anything larger)"
+    },
+    {
+      "check": "part-not-specified",
+      "severity": "info",
+      "subject": "drawer-right-face",
+      "detail": "built part has no matching component in the spec (fine for detail groups; a sign of spec drift for anything larger)"
+    },
+    {
+      "check": "part-not-specified",
+      "severity": "info",
+      "subject": "right-front-leg",
+      "detail": "built part has no matching component in the spec (fine for detail groups; a sign of spec drift for anything larger)"
+    },
+    {
+      "check": "part-not-specified",
+      "severity": "info",
+      "subject": "tabletop-slab",
+      "detail": "built part has no matching component in the spec (fine for detail groups; a sign of spec drift for anything larger)"
+    }
+  ]
+}

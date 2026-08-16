@@ -1,5 +1,5 @@
 import { Time } from 'animal-island-ui'
-import { BookOpen, Camera, Sticker } from 'lucide-react'
+import { BookOpen, Camera, CameraOff, Sticker } from 'lucide-react'
 import { lazy, Suspense, useEffect, useState } from 'react'
 
 import { JournalPanel } from '../features/journal/JournalPanel'
@@ -13,7 +13,7 @@ import {
   resolveScenePaletteVersion,
 } from '../scene/models/material-library'
 import { useAppStore } from '../state/app-store-context'
-import { Button } from '../ui'
+import { Button, IconButton } from '../ui'
 
 type ModelReviewKind = 'desk' | 'mat' | 'notebook'
 
@@ -55,6 +55,8 @@ function ProductApp() {
   const deskCameraTransitioning = useAppStore(
     (state) => state.deskCameraTransitioning,
   )
+  const disableFreeCamera = useAppStore((state) => state.disableFreeCamera)
+  const freeCameraEnabled = useAppStore((state) => state.freeCameraEnabled)
   const loadToday = useAppStore((state) => state.loadToday)
   const loadStickers = useAppStore((state) => state.loadStickers)
   const notebookPhase = useAppStore((state) => state.notebookPhase)
@@ -65,6 +67,7 @@ function ProductApp() {
   )
   const stickerWorkflow = useAppStore((state) => state.stickerWorkflow)
   const selectedStickerId = useAppStore((state) => state.selectedStickerId)
+  const toggleFreeCamera = useAppStore((state) => state.toggleFreeCamera)
 
   useEffect(() => {
     void loadToday()
@@ -100,6 +103,7 @@ function ProductApp() {
       className="app-shell"
       data-camera-preset={deskCameraPreset}
       data-camera-transitioning={deskCameraTransitioning}
+      data-free-camera-enabled={freeCameraEnabled}
       data-notebook-phase={notebookPhase}
       data-sticker-workflow={stickerWorkflow}
     >
@@ -118,7 +122,7 @@ function ProductApp() {
           <Button
             aria-label={`当前${cameraPresetLabels[deskCameraPreset]}，切换到${cameraPresetLabels[nextCameraPreset[deskCameraPreset]]}`}
             className="camera-preset-button"
-            disabled={deskCameraTransitioning}
+            disabled={deskCameraTransitioning || freeCameraEnabled}
             icon={<Camera aria-hidden="true" size={19} strokeWidth={1.8} />}
             onClick={cycleDeskCameraPreset}
             title={`切换到${cameraPresetLabels[nextCameraPreset[deskCameraPreset]]}`}
@@ -160,7 +164,29 @@ function ProductApp() {
             onReset={() => setSceneColors(getSceneColorConfig())}
           />
         ) : (
-          <SceneColorEditorButton onClick={() => setShowColorEditor(true)} />
+          <div className="scene-tool-stack">
+            <SceneColorEditorButton
+              onClick={() => {
+                disableFreeCamera()
+                setShowColorEditor(true)
+              }}
+            />
+            <IconButton
+              aria-pressed={freeCameraEnabled}
+              className="free-camera-button"
+              disabled={deskCameraTransitioning}
+              label={freeCameraEnabled ? '关闭自由视角' : '开启自由视角'}
+              onClick={toggleFreeCamera}
+              showTitle={false}
+              variant="secondary"
+            >
+              {freeCameraEnabled ? (
+                <Camera aria-hidden="true" size={20} strokeWidth={1.8} />
+              ) : (
+                <CameraOff aria-hidden="true" size={20} strokeWidth={1.8} />
+              )}
+            </IconButton>
+          </div>
         )
       ) : null}
 

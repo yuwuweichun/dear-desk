@@ -7,7 +7,6 @@ import { createDeskModel } from './models/create-desk-model'
 import { createNotebookModel } from './models/create-notebook-model'
 import {
   createModelMaterialLibrary,
-  SCENE_PALETTE,
   type ModelMaterialLibrary,
 } from './models/material-library'
 import { SceneEnvironment } from './models/SceneEnvironment'
@@ -46,7 +45,6 @@ interface CameraPose {
 }
 
 interface ReviewConfiguration {
-  groundY: number
   light: ReviewLight
   notebookState: NotebookReviewState
   pose: CameraPose
@@ -57,8 +55,23 @@ const REVIEW_VIEWS = {
   desk: {
     'front-three-quarter': {
       fov: 33,
-      position: [10.8, 3.75, 13.8],
+      position: [11.55, 2.15, 13.8],
+      target: [0.75, -2.65, 0.35],
+    },
+    'left-three-quarter': {
+      fov: 33,
+      position: [-10.8, 3.75, 13.8],
       target: [0, -1.05, 0.35],
+    },
+    'rear-three-quarter': {
+      fov: 34,
+      position: [-10.4, 3.65, -13.4],
+      target: [0, -1.08, -0.2],
+    },
+    side: {
+      fov: 34,
+      position: [15.5, 2.7, 0.2],
+      target: [0, -1.08, 0],
     },
     'top-integration': {
       fov: 32,
@@ -166,7 +179,6 @@ const getReviewConfiguration = (
   const defaultLight = view === 'grazing' ? 'grazing' : 'reference-match'
 
   return {
-    groundY: model === 'desk' ? -3.45 : model === 'mat' ? -0.025 : -0.1,
     light: isReviewLight(requestedLight) ? requestedLight : defaultLight,
     notebookState,
     pose: views[view] ?? views[DEFAULT_VIEWS[model]]!,
@@ -305,7 +317,7 @@ function ReviewWorld({
 }) {
   return (
     <>
-      <color attach="background" args={[SCENE_PALETTE.background]} />
+      <color attach="background" args={['#111111']} />
       <SceneEnvironment
         intensity={LIGHT_SETTINGS[configuration.light].environmentIntensity}
       />
@@ -316,14 +328,6 @@ function ReviewWorld({
         notebookState={configuration.notebookState}
         pass={pass}
       />
-      <mesh
-        position={[0, configuration.groundY, 0]}
-        receiveShadow
-        rotation={[-Math.PI / 2, 0, 0]}
-      >
-        <planeGeometry args={[72, 72]} />
-        <meshStandardMaterial color="#070d09" roughness={1} />
-      </mesh>
     </>
   )
 }
