@@ -60,6 +60,7 @@ export interface AppState {
   notebookPhase: NotebookPhase
   deskCameraPreset: DeskCameraPreset
   deskCameraTransitioning: boolean
+  freeCameraEnabled: boolean
   loadStatus: LoadStatus
   saveStatus: SaveStatus
   errorMessage: string | null
@@ -86,6 +87,8 @@ export interface AppState {
   settleJournalTurn: () => void
   requestNotebookOpen: () => void
   cycleDeskCameraPreset: () => void
+  toggleFreeCamera: () => void
+  disableFreeCamera: () => void
   settleDeskCameraPreset: () => void
   advanceNotebookPhase: (from: NotebookPhase) => void
   requestNotebookClose: () => void
@@ -154,6 +157,7 @@ export const createAppStore = (
     notebookPhase: 'desk',
     deskCameraPreset: 'far',
     deskCameraTransitioning: false,
+    freeCameraEnabled: false,
     loadStatus: 'idle',
     saveStatus: 'idle',
     errorMessage: null,
@@ -344,9 +348,12 @@ export const createAppStore = (
         state.stickerWorkflow === 'idle' &&
         !state.deskCameraTransitioning
           ? {
-              notebookPhase: state.deskCameraPreset === 'near'
-                ? 'opening'
-                : 'approaching',
+              notebookPhase:
+                state.freeCameraEnabled || state.deskCameraPreset !== 'near'
+                  ? 'approaching'
+                  : 'opening',
+              freeCameraEnabled: false,
+              deskCameraTransitioning: false,
               selectedStickerId: null,
             }
           : state,
@@ -356,11 +363,41 @@ export const createAppStore = (
       set((state) =>
         state.notebookPhase === 'desk' &&
         state.stickerWorkflow === 'idle' &&
+        !state.freeCameraEnabled &&
         !state.deskCameraTransitioning
           ? {
               deskCameraPreset: nextDeskCameraPreset[state.deskCameraPreset],
               deskCameraTransitioning: true,
               selectedStickerId: null,
+            }
+          : state,
+      ),
+
+    toggleFreeCamera: () =>
+      set((state) => {
+        if (state.freeCameraEnabled) {
+          return {
+            freeCameraEnabled: false,
+            deskCameraTransitioning: true,
+          }
+        }
+        return state.notebookPhase === 'desk' &&
+          state.stickerWorkflow === 'idle' &&
+          !state.selectedStickerId &&
+          !state.deskCameraTransitioning
+          ? {
+              freeCameraEnabled: true,
+              deskCameraTransitioning: false,
+            }
+          : state
+      }),
+
+    disableFreeCamera: () =>
+      set((state) =>
+        state.freeCameraEnabled
+          ? {
+              freeCameraEnabled: false,
+              deskCameraTransitioning: true,
             }
           : state,
       ),
@@ -390,7 +427,11 @@ export const createAppStore = (
     openNotebookWithoutScene: () =>
       set((state) =>
         ['desk', 'approaching', 'opening'].includes(state.notebookPhase)
-          ? { notebookPhase: 'editing' }
+          ? {
+              notebookPhase: 'editing',
+              freeCameraEnabled: false,
+              deskCameraTransitioning: false,
+            }
           : state,
       ),
 
@@ -435,6 +476,8 @@ export const createAppStore = (
       set((state) =>
         state.notebookPhase === 'desk' && state.stickerWorkflow === 'idle'
           ? {
+              freeCameraEnabled: false,
+              deskCameraTransitioning: false,
               stickerErrorMessage: null,
               stickerWorkflow: 'composing',
               selectedStickerId: null,
@@ -445,6 +488,8 @@ export const createAppStore = (
     cancelStickerComposer: () =>
       set({
         notebookPhase: 'desk',
+        freeCameraEnabled: false,
+        deskCameraTransitioning: false,
         stickerErrorMessage: null,
         stickerWorkflow: 'idle',
       }),
@@ -452,6 +497,8 @@ export const createAppStore = (
     prepareStickerPlacement: (draft, target) =>
       set({
         notebookPhase: target === 'desk' ? 'desk' : 'editing',
+        freeCameraEnabled: false,
+        deskCameraTransitioning: false,
         pendingSticker: draft,
         selectedStickerId: null,
         stickerErrorMessage: null,
@@ -526,6 +573,12 @@ export const createAppStore = (
 
     selectSticker: (instanceId) =>
       set((state) => ({
+        ...(instanceId && state.freeCameraEnabled
+          ? {
+              freeCameraEnabled: false,
+              deskCameraTransitioning: true,
+            }
+          : {}),
         selectedStickerId:
           state.stickerWorkflow === 'idle' ? instanceId : state.selectedStickerId,
       })),

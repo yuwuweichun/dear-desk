@@ -2,6 +2,7 @@ import { createRoot, events, extend, useFrame, useThree } from '@react-three/fib
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import type { ReconcilerRoot } from '@react-three/fiber'
 import * as THREE from 'three'
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 
 import type { PlacedSticker, StickerPosition } from '../domain/sticker'
 import { useAppStore } from '../state/app-store-context'
@@ -147,6 +148,7 @@ const keyframeForCamera = (camera: THREE.PerspectiveCamera): CameraKeyframe => (
 interface CameraRigProps {
   deskCameraPreset: DeskCameraPreset
   deskCameraTransitioning: boolean
+  freeCameraEnabled: boolean
   notebookPhase: NotebookPhase
   onAdvance: (from: NotebookPhase) => void
   onCameraSettled: () => void
@@ -156,6 +158,7 @@ interface CameraRigProps {
 function CameraRig({
   deskCameraPreset,
   deskCameraTransitioning,
+  freeCameraEnabled,
   notebookPhase,
   onAdvance,
   onCameraSettled,
@@ -172,6 +175,11 @@ function CameraRig({
   useEffect(() => {
     if (!(camera instanceof THREE.PerspectiveCamera)) return
     const poses = getCameraPoses(size.width < 700)
+
+    if (freeCameraEnabled && notebookPhase === 'desk') {
+      transition.current = null
+      return
+    }
 
     if (notebookPhase === 'desk') {
       if (deskCameraTransitioning) {
@@ -206,7 +214,14 @@ function CameraRig({
         notebookPhase === 'approaching' ? poses.near : poses[deskCameraPreset],
       ),
     }
-  }, [camera, deskCameraPreset, deskCameraTransitioning, notebookPhase, size.width])
+  }, [
+    camera,
+    deskCameraPreset,
+    deskCameraTransitioning,
+    freeCameraEnabled,
+    notebookPhase,
+    size.width,
+  ])
 
   useFrame((state) => {
     if (!(state.camera instanceof THREE.PerspectiveCamera)) return
@@ -246,6 +261,43 @@ function CameraRig({
       if (active.kind === 'preset') onCameraSettled()
       else onAdvance(active.kind)
     }
+  })
+
+  return null
+}
+
+interface FreeOrbitCameraProps {
+  deskCameraPreset: DeskCameraPreset
+  enabled: boolean
+}
+
+function FreeOrbitCamera({ deskCameraPreset, enabled }: FreeOrbitCameraProps) {
+  const { camera, gl, size } = useThree()
+  const controlsRef = useRef<OrbitControls | null>(null)
+
+  useEffect(() => {
+    if (!enabled || !(camera instanceof THREE.PerspectiveCamera)) return
+    const controls = new OrbitControls(camera, gl.domElement)
+    const pose = getCameraPoses(size.width < 700)[deskCameraPreset]
+    controls.target.copy(pose.target)
+    controls.enableDamping = true
+    controls.dampingFactor = 0.08
+    controls.enablePan = false
+    controls.enableZoom = false
+    controls.rotateSpeed = 0.65
+    controls.minPolarAngle = 0.22
+    controls.maxPolarAngle = Math.PI / 2 - 0.08
+    controls.update()
+    controlsRef.current = controls
+
+    return () => {
+      controlsRef.current = null
+      controls.dispose()
+    }
+  }, [camera, deskCameraPreset, enabled, gl, size.width])
+
+  useFrame(() => {
+    controlsRef.current?.update()
   })
 
   return null
@@ -304,6 +356,7 @@ interface DeskContentsProps {
   ) => Promise<boolean>
   deskCameraPreset: DeskCameraPreset
   deskCameraTransitioning: boolean
+  freeCameraEnabled: boolean
   notebookPhase: NotebookPhase
   placePendingDeskSticker: (position: StickerPosition) => Promise<boolean>
   colors: SceneColorConfig
@@ -322,6 +375,7 @@ function DeskContents({
   commitStickerPosition,
   deskCameraPreset,
   deskCameraTransitioning,
+  freeCameraEnabled,
   notebookPhase,
   placePendingDeskSticker,
   colors,
@@ -388,10 +442,15 @@ function DeskContents({
       <CameraRig
         deskCameraPreset={deskCameraPreset}
         deskCameraTransitioning={deskCameraTransitioning}
+        freeCameraEnabled={freeCameraEnabled}
         notebookPhase={notebookPhase}
         onAdvance={advanceNotebookPhase}
         onCameraSettled={settleDeskCameraPreset}
         reducedMotion={reducedMotion}
+      />
+      <FreeOrbitCamera
+        deskCameraPreset={deskCameraPreset}
+        enabled={freeCameraEnabled && notebookPhase === 'desk'}
       />
 
       <DeskBody materials={materials} />
@@ -464,6 +523,7 @@ export function DeskScene({ colors, fallback }: DeskSceneProps) {
   const deskCameraTransitioning = useAppStore(
     (state) => state.deskCameraTransitioning,
   )
+  const freeCameraEnabled = useAppStore((state) => state.freeCameraEnabled)
   const commitStickerPosition = useAppStore(
     (state) => state.commitStickerPosition,
   )
@@ -485,6 +545,7 @@ export function DeskScene({ colors, fallback }: DeskSceneProps) {
     commitStickerPosition,
     deskCameraPreset,
     deskCameraTransitioning,
+    freeCameraEnabled,
     notebookPhase,
     placePendingDeskSticker,
     colors,
@@ -618,6 +679,7 @@ export function DeskScene({ colors, fallback }: DeskSceneProps) {
       commitStickerPosition,
       deskCameraPreset,
       deskCameraTransitioning,
+      freeCameraEnabled,
       notebookPhase,
       placePendingDeskSticker,
       colors,
@@ -638,6 +700,7 @@ export function DeskScene({ colors, fallback }: DeskSceneProps) {
     commitStickerPosition,
     deskCameraPreset,
     deskCameraTransitioning,
+    freeCameraEnabled,
     notebookPhase,
     placePendingDeskSticker,
     colors,

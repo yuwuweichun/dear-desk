@@ -157,6 +157,7 @@ export function SceneColorEditorButton({ onClick }: { onClick: () => void }) {
       className="scene-color-editor-button"
       label="打开场景颜色编辑器"
       onClick={onClick}
+      showTitle={false}
       variant="secondary"
     >
       <Palette aria-hidden="true" size={20} />

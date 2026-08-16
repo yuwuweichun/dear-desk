@@ -140,6 +140,48 @@ describe('app store', () => {
     expect(store.getState().deskCameraPreset).toBe('far')
   })
 
+  it('keeps free orbit session-only and mutually exclusive with camera workflows', () => {
+    const store = createAppStore(createRepository(), date)
+    expect(store.getState()).toMatchObject({
+      freeCameraEnabled: false,
+      deskCameraTransitioning: false,
+    })
+
+    store.getState().toggleFreeCamera()
+    expect(store.getState().freeCameraEnabled).toBe(true)
+    store.getState().cycleDeskCameraPreset()
+    expect(store.getState().deskCameraPreset).toBe('far')
+
+    store.getState().selectSticker('instance-desk')
+    expect(store.getState()).toMatchObject({
+      freeCameraEnabled: false,
+      deskCameraTransitioning: true,
+      selectedStickerId: 'instance-desk',
+    })
+
+    store.getState().settleDeskCameraPreset()
+    store.getState().selectSticker(null)
+    store.getState().cycleDeskCameraPreset()
+    store.getState().settleDeskCameraPreset()
+    store.getState().cycleDeskCameraPreset()
+    store.getState().settleDeskCameraPreset()
+    store.getState().toggleFreeCamera()
+    store.getState().requestNotebookOpen()
+    expect(store.getState()).toMatchObject({
+      deskCameraPreset: 'near',
+      freeCameraEnabled: false,
+      notebookPhase: 'approaching',
+    })
+
+    const stickerStore = createAppStore(createRepository(), date)
+    stickerStore.getState().toggleFreeCamera()
+    stickerStore.getState().openStickerStudio()
+    expect(stickerStore.getState()).toMatchObject({
+      freeCameraEnabled: false,
+      stickerWorkflow: 'composing',
+    })
+  })
+
   it('opens directly from near and preserves the selected preset across close', () => {
     const store = createAppStore(createRepository(), date)
     store.getState().cycleDeskCameraPreset()
