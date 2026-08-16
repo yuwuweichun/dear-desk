@@ -1,0 +1,110 @@
+{
+  "sourceImage": "docs/assets/concepts/warm-paper-atelier-desk-mat.png",
+  "zonesDir": "docs/assets/model-reviews/dd-20260817-002/detail-zones",
+  "detailInventory": {
+    "scanMethod": "grid-3x3",
+    "targetMinDetails": 8,
+    "details": [
+      {
+        "id": "rounded-plan-corners",
+        "kind": "bevel",
+        "description": "Broad plan corners stay independent of the very small vertical thickness.",
+        "region": {"x": 0.0, "y": 0.0, "width": 0.3333, "height": 0.3333, "units": "normalized"},
+        "scale": "macro; 0.7 world-unit radius",
+        "affects": "outer silhouette geometry",
+        "mapsTo": {"type": "component.localFeatures", "ref": "mat-body/plan-corner-radius"},
+        "evidenceRef": "docs/assets/model-reviews/dd-20260817-002/detail-zones/zone-r0c0.png",
+        "confidence": 0.96
+      },
+      {
+        "id": "continuous-soft-crown",
+        "kind": "contour",
+        "description": "One nearly planar padded field carries a restrained crown with no inset tray gap.",
+        "region": {"x": 0.3333, "y": 0.0, "width": 0.3333, "height": 0.3333, "units": "normalized"},
+        "scale": "meso; crown below 0.02 world units",
+        "affects": "top form and grazing highlight",
+        "mapsTo": {"type": "component.localFeatures", "ref": "mat-surface/continuous-low-crown"},
+        "evidenceRef": "docs/assets/model-reviews/dd-20260817-002/detail-zones/zone-r0c1.png",
+        "confidence": 0.9
+      },
+      {
+        "id": "compressed-attached-binding",
+        "kind": "ridge",
+        "description": "The wrapped edge overlaps the sidewall and reads as compressed upholstery, not a floating tube.",
+        "region": {"x": 0.6667, "y": 0.0, "width": 0.3333, "height": 0.3333, "units": "normalized"},
+        "scale": "meso; about 0.11 world units wide and 0.07 high",
+        "affects": "edge profile and attachment",
+        "mapsTo": {"type": "component.localFeatures", "ref": "binding-ring/compressed-overlap-profile"},
+        "evidenceRef": "docs/assets/model-reviews/dd-20260817-002/detail-zones/zone-r0c2.png",
+        "confidence": 0.95
+      },
+      {
+        "id": "inset-stitch-channel",
+        "kind": "seam",
+        "description": "A shallow compressed channel carries stitches inside the binding without creating a separate surface island.",
+        "region": {"x": 0.0, "y": 0.3333, "width": 0.3333, "height": 0.3333, "units": "normalized"},
+        "scale": "micro; about 0.025 world units wide",
+        "affects": "construction line and contact AO",
+        "mapsTo": {"type": "component.localFeatures", "ref": "stitch-channel/inset-compression-line"},
+        "evidenceRef": "docs/assets/model-reviews/dd-20260817-002/detail-zones/zone-r1c0.png",
+        "confidence": 0.92
+      },
+      {
+        "id": "segmented-perimeter-stitches",
+        "kind": "stitch",
+        "description": "Short thread dashes keep stable arc-length gaps and follow the path tangent around every corner.",
+        "region": {"x": 0.3333, "y": 0.3333, "width": 0.3333, "height": 0.3333, "units": "normalized"},
+        "scale": "micro; 0.075 world-unit dashes with visible gaps",
+        "affects": "instanced repeated geometry",
+        "mapsTo": {"type": "component.localFeatures", "ref": "stitch-system/perimeter-stitch-path"},
+        "evidenceRef": "docs/assets/model-reviews/dd-20260817-002/detail-zones/zone-r1c1.png",
+        "confidence": 0.97
+      },
+      {
+        "id": "field-woven-crosshatch",
+        "kind": "linework",
+        "description": "Fine interlaced fibers form dense crosshatch without a distant checkerboard pattern.",
+        "region": {"x": 0.6667, "y": 0.3333, "width": 0.3333, "height": 0.3333, "units": "normalized"},
+        "scale": "micro; high-frequency weave",
+        "affects": "independent height, roughness, AO, and neutral albedo channels",
+        "mapsTo": {"type": "material.localOverrides", "ref": "field-cloth/woven-crosshatch"},
+        "evidenceRef": "docs/assets/model-reviews/dd-20260817-002/detail-zones/zone-r1c2.png",
+        "confidence": 0.93
+      },
+      {
+        "id": "field-tonal-mottling",
+        "kind": "stain",
+        "description": "Broad low-contrast neutral variation breaks uniformity without reading as dirt or owning the role color.",
+        "region": {"x": 0.0, "y": 0.6667, "width": 0.3333, "height": 0.3333, "units": "normalized"},
+        "scale": "macro and meso; irregular 0.12 to 0.45 mat-unit variation",
+        "affects": "neutral albedo and roughness locality",
+        "mapsTo": {"type": "material.localOverrides", "ref": "field-cloth/neutral-tonal-mottle"},
+        "evidenceRef": "docs/assets/model-reviews/dd-20260817-002/detail-zones/zone-r2c0.png",
+        "confidence": 0.86
+      },
+      {
+        "id": "binding-fiber-direction",
+        "kind": "linework",
+        "description": "Compressed edge fibers follow the perimeter direction instead of visibly stretching planar UVs around corners.",
+        "region": {"x": 0.3333, "y": 0.6667, "width": 0.3333, "height": 0.3333, "units": "normalized"},
+        "scale": "micro; tangent-following response",
+        "affects": "binding bump and roughness direction",
+        "mapsTo": {"type": "material.localOverrides", "ref": "binding-textile/perimeter-fiber-direction"},
+        "evidenceRef": "docs/assets/model-reviews/dd-20260817-002/detail-zones/zone-r2c1.png",
+        "confidence": 0.88
+      },
+      {
+        "id": "binding-compressed-response",
+        "kind": "gloss",
+        "description": "The binding crest has lower bump amplitude and a restrained smoother grazing highlight.",
+        "region": {"x": 0.6667, "y": 0.6667, "width": 0.3333, "height": 0.3333, "units": "normalized"},
+        "scale": "micro local response over the crest",
+        "affects": "localized roughness and bump strength",
+        "mapsTo": {"type": "material.localOverrides", "ref": "binding-textile/compressed-crest-response"},
+        "evidenceRef": "docs/assets/model-reviews/dd-20260817-002/detail-zones/zone-r2c2.png",
+        "confidence": 0.86
+      }
+    ]
+  },
+  "authoringInstruction": "Inventory completed from the full reference and nine grid zones. Preserve every mapsTo id in the sculpt spec."
+}

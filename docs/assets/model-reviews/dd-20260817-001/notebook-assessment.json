@@ -1,0 +1,439 @@
+{
+  "targetName": "Warm Paper Atelier Notebook V2",
+  "sourceImage": "docs/assets/concepts/warm-paper-atelier-notebook.png",
+  "authoritativeSources": [
+    "docs/assets/concepts/warm-paper-atelier-notebook.png",
+    "docs/assets/concepts/warm-paper-atelier-journal-pages.png"
+  ],
+  "supportingReference": {
+    "path": "docs/assets/model-reviews/dd-20260810-002/notebook-state-reference-board.png",
+    "role": "Reused evidence board only; this task owns a new pipeline state and inherits no prior pass decisions. The board introduces no geometry, color, material, or state claims beyond the two authoritative concept images."
+  },
+  "preSpecAssessment": {
+    "objectClass": {
+      "primaryType": "stylized clothbound articulated notebook",
+      "primaryDomain": "object",
+      "formLanguage": [
+        "softened hard-surface",
+        "fabric-like wrapped shell",
+        "layered paper forms",
+        "small-scale metal hardware"
+      ],
+      "structureKind": [
+        "compound object",
+        "layered shell",
+        "articulated assembly",
+        "repeated page layers"
+      ],
+      "motionPotential": [
+        "whole-object transform",
+        "hinged front cover",
+        "state-driven page spread",
+        "deformable ribbon path"
+      ],
+      "materialFamilies": [
+        "moss-green woven cloth",
+        "ivory paper",
+        "aged brass",
+        "burgundy woven ribbon"
+      ],
+      "notes": "The closed concept is authoritative for outer silhouette, cloth, brass plate, page block, and fore-edge ribbon. The open journal concept is authoritative for the two page stacks, gutter, page crown, rules, paper fiber, open cover lip, and ribbon through the gutter. The hidden rear cover is a consistency inference: match the front cover's cloth wrap, thickness, corner radius, and edge construction, but omit the front nameplate and rivets."
+    },
+    "complexity": {
+      "tier": "complex",
+      "scores": {
+        "silhouetteComplexity": 2,
+        "componentCount": 3,
+        "hierarchyDepth": 3,
+        "repetitionDensity": 3,
+        "materialLayerCount": 3,
+        "localDetailDensity": 3,
+        "occlusionRisk": 2,
+        "actionReadinessNeed": 3
+      },
+      "estimatedCounts": {
+        "macroComponents": 3,
+        "mesoComponents": 11,
+        "microFeatureGroups": 8,
+        "materialLayers": 5,
+        "repetitionSystems": 4
+      },
+      "reasoning": [
+        "The closed object reads as a compact rounded volume, but opening it reveals two independent cover/page sides, a center hinge, and a continuous bookmark path.",
+        "Identity depends on repeated page-edge strata, faint ruled lines, two brass fasteners, and multi-band cloth/paper/ribbon relief rather than on a few primitive solids.",
+        "The front cover must rotate around the existing spine-side hinge while the root and interaction coordinates remain stable, so pivot placement is a fidelity and runtime requirement.",
+        "The rear exterior is not directly shown; symmetry and matching bookbinding construction are sufficient only for a stylized consistency inference, not an observed claim."
+      ]
+    },
+    "specDepthDecision": {
+      "requiredDepth": "complex",
+      "minimumComponentLevels": [
+        "macro",
+        "meso",
+        "micro"
+      ],
+      "needsRepetitionSystems": true,
+      "needsMaterialLocalOverrides": true,
+      "needsMultipleReviewViews": true,
+      "needsActionReadyHierarchy": true,
+      "rationale": "Closed and open states must share one stable hierarchy with named cover/page pivots, separate left/right page stacks, repeated page and rule systems, and independent cloth, paper, brass, and ribbon responses."
+    },
+    "unknownsToResolveBeforeImplementation": [],
+    "detailInventory": {
+      "scanMethod": "component-zones",
+      "targetMinDetails": 20,
+      "note": "All detail claims come from the authoritative closed/open concepts. The neutral board only groups those crops. Hidden rear-cover treatment is explicitly marked as a consistency inference.",
+      "details": [
+        {
+          "id": "cover-soft-corners",
+          "kind": "bevel",
+          "description": "Front cover has broad plan-view corner arcs and a softly rolled cloth-wrapped edge; the radius must be authored in the cover plane rather than clamped by its thin thickness.",
+          "region": {"x": 0.08, "y": 0.04, "width": 0.57, "height": 0.9, "units": "normalized"},
+          "scale": "meso; corner radius about 5 percent of cover width with a 3-4 segment edge roll",
+          "affects": "front-cover silhouette and grazing rim highlight",
+          "mapsTo": {"type": "component.localFeatures", "ref": "front-cover-shell/cover-corner-chamfer"},
+          "evidenceRef": "closed-overall",
+          "confidence": 0.98
+        },
+        {
+          "id": "cloth-warp-weft",
+          "kind": "ridge",
+          "description": "Dense directional cloth ribs cross the moss-green cover and break highlights into fine parallel strands.",
+          "region": {"x": 0.67, "y": 0.03, "width": 0.31, "height": 0.46, "units": "normalized"},
+          "scale": "micro; approximately 35-55 visible ribs per cover width at close review distance",
+          "affects": "cloth normal, roughness, and anisotropic highlight breakup",
+          "mapsTo": {"type": "material.localOverrides", "ref": "moss-cloth/cloth-warp-weft-ribbing"},
+          "evidenceRef": "closed-cloth-closeup",
+          "confidence": 0.98
+        },
+        {
+          "id": "cover-wrap-seam",
+          "kind": "seam",
+          "description": "A slightly compressed darker cloth line follows the wrapped cover perimeter inside the rolled edge.",
+          "region": {"x": 0.08, "y": 0.05, "width": 0.56, "height": 0.89, "units": "normalized"},
+          "scale": "micro-to-meso; recessed line about 0.8 percent of cover width",
+          "affects": "cover construction read and edge ambient occlusion",
+          "mapsTo": {"type": "component.localFeatures", "ref": "front-cover-shell/cloth-wrap-perimeter-seam"},
+          "evidenceRef": "closed-overall",
+          "confidence": 0.9
+        },
+        {
+          "id": "spine-shoulder-grooves",
+          "kind": "groove",
+          "description": "Two shallow vertical shoulder channels and a rounded convex spine separate the binding from the front cover plane.",
+          "region": {"x": 0.08, "y": 0.09, "width": 0.12, "height": 0.77, "units": "normalized"},
+          "scale": "meso; two narrow grooves flanking a spine about 5 percent of closed-book width",
+          "affects": "spine silhouette, hinge readability, and cavity shadow",
+          "mapsTo": {"type": "component.localFeatures", "ref": "spine-shell/spine-shoulder-grooves"},
+          "evidenceRef": "closed-overall",
+          "confidence": 0.92
+        },
+        {
+          "id": "nameplate-rounded-chamfer",
+          "kind": "bevel",
+          "description": "The blank brass plate is a thin rounded rectangle with a real chamfer that produces a bright warm rim.",
+          "region": {"x": 0.68, "y": 0.17, "width": 0.27, "height": 0.22, "units": "normalized"},
+          "scale": "meso; plate about 30 percent of cover width and 9 percent of cover height",
+          "affects": "nameplate silhouette and metallic edge highlight",
+          "mapsTo": {"type": "component.localFeatures", "ref": "brass-nameplate/nameplate-rounded-chamfer"},
+          "evidenceRef": "closed-nameplate-closeup",
+          "confidence": 0.99
+        },
+        {
+          "id": "nameplate-rivet-pair",
+          "kind": "fastener",
+          "description": "Two raised domed brass rivets sit symmetrically near the plate ends with visible contact shadows.",
+          "region": {"x": 0.69, "y": 0.18, "width": 0.25, "height": 0.19, "units": "normalized"},
+          "scale": "micro; two hemispherical heads, each about 8 percent of plate length",
+          "affects": "nameplate identity, repetition, and specular hotspots",
+          "mapsTo": {"type": "component.localFeatures", "ref": "brass-rivet-pair"},
+          "evidenceRef": "closed-nameplate-closeup",
+          "confidence": 1.0
+        },
+        {
+          "id": "brass-aged-patina",
+          "kind": "stain",
+          "description": "The plate face carries mottled aged-brass color and roughness variation without green oxidation blooms.",
+          "region": {"x": 0.69, "y": 0.18, "width": 0.25, "height": 0.19, "units": "normalized"},
+          "scale": "micro; low-amplitude irregular patches across the plate face",
+          "affects": "brass albedo and roughness locality",
+          "mapsTo": {"type": "material.localOverrides", "ref": "aged-brass/brass-aged-patina"},
+          "evidenceRef": "closed-nameplate-closeup",
+          "confidence": 0.93
+        },
+        {
+          "id": "brass-polished-edge",
+          "kind": "gloss",
+          "description": "The plate chamfer and rivet crowns are slightly more polished than the broad face and catch compact highlights.",
+          "region": {"x": 0.69, "y": 0.18, "width": 0.25, "height": 0.19, "units": "normalized"},
+          "scale": "micro; low-roughness mask restricted to chamfer crests and rivet crowns",
+          "affects": "brass roughness and clearcoat-like edge response",
+          "mapsTo": {"type": "material.localOverrides", "ref": "aged-brass/brass-edge-polish"},
+          "evidenceRef": "closed-nameplate-closeup",
+          "confidence": 0.91
+        },
+        {
+          "id": "closed-page-fore-edge",
+          "kind": "contour",
+          "description": "The closed ivory page block has a softly bowed fore-edge and rounded corners recessed inside the cover overhang.",
+          "region": {"x": 0.67, "y": 0.51, "width": 0.31, "height": 0.41, "units": "normalized"},
+          "scale": "macro-to-meso; page block inset about 3-5 percent from the cover perimeter",
+          "affects": "closed silhouette and cover/page negative space",
+          "mapsTo": {"type": "component.localFeatures", "ref": "closed-page-block/page-block-rounded-fore-edge"},
+          "evidenceRef": "closed-fore-edge-closeup",
+          "confidence": 0.98
+        },
+        {
+          "id": "page-edge-strata",
+          "kind": "linework",
+          "description": "Many slightly irregular horizontal ivory/tan strata remain legible across the closed fore-edge and open page fans.",
+          "region": {"x": 0.67, "y": 0.51, "width": 0.31, "height": 0.41, "units": "normalized"},
+          "scale": "micro repeated system; 12-18 visible grouped layers rather than one flat slab",
+          "affects": "page-edge relief, ambient occlusion, and layered book identity",
+          "mapsTo": {"type": "component.localFeatures", "ref": "paper-edge-layer-system"},
+          "evidenceRef": "closed-fore-edge-closeup",
+          "confidence": 0.99
+        },
+        {
+          "id": "paper-fiber",
+          "kind": "ridge",
+          "description": "Ivory page faces show fine non-directional paper fibers and gentle tonal mottling under close review.",
+          "region": {"x": 0.8, "y": 0.65, "width": 0.18, "height": 0.31, "units": "normalized"},
+          "scale": "micro; high-frequency low-amplitude normal with independent roughness noise",
+          "affects": "paper highlight breakup and tactile matte response",
+          "mapsTo": {"type": "material.localOverrides", "ref": "ivory-paper/paper-fiber-roughness"},
+          "evidenceRef": "open-paper-closeup",
+          "confidence": 0.97
+        },
+        {
+          "id": "paper-edge-warmth",
+          "kind": "stain",
+          "description": "Exposed page edges are slightly warmer and darker than the clean open page faces, especially inside the fan and near corners.",
+          "region": {"x": 0.04, "y": 0.52, "width": 0.72, "height": 0.42, "units": "normalized"},
+          "scale": "meso local mask on edge-facing geometry only",
+          "affects": "paper albedo, AO, and layered depth separation",
+          "mapsTo": {"type": "material.localOverrides", "ref": "ivory-paper/paper-edge-warmth"},
+          "evidenceRef": "open-overall",
+          "confidence": 0.95
+        },
+        {
+          "id": "left-page-fan",
+          "kind": "contour",
+          "description": "The left page stack fans upward from the outer edge and curves downward into the center gutter, with staggered visible leaves.",
+          "region": {"x": 0.03, "y": 0.5, "width": 0.34, "height": 0.42, "units": "normalized"},
+          "scale": "meso repeated stack; 7-10 grouped leaf edges with nonuniform offsets",
+          "affects": "open left silhouette, stack volume, and gutter depth",
+          "mapsTo": {"type": "component.localFeatures", "ref": "left-page-stack/page-fan-outer-edge"},
+          "evidenceRef": "open-overall",
+          "confidence": 0.98
+        },
+        {
+          "id": "right-page-fan",
+          "kind": "contour",
+          "description": "The right page stack mirrors the binding logic but retains small independent leaf offsets rather than perfect geometric symmetry.",
+          "region": {"x": 0.4, "y": 0.5, "width": 0.36, "height": 0.42, "units": "normalized"},
+          "scale": "meso repeated stack; 7-10 grouped leaf edges with deterministic offset variation",
+          "affects": "open right silhouette, stack volume, and gutter depth",
+          "mapsTo": {"type": "component.localFeatures", "ref": "right-page-stack/page-fan-outer-edge"},
+          "evidenceRef": "open-overall",
+          "confidence": 0.98
+        },
+        {
+          "id": "open-page-crowns",
+          "kind": "ridge",
+          "description": "Both top pages have a broad shallow crown: elevated near the binding and gently settling toward the outer cover edges.",
+          "region": {"x": 0.04, "y": 0.5, "width": 0.72, "height": 0.42, "units": "normalized"},
+          "scale": "macro-to-meso spline bend; peak rise about 2-3 percent of page width",
+          "affects": "top-page normals, silhouette under grazing light, and open-book volume",
+          "mapsTo": {"type": "component.localFeatures", "ref": "left-top-page/page-crown-bend"},
+          "evidenceRef": "open-overall",
+          "confidence": 0.96
+        },
+        {
+          "id": "gutter-valley",
+          "kind": "groove",
+          "description": "A narrow shadowed V-shaped gutter separates the left and right top pages and remains visible alongside the ribbon.",
+          "region": {"x": 0.35, "y": 0.5, "width": 0.06, "height": 0.42, "units": "normalized"},
+          "scale": "meso; recessed valley about 1.5 percent of full spread width",
+          "affects": "open-state negative space, page attachment, and AO",
+          "mapsTo": {"type": "component.localFeatures", "ref": "center-gutter/gutter-valley-crease"},
+          "evidenceRef": "open-gutter-closeup",
+          "confidence": 1.0
+        },
+        {
+          "id": "faint-page-rules",
+          "kind": "linework",
+          "description": "Thin warm-gray horizontal ruled lines cross both page faces at restrained contrast and do not emboss the paper.",
+          "region": {"x": 0.09, "y": 0.54, "width": 0.61, "height": 0.33, "units": "normalized"},
+          "scale": "micro repeated decal lines; six to eight visible lines per page at review framing",
+          "affects": "page-face albedo only, retaining paper normal continuity",
+          "mapsTo": {"type": "component.localFeatures", "ref": "page-rule-system"},
+          "evidenceRef": "open-overall",
+          "confidence": 0.98
+        },
+        {
+          "id": "ribbon-grosgrain",
+          "kind": "ridge",
+          "description": "The burgundy ribbon carries narrow longitudinal woven ribs and a fibrous matte highlight.",
+          "region": {"x": 0.37, "y": 0.5, "width": 0.035, "height": 0.46, "units": "normalized"},
+          "scale": "micro; 8-12 visible longitudinal ribs across the ribbon width in close-up",
+          "affects": "ribbon normal, roughness, and directional highlight",
+          "mapsTo": {"type": "material.localOverrides", "ref": "burgundy-ribbon/ribbon-woven-grosgrain"},
+          "evidenceRef": "open-gutter-closeup",
+          "confidence": 0.98
+        },
+        {
+          "id": "ribbon-v-notch",
+          "kind": "chip",
+          "description": "The free ribbon tail ends in a centered V notch with two clean diagonal tips.",
+          "region": {"x": 0.74, "y": 0.57, "width": 0.08, "height": 0.31, "units": "normalized"},
+          "scale": "meso silhouette cut; notch depth about 35 percent of ribbon width",
+          "affects": "bookmark terminal silhouette",
+          "mapsTo": {"type": "component.localFeatures", "ref": "ribbon-bookmark/ribbon-v-notch"},
+          "evidenceRef": "closed-fore-edge-closeup",
+          "confidence": 1.0
+        },
+        {
+          "id": "ribbon-continuous-path",
+          "kind": "contour",
+          "description": "One continuous ribbon is anchored at the spine head, lies down the open center gutter, and exits the closed fore edge without intersecting the page block.",
+          "region": {"x": 0.35, "y": 0.5, "width": 0.09, "height": 0.46, "units": "normalized"},
+          "scale": "macro state path; controlled curve with closed and open state poses",
+          "affects": "state continuity, attachment, and recognizable burgundy accent",
+          "mapsTo": {"type": "component.localFeatures", "ref": "ribbon-bookmark/bookmark-state-path"},
+          "evidenceRef": "open-overall",
+          "confidence": 0.96
+        },
+        {
+          "id": "open-cover-lip",
+          "kind": "contour",
+          "description": "The moss cloth cover remains visible as a narrow rounded border around the open page spread, including a padded dip beneath the gutter.",
+          "region": {"x": 0.03, "y": 0.49, "width": 0.73, "height": 0.43, "units": "normalized"},
+          "scale": "meso; 3-5 percent border around page perimeter",
+          "affects": "open silhouette and cloth-paper separation",
+          "mapsTo": {"type": "component.localFeatures", "ref": "back-cover-shell/open-cover-lip"},
+          "evidenceRef": "open-overall",
+          "confidence": 0.97
+        }
+      ]
+    },
+    "anatomy": {
+      "applies": false,
+      "styleHeads": 0.0,
+      "proportions": {"headUnit": 0.0, "torso": 0.0, "legs": 0.0, "shoulderWidth": 0.0, "hipWidth": 0.0},
+      "pose": {"type": "not-applicable", "jointAngles": {}},
+      "faceLandmarks": {"eyeLine": 0.0, "eyeSpacing": 0.0, "noseBase": 0.0, "mouthLine": 0.0, "hairline": 0.0},
+      "features": [],
+      "confidence": 1.0,
+      "note": "Not applicable: primaryDomain is object."
+    },
+    "sourceImage": "docs/assets/concepts/warm-paper-atelier-notebook.png"
+  },
+  "qualityContract": {
+    "qualityBar": "complex reference-fidelity stylized prop",
+    "definitionOfDone": [
+      "Closed state matches the compact rounded moss-cloth silhouette, recessed ivory page block, convex spine, blank aged-brass plate with two domed rivets, and burgundy V-notched tail.",
+      "Open state approaches 180 degrees around a stable spine-side cover pivot and presents separate left/right page stacks, a readable V-shaped gutter, broad page crowns, layered outer edges, and a narrow cloth cover lip.",
+      "One ribbon path remains attached at the spine and transitions coherently between closed fore-edge and open gutter poses without page intersection or teleporting endpoints.",
+      "Cloth, paper, brass, and ribbon use independent albedo, roughness, height/normal, and AO evidence; woven/fibrous/metallic responses remain readable under neutral and grazing light.",
+      "Overall AI-vision fidelity is at least 0.85 and every critical semantic feature scores at least 0.82 from a matched reference/render comparison."
+    ],
+    "minimumSpecDepth": {
+      "macroComponents": 3,
+      "mesoComponents": 11,
+      "microFeatureGroups": 8,
+      "materialLayers": 5,
+      "repetitionSystems": 4,
+      "reviewViewpoints": 6
+    },
+    "featureGroups": [
+      {
+        "id": "closed-book-silhouette",
+        "name": "Closed clothbound book silhouette",
+        "required": true,
+        "qualityCriteria": [
+          "Cover width:depth is approximately 0.84 and total closed thickness remains about 10 percent of depth.",
+          "Broad plan-view corner arcs, cover overhang, bowed page fore-edge, and convex spine read without materials."
+        ],
+        "evidenceRefs": ["closed-overall", "closed-fore-edge-closeup"],
+        "failureModes": ["thin-axis radius clamping produces nearly square corners", "page block is flush with the cover or reads as one plastic slab", "spine is a rectangular bar"]
+      },
+      {
+        "id": "open-spread-structure",
+        "name": "Open two-sided page and cover structure",
+        "required": true,
+        "qualityCriteria": [
+          "Left and right covers/pages are independently named and attached around the spine, not mirrored cards with no binding volume.",
+          "Open spread includes two page-stack volumes, broad top-page crowns, staggered outer leaf edges, and a narrow recessed gutter."
+        ],
+        "evidenceRefs": ["open-overall", "open-gutter-closeup"],
+        "failureModes": ["left page stack disappears when front cover opens", "top pages remain perfectly flat", "gutter is a painted line or a wide gap"]
+      },
+      {
+        "id": "hinge-and-pivots",
+        "name": "Stable root, hinge, and state pivots",
+        "required": true,
+        "qualityCriteria": [
+          "Root stays centered at the existing notebook local origin while the front-cover pivot remains at local [-1.5, 0.3, 0].",
+          "Front assembly rotates to 0.97π about local Z; page/cover children retain local attachment and do not orbit from their centers."
+        ],
+        "evidenceRefs": ["closed-overall", "open-overall"],
+        "failureModes": ["cover rotates around its center", "root or hit area shifts between states", "child transforms mix local and world coordinates"]
+      },
+      {
+        "id": "binding-and-ribbon",
+        "name": "Spine, gutter, and continuous ribbon binding system",
+        "required": true,
+        "qualityCriteria": [
+          "Convex spine shoulders, the open gutter valley, and the padded cloth dip communicate one binding construction.",
+          "Ribbon spline has a spine socket, closed and open state control points, surface clearance, and a real V-notched terminal."
+        ],
+        "evidenceRefs": ["closed-overall", "closed-fore-edge-closeup", "open-gutter-closeup"],
+        "failureModes": ["ribbon floats, intersects pages, or changes identity between states", "spine and gutter do not align", "tail ends as an unmodified box"]
+      },
+      {
+        "id": "nameplate-hardware",
+        "name": "Blank aged-brass nameplate and rivets",
+        "required": true,
+        "qualityCriteria": [
+          "Thin rounded plate uses a true chamfer and remains blank.",
+          "Exactly two raised domed rivets are symmetrically spaced and cast contact shadows; face patina and edge polish use separate roughness masks."
+        ],
+        "evidenceRefs": ["closed-nameplate-closeup"],
+        "failureModes": ["plate is an inset rectangle inside another plate", "rivets are absent, flat decals, or incorrect in count", "brass reads as orange plastic"]
+      },
+      {
+        "id": "tactile-material-system",
+        "name": "Cloth, paper, brass, and ribbon PBR separation",
+        "required": true,
+        "qualityCriteria": [
+          "Moss cloth has directional weave normal/roughness, compressed edge variation, and no glossy plastic response.",
+          "Paper has ivory fiber breakup, warmer edge masks, high roughness, subtle subsurface-like softness, and readable layer AO.",
+          "Brass has metallic response, mottled face roughness, lower-roughness chamfer/rivet crowns, and controlled warm highlights.",
+          "Ribbon uses burgundy grosgrain ribbing and fibrous roughness distinct from cover cloth."
+        ],
+        "evidenceRefs": ["closed-cloth-closeup", "closed-nameplate-closeup", "closed-fore-edge-closeup", "open-paper-closeup"],
+        "failureModes": ["one albedo map is reused for unrelated PBR channels", "materials are distinguished only by flat color", "micro relief disappears under grazing light"]
+      }
+    ],
+    "visualDeltaChecks": [
+      "closed cover width/depth/thickness, corner radius, spine curvature, and page-block inset delta",
+      "open left/right stack volume, page crown, outer-edge fan, gutter width/depth, and cloth-lip delta",
+      "front-cover hinge origin and 0.97π open-state transform delta",
+      "nameplate size/placement/chamfer and two-rivet spacing/height delta",
+      "ribbon anchor, centerline path, page clearance, width, and V-notch silhouette delta",
+      "cloth weave direction/scale, paper fiber/edge warmth, brass metallic roughness, and ribbon ribbing delta"
+    ],
+    "antiShallowSpecRules": [
+      "Do not implement a cover or page with RoundedBoxGeometry when its radius is clamped by the thin axis; use plan-view shape extrusion or deformed indexed geometry.",
+      "Do not collapse the left and right page stacks, top pages, gutter, covers, spine, plate, rivets, or ribbon into one inert mesh.",
+      "Do not infer a decorated back cover: hidden rear geometry must be labeled consistency inference and must omit unobserved plate, logo, text, straps, or hardware.",
+      "Do not accept a page block represented by one smooth slab; grouped leaf layers and edge offsets must remain visible in closed and open review views.",
+      "Do not accept a flat open spread; both top pages require spline crown geometry and a recessed center gutter.",
+      "Do not accept a ribbon without a spine socket, state control points, page clearance, and V-notched end geometry.",
+      "Do not pass material look-dev when cloth, paper, brass, or ribbon aliases albedo into roughness, height, normal, or AO.",
+      "Do not pass any visual stage below 0.85 overall or below 0.82 for any critical semantic feature."
+    ]
+  },
+  "authoringInstruction": "Generate one shared action-ready notebook hierarchy for closed and open states. Preserve the existing app root and front-cover hinge contract; treat the back exterior as undecorated consistency inference."
+}

@@ -166,6 +166,7 @@ export interface ModelMaterialLibrary {
   neutral: THREE.MeshStandardMaterial
   paper: THREE.MeshStandardMaterial
   paperEdge: THREE.MeshStandardMaterial
+  ribbon: THREE.MeshPhysicalMaterial
   stitch: THREE.MeshStandardMaterial
   textureCount: number
   textures: THREE.Texture[]
@@ -289,25 +290,23 @@ export function sampleSurfaceChannels(
 
   if (family === 'cloth') {
     const macro = periodicNoise2d(u, v, 3, 3, 41)
-    const yarn = periodicNoise2d(u, v, 13, 11, 43)
-    const warpCount = Math.max(3, Math.round(size / 18))
-    const weftCount = Math.max(3, Math.round(size / 22))
-    const twillCount = Math.max(2, Math.round(size / 32))
-    const warp = threadRidge(u * warpCount + v * 3)
-    const weft = threadRidge(v * weftCount - u * 2)
-    const twill = threadRidge((u + v) * twillCount)
-    const weave = (warp - 0.23) * 0.58 + (weft - 0.23) * 0.3 + (twill - 0.23) * 0.12
-    const interstice = 1 - Math.min(1, warp * 0.64 + weft * 0.36)
-    const value = (macro - 0.5) * 4 + (yarn - 0.5) * 2 + weave * 1.6
+    const yarn = periodicNoise2d(u, v, 17, 15, 43)
+    const warpCount = Math.max(4, Math.round(size / 12))
+    const weftCount = Math.max(4, Math.round(size / 14))
+    const warp = threadRidge(u * warpCount + v * 1.7)
+    const weft = threadRidge(v * weftCount - u * 1.3)
+    const weave = (warp - 0.23) * 0.58 + (weft - 0.23) * 0.42
+    const interstice = 1 - Math.min(1, warp * 0.56 + weft * 0.44)
+    const value = (macro - 0.5) * 3 + (yarn - 0.5) * 1.4 + weave * 0.72
     const albedo = clampByte(247 + value)
     return {
       albedo: [albedo, albedo, albedo],
-      ao: clampByte(240 - interstice * 11 + (macro - 0.5) * 4),
+      ao: clampByte(243 - interstice * 8 + (macro - 0.5) * 3),
       height: clampByte(
-        124 + warp * 15 + weft * 9 + twill * 3 + (yarn - 0.5) * 4,
+        126 + warp * 10 + weft * 8 + (yarn - 0.5) * 3,
       ),
       roughness: clampByte(
-        228 + interstice * 10 + (macro - 0.5) * 5 - warp * 3,
+        232 + interstice * 7 + (macro - 0.5) * 4 - warp * 2,
       ),
     }
   }
@@ -465,32 +464,39 @@ export function createModelMaterialLibrary(
     anisotropy: 0.18,
     anisotropyRotation: Math.PI / 2,
     bumpMap: cloth.height,
-    bumpScale: 0.0023,
+    bumpScale: 0.0032,
     color: sceneColors.matField,
     map: cloth.albedo,
-    roughness: 0.94,
+    roughness: 0.95,
     roughnessMap: cloth.roughness,
-    sheen: 0.12,
+    sheen: 0.08,
     sheenColor: new THREE.Color('#aebdc0'),
     sheenRoughness: 0.95,
   })
   clothMaterial.name = 'animal-mint-cloth'
   const clothDark = clothMaterial.clone()
   clothDark.name = 'animal-mint-cloth-dark'
+  clothDark.bumpScale = 0.002
   clothDark.color.set(sceneColors.matBinding)
-  clothDark.roughness = 0.96
+  clothDark.roughness = 0.9
+  clothDark.sheen = 0.06
 
-  const notebookCover = new THREE.MeshStandardMaterial({
-    aoMap: kraft.ao,
-    aoMapIntensity: 0.3,
-    bumpMap: kraft.height,
-    bumpScale: 0.0014,
+  const notebookCover = new THREE.MeshPhysicalMaterial({
+    aoMap: cloth.ao,
+    aoMapIntensity: 0.28,
+    anisotropy: 0.12,
+    anisotropyRotation: Math.PI / 2,
+    bumpMap: cloth.height,
+    bumpScale: 0.006,
     color: sceneColors.notebookCover,
-    map: kraft.albedo,
-    roughness: 0.96,
-    roughnessMap: kraft.roughness,
+    map: cloth.albedo,
+    roughness: 0.88,
+    roughnessMap: cloth.roughness,
+    sheen: 0.1,
+    sheenColor: new THREE.Color('#87978d'),
+    sheenRoughness: 0.92,
   })
-  notebookCover.name = 'ink-green-kraft-cover'
+  notebookCover.name = 'ink-green-cloth-cover'
   const notebookCoverDark = notebookCover.clone()
   notebookCoverDark.name = 'ink-green-kraft-cover-dark'
   notebookCoverDark.color.set(sceneColors.notebookJoint)
@@ -528,7 +534,19 @@ export function createModelMaterialLibrary(
   brassDark.envMapIntensity = 0.7
   brassDark.roughness = 0.52
 
-  const stitch = new THREE.MeshStandardMaterial({ color: '#fffbe7', roughness: 0.94 })
+  const ribbon = new THREE.MeshPhysicalMaterial({
+    anisotropy: 0.16,
+    anisotropyRotation: Math.PI / 2,
+    color: '#6f2028',
+    roughness: 0.9,
+    sheen: 0.14,
+    sheenColor: new THREE.Color('#9b4650'),
+    sheenRoughness: 0.96,
+    side: THREE.DoubleSide,
+  })
+  ribbon.name = 'burgundy-grosgrain-ribbon'
+
+  const stitch = new THREE.MeshStandardMaterial({ color: '#aab5b4', roughness: 0.88 })
   stitch.name = 'stitch-thread'
   const neutral = new THREE.MeshStandardMaterial({ color: '#d8ded9', roughness: 0.82 })
   neutral.name = 'neutral-blockout'
@@ -547,6 +565,7 @@ export function createModelMaterialLibrary(
     paperEdge,
     brass,
     brassDark,
+    ribbon,
     stitch,
     neutral,
   ]
@@ -561,6 +580,7 @@ export function createModelMaterialLibrary(
     neutral,
     paper: paperMaterial,
     paperEdge,
+    ribbon,
     stitch,
     textureCount: textures.length,
     textures,

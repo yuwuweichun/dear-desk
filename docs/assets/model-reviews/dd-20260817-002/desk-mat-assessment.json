@@ -1,0 +1,315 @@
+{
+  "targetName": "Warm Paper Atelier Desk Mat Continuous Pad",
+  "sourceImage": "docs/assets/concepts/warm-paper-atelier-desk-mat.png",
+  "preSpecAssessment": {
+    "objectClass": {
+      "primaryType": "continuous upholstered rounded-rectangle desk mat",
+      "primaryDomain": "object",
+      "formLanguage": [
+        "fabric-like",
+        "low-profile planar silhouette",
+        "soft hard-surface hybrid",
+        "stylized tactile prop"
+      ],
+      "structureKind": [
+        "layered shell",
+        "continuous top surface",
+        "attached perimeter binding",
+        "repeated stitch path"
+      ],
+      "motionPotential": [
+        "static prop",
+        "whole-object transform"
+      ],
+      "materialFamilies": [
+        "woven cloth",
+        "compressed textile binding",
+        "rubberized support"
+      ],
+      "notes": "Direct inspection shows one thin padded mat with a broad rounded plan, continuous top field, compressed attached binding, inset low-contrast stitch path, and fine woven response. The unseen underside is conservatively inferred as a thin support; no manufacturing-grade dimensions are claimed."
+    },
+    "complexity": {
+      "tier": "moderate",
+      "scores": {
+        "silhouetteComplexity": 1,
+        "componentCount": 1,
+        "hierarchyDepth": 1,
+        "repetitionDensity": 2,
+        "materialLayerCount": 2,
+        "localDetailDensity": 2,
+        "occlusionRisk": 1,
+        "actionReadinessNeed": 1
+      },
+      "estimatedCounts": {
+        "macroComponents": 2,
+        "mesoComponents": 4,
+        "microFeatureGroups": 4,
+        "materialLayers": 3,
+        "repetitionSystems": 1
+      },
+      "reasoning": [
+        "The outer silhouette is simple, but the reference identity depends on a continuous thin pad profile rather than the current raised inner tray.",
+        "The segmented stitches form one dense curve-following repetition system around four straight runs and four broad corners.",
+        "The main view and two low-angle insets expose separate macro crown, meso binding compression, and micro fiber/roughness response.",
+        "The hidden underside and exact thickness are inferred conservatively and judged through grounded contact rather than claimed as source fact."
+      ]
+    },
+    "specDepthDecision": {
+      "requiredDepth": "moderate",
+      "minimumComponentLevels": [
+        "macro",
+        "meso",
+        "micro"
+      ],
+      "needsRepetitionSystems": true,
+      "needsMaterialLocalOverrides": true,
+      "needsMultipleReviewViews": true,
+      "needsActionReadyHierarchy": true,
+      "rationale": "Moderate depth covers the simple mass while requiring explicit continuous surface, attached binding, repeated stitches, three-frequency cloth response, stable contact, and unchanged runtime interaction anchors."
+    },
+    "unknownsToResolveBeforeImplementation": [],
+    "detailInventory": {
+      "scanMethod": "component-zones",
+      "targetMinDetails": 8,
+      "note": "Eight reference-observed or explicitly inferred details map to implementation components/material overrides; hidden underside dimensions remain an inference.",
+      "details": [
+        {
+          "id": "rounded-plan-corners",
+          "kind": "bevel",
+          "description": "Four broad plan corners remain independent of the mat's small vertical thickness.",
+          "region": {"x": 0.04, "y": 0.1, "width": 0.92, "height": 0.58, "units": "normalized"},
+          "scale": "macro; 0.7 world-unit plan radius",
+          "affects": "outer silhouette geometry",
+          "mapsTo": {"type": "component.localFeatures", "ref": "mat-body/plan-corner-radius"},
+          "evidenceRef": "detail-zones/zone-r0c0.png",
+          "confidence": 0.96
+        },
+        {
+          "id": "continuous-soft-crown",
+          "kind": "contour",
+          "description": "The top is one nearly planar padded field with a restrained crown and no recessed tray gap.",
+          "region": {"x": 0.1, "y": 0.12, "width": 0.8, "height": 0.52, "units": "normalized"},
+          "scale": "meso; crown below 0.02 world units",
+          "affects": "top-surface form and grazing highlight",
+          "mapsTo": {"type": "component.localFeatures", "ref": "mat-surface/continuous-low-crown"},
+          "evidenceRef": "detail-zones/zone-r0c1.png",
+          "confidence": 0.9
+        },
+        {
+          "id": "compressed-attached-binding",
+          "kind": "ridge",
+          "description": "A darker wrapped binding overlaps the side edge and reads as compressed upholstery rather than a floating circular tube.",
+          "region": {"x": 0.16, "y": 0.72, "width": 0.68, "height": 0.22, "units": "normalized"},
+          "scale": "meso; about 0.11 world units wide and 0.07 high",
+          "affects": "perimeter profile, attachment, and edge highlight",
+          "mapsTo": {"type": "component.localFeatures", "ref": "binding-ring/compressed-overlap-profile"},
+          "evidenceRef": "detail-zones/zone-r2c1.png",
+          "confidence": 0.95
+        },
+        {
+          "id": "inset-stitch-channel",
+          "kind": "seam",
+          "description": "A shallow compressed channel carries the stitches just inside the binding without separating the top into another island.",
+          "region": {"x": 0.055, "y": 0.11, "width": 0.89, "height": 0.56, "units": "normalized"},
+          "scale": "micro; channel width about 0.025 world units",
+          "affects": "edge construction line and contact AO",
+          "mapsTo": {"type": "component.localFeatures", "ref": "stitch-channel/inset-compression-line"},
+          "evidenceRef": "detail-zones/zone-r1c0.png",
+          "confidence": 0.92
+        },
+        {
+          "id": "segmented-perimeter-stitches",
+          "kind": "stitch",
+          "description": "Short low-contrast thread dashes repeat at stable arc-length spacing and follow the path tangent through all corners.",
+          "region": {"x": 0.055, "y": 0.11, "width": 0.89, "height": 0.56, "units": "normalized"},
+          "scale": "micro; 0.075 world-unit dashes with visible gaps",
+          "affects": "instanced repeated geometry and thread contrast",
+          "mapsTo": {"type": "component.localFeatures", "ref": "stitch-system/perimeter-stitch-path"},
+          "evidenceRef": "detail-zones/zone-r1c1.png",
+          "confidence": 0.97
+        },
+        {
+          "id": "field-woven-crosshatch",
+          "kind": "linework",
+          "description": "Fine interlaced fibers create dense directional crosshatch without a distant checkerboard pattern.",
+          "region": {"x": 0.18, "y": 0.18, "width": 0.64, "height": 0.4, "units": "normalized"},
+          "scale": "micro; high-frequency weave above product-view pixel frequency",
+          "affects": "independent height, roughness, AO, and neutral albedo channels",
+          "mapsTo": {"type": "material.localOverrides", "ref": "field-cloth/woven-crosshatch"},
+          "evidenceRef": "detail-zones/zone-r1c2.png",
+          "confidence": 0.93
+        },
+        {
+          "id": "field-tonal-mottling",
+          "kind": "stain",
+          "description": "Broad low-contrast neutral tonal variation breaks uniformity without reading as dirt or owning the role color.",
+          "region": {"x": 0.1, "y": 0.12, "width": 0.8, "height": 0.53, "units": "normalized"},
+          "scale": "macro and meso; irregular 0.12 to 0.45 mat-unit variation",
+          "affects": "neutral albedo and roughness locality",
+          "mapsTo": {"type": "material.localOverrides", "ref": "field-cloth/neutral-tonal-mottle"},
+          "evidenceRef": "detail-zones/zone-r2c0.png",
+          "confidence": 0.86
+        },
+        {
+          "id": "binding-compressed-response",
+          "kind": "gloss",
+          "description": "The bound edge has lower bump amplitude and a restrained smoother crest highlight under grazing light.",
+          "region": {"x": 0.16, "y": 0.72, "width": 0.68, "height": 0.22, "units": "normalized"},
+          "scale": "micro local response over the binding crest",
+          "affects": "localized roughness and bump scale",
+          "mapsTo": {"type": "material.localOverrides", "ref": "binding-textile/compressed-crest-response"},
+          "evidenceRef": "detail-zones/zone-r2c2.png",
+          "confidence": 0.86
+        }
+      ]
+    },
+    "anatomy": {
+      "applies": false,
+      "styleHeads": 0.0,
+      "proportions": {
+        "headUnit": 0.0,
+        "torso": 0.0,
+        "legs": 0.0,
+        "shoulderWidth": 0.0,
+        "hipWidth": 0.0
+      },
+      "pose": {
+        "type": "unassessed",
+        "jointAngles": {}
+      },
+      "faceLandmarks": {
+        "eyeLine": 0.0,
+        "eyeSpacing": 0.0,
+        "noseBase": 0.0,
+        "mouthLine": 0.0,
+        "hairline": 0.0
+      },
+      "features": [],
+      "confidence": 0.0,
+      "note": "Only meaningful when objectClass.primaryDomain is character or hybrid. Set applies=true and fill from forge/stage1_intake/extract_landmarks.py. See grimoire/character/reconstruction.md and grimoire/character/likeness_maximization.md."
+    },
+    "sourceImage": "docs/assets/concepts/warm-paper-atelier-desk-mat.png"
+  },
+  "qualityContract": {
+    "qualityBar": "reference-fidelity",
+    "definitionOfDone": [
+      "The preserved 8.7 by 6.25 footprint reads as one broad, continuous, low-profile padded mat rather than a bumper surrounding a raised tray.",
+      "The attached binding, compressed stitch channel, and segmented stitches remain distinct in top and both low-angle reference views without floating or intersection.",
+      "Field and binding retain independently generated albedo, roughness, height, and AO responses with macro, meso, and micro frequency bands.",
+      "The visible model stays grounded while the approved topY, placement bounds, collider, sockets, and external hit surface remain unchanged."
+    ],
+    "minimumSpecDepth": {
+      "macroComponents": 2,
+      "mesoComponents": 3,
+      "microFeatureGroups": 2,
+      "materialLayers": 2,
+      "repetitionSystems": 1,
+      "reviewViewpoints": 5
+    },
+    "featureGroups": [
+      {
+        "id": "overall-silhouette",
+        "name": "Broad rounded plan and continuous low profile",
+        "required": true,
+        "qualityCriteria": [
+          "The approved 8.7 by 6.25 footprint, z center, and 0.7 plan radius remain unchanged.",
+          "The top reads as one thin padded surface; no raised inner island or deep perimeter trough appears."
+        ],
+        "evidenceRefs": [
+          "full-object"
+        ],
+        "failureModes": [
+          "corner radius is clamped by vertical thickness",
+          "mat reads as a tray, sharp slab, or thick cushion"
+        ]
+      },
+      {
+        "id": "primary-structure",
+        "name": "Continuous surface, support, binding, and stitch structure",
+        "required": true,
+        "qualityCriteria": [
+          "Surface, support layer, attached binding, stitch channel, and stitch system have explicit ownership under one root.",
+          "All visible layers derive from one rounded footprint so straight runs and corners remain registered."
+        ],
+        "evidenceRefs": [
+          "full-object"
+        ],
+        "failureModes": [
+          "binding floats away from the surface or intersects it visibly",
+          "a separate field island recreates the current bumper-well structure"
+        ]
+      },
+      {
+        "id": "attachment-joint-correctness",
+        "name": "Compressed binding attachment and grounded contact",
+        "required": true,
+        "qualityCriteria": [
+          "Binding attachment declares the surface edge socket, overlap/contact type, embed depth, and gap tolerance.",
+          "The support layer rests at the desk datum without a visible gap while the approved topY remains fixed."
+        ],
+        "evidenceRefs": [
+          "full-object"
+        ],
+        "failureModes": [
+          "binding reads as a detached circular tube",
+          "mat floats above or clips into the desktop",
+          "visible geometry changes the external hit surface contract"
+        ]
+      },
+      {
+        "id": "surface-material-response",
+        "name": "Three-frequency woven field and compressed binding response",
+        "required": true,
+        "qualityCriteria": [
+          "Field and binding define independent albedo, roughness, height, and AO responses without channel aliasing.",
+          "Neutral macro mottling, meso yarn variation, and micro crosshatch remain distinct under neutral and grazing light.",
+          "Binding uses lower bump amplitude and a localized smoother crest while preserving editable role colors."
+        ],
+        "evidenceRefs": [
+          "full-object"
+        ],
+        "failureModes": [
+          "surface reads as flat plastic, stone noise, or a distant checkerboard",
+          "binding response is identical to the field and loses compressed-edge character"
+        ]
+      },
+      {
+        "id": "reference-lookdev",
+        "name": "Reference viewpoints and interaction-preserving look-development",
+        "required": true,
+        "qualityCriteria": [
+          "Top, left-front grazing, right-front grazing, desktop product, and mobile product views show the same registered geometry.",
+          "Neutral and grazing review proves relief survives relighting rather than being painted into albedo.",
+          "Current role colors stay editable and the unchanged collider/hit bounds remain aligned with the visible footprint."
+        ],
+        "evidenceRefs": [
+          "full-object"
+        ],
+        "failureModes": [
+          "only an isolated top view passes while either low-angle edge view fails",
+          "review lighting hides attachment or contact artifacts",
+          "visible footprint diverges from the approved interaction boundary"
+        ]
+      }
+    ],
+    "visualDeltaChecks": [
+      "silhouette and negative-space delta",
+      "component hierarchy depth delta",
+      "repetition density and distribution delta",
+      "material albedo/roughness/normal response delta",
+      "local feature placement and scale delta"
+    ],
+    "antiShallowSpecRules": [
+      "Do not proceed to code if qualityContract.qualityBar is unassessed.",
+      "Do not proceed to code if the spec only contains a root component for a moderate or complex object.",
+      "Do not proceed to code if required featureGroups are not represented by componentTree, materials, or repetitionSystems.",
+      "Do not proceed to code if visible local features are described only in prose and not attached to components/materials/evidenceRefs.",
+      "Do not proceed past structural-pass if attached child parts lack attachment.parentSocket, localStart, localEnd, embedDepth/overlap, and gapTolerance.",
+      "Do not pass material look-dev when albedo is reused as roughness, height, normal, or AO.",
+      "Do not pass material look-dev without macro, meso, and micro surface frequency bands for close-up materials.",
+      "Do not pass reference-fidelity material look-dev from a source image without usable referencePbr maps or an explicit documented limitation.",
+      "Do not patch a spec with extracted PBR maps when extraction confidence is below the target threshold unless the user explicitly accepts lower fidelity."
+    ]
+  },
+  "authoringInstruction": "Fill observed object class, complexity reasoning, featureGroups, visualDeltaChecks, and unknowns before generating or implementing ObjectSculptSpec."
+}

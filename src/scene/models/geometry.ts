@@ -28,6 +28,7 @@ export function createRoundedPanelGeometry(
   thickness: number,
   planRadius: number,
   bevel = Math.min(0.025, thickness * 0.18),
+  curveSegments = 10,
 ) {
   const bevelThickness = Math.min(bevel, thickness * 0.22)
   const geometry = new THREE.ExtrudeGeometry(
@@ -37,7 +38,7 @@ export function createRoundedPanelGeometry(
       bevelSegments: 2,
       bevelSize: bevelThickness,
       bevelThickness,
-      curveSegments: 10,
+      curveSegments,
       depth: Math.max(0.001, thickness - bevelThickness * 2),
       steps: 1,
     },
@@ -46,6 +47,7 @@ export function createRoundedPanelGeometry(
   geometry.computeVertexNormals()
   geometry.userData.planRadius = planRadius
   geometry.userData.thickness = thickness
+  geometry.userData.curveSegments = curveSegments
   return geometry
 }
 
@@ -55,6 +57,7 @@ export function createRoundedPlateGeometry(
   thickness: number,
   planRadius: number,
   bevel?: number,
+  curveSegments?: number,
 ) {
   const geometry = createRoundedPanelGeometry(
     width,
@@ -62,6 +65,7 @@ export function createRoundedPlateGeometry(
     thickness,
     planRadius,
     bevel,
+    curveSegments,
   )
   geometry.rotateX(Math.PI / 2)
   return geometry
@@ -86,6 +90,59 @@ export function createCurvedPageGeometry(
   geometry.rotateX(-Math.PI / 2)
   geometry.computeVertexNormals()
   geometry.userData.curvedPage = true
+  return geometry
+}
+
+export function createRibbonGeometry(
+  width: number,
+  startZ: number,
+  endZ: number,
+  thickness = 0.012,
+) {
+  const halfWidth = width / 2
+  const notchDepth = width * 0.72
+  const segmentCount = 32
+  const bodyEndZ = endZ - notchDepth
+  const positions: number[] = []
+  const uvs: number[] = []
+  const indices: number[] = []
+
+  for (let segment = 0; segment <= segmentCount; segment += 1) {
+    const t = segment / segmentCount
+    const z = THREE.MathUtils.lerp(startZ, bodyEndZ, t)
+    positions.push(-halfWidth, thickness / 2, z, halfWidth, thickness / 2, z)
+    uvs.push(0, t, 1, t)
+    if (segment === segmentCount) continue
+    const left = segment * 2
+    indices.push(left, left + 2, left + 1, left + 1, left + 2, left + 3)
+  }
+
+  const bodyLeft = segmentCount * 2
+  const bodyRight = bodyLeft + 1
+  const leftTip = positions.length / 3
+  positions.push(-halfWidth, thickness / 2, endZ)
+  uvs.push(0, 1)
+  const notch = positions.length / 3
+  positions.push(0, thickness / 2, bodyEndZ)
+  uvs.push(0.5, 1 - notchDepth / (endZ - startZ))
+  const rightTip = positions.length / 3
+  positions.push(halfWidth, thickness / 2, endZ)
+  uvs.push(1, 1)
+  indices.push(bodyLeft, leftTip, notch, notch, rightTip, bodyRight)
+
+  const geometry = new THREE.BufferGeometry()
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3))
+  geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2))
+  geometry.setIndex(indices)
+  geometry.computeVertexNormals()
+  geometry.computeBoundingBox()
+  geometry.computeBoundingSphere()
+  geometry.userData = {
+    longitudinalSegments: segmentCount,
+    notchDepth,
+    role: 'v-notched-ribbon',
+    thickness,
+  }
   return geometry
 }
 

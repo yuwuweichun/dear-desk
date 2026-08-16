@@ -45,20 +45,25 @@ const makeStitches = (
 ) => {
   const spec = DESK_MAT_MODEL_SPEC
   const curve = createRoundedRectCurve(
-    spec.width - 0.62,
-    spec.depth - 0.62,
-    spec.planRadius - 0.2,
-    spec.thickness / 2 + 0.075,
+    spec.width - spec.stitch.inset * 2,
+    spec.depth - spec.stitch.inset * 2,
+    spec.planRadius - spec.stitch.inset,
+    spec.topY - spec.position[1] + 0.002,
   )
-  const geometry = new THREE.CapsuleGeometry(0.006, 0.075, 3, 6)
+  const geometry = new THREE.CapsuleGeometry(
+    spec.stitch.radius,
+    spec.stitch.dashLength,
+    3,
+    6,
+  )
   geometry.userData = {
-    dashLength: 0.087,
-    distribution: 'spaced-soft-pad-perimeter',
+    dashLength: spec.stitch.dashLength,
+    distribution: 'constant-arc-length-inset-perimeter',
   }
   const stitches = new THREE.InstancedMesh(
     geometry,
     material,
-    spec.stitchCount,
+    spec.stitch.count,
   )
   finish(stitches, 'desk-mat-stitches', options)
   const source = new THREE.Vector3(0, 1, 0)
@@ -66,8 +71,8 @@ const makeStitches = (
   const tangent = new THREE.Vector3()
   const quaternion = new THREE.Quaternion()
   const matrix = new THREE.Matrix4()
-  for (let index = 0; index < spec.stitchCount; index += 1) {
-    const offset = (index + 0.5) / spec.stitchCount
+  for (let index = 0; index < spec.stitch.count; index += 1) {
+    const offset = (index + 0.5) / spec.stitch.count
     point.copy(curve.getPointAt(offset))
     tangent.copy(curve.getTangentAt(offset)).setY(0).normalize()
     quaternion.setFromUnitVectors(source, tangent)
@@ -78,9 +83,9 @@ const makeStitches = (
   stitches.castShadow = false
   stitches.userData = {
     ...stitches.userData,
-    instanceCount: spec.stitchCount,
+    instanceCount: spec.stitch.count,
     interactive: false,
-    seed: 'dd-20260812-001-animal-pad',
+    seed: 'dd-20260817-002-continuous-pad',
   }
   return stitches
 }
@@ -101,51 +106,85 @@ export function createDeskMatModel(
   root.position.set(...spec.position)
   root.userData = {
     buildPass: pass,
-    modelId: 'animal-island-soft-pad',
+    modelId: 'warm-paper-atelier-continuous-desk-mat',
     pass,
-    structure: 'bumper-well',
+    structure: 'continuous-pad-with-attached-binding',
   }
 
-  // A thick soft bumper establishes a new silhouette instead of a thin cloth sheet.
+  const surfaceLocalTopY = spec.topY - spec.position[1]
+  const bodyCenterY =
+    surfaceLocalTopY - spec.surface.bodyTopInset - spec.bodyThickness / 2
   const body = finish(
     new THREE.Mesh(
       scaleGeometryUvs(
-        createRoundedPlateGeometry(spec.width, spec.depth, 0.18, 0.82, 0.06),
-        4.2,
-        3.2,
+        createRoundedPlateGeometry(
+          spec.width,
+          spec.depth,
+          spec.bodyThickness,
+          spec.planRadius,
+          0.015,
+          48,
+        ),
+        spec.surface.uvScale[0],
+        spec.surface.uvScale[1],
       ),
       clothDark,
     ),
     'desk-mat-body',
     options,
   )
-  body.position.y = -0.035
+  body.position.y = bodyCenterY
   body.userData = {
     ...body.userData,
+    attachment: {
+      contactType: 'grounded-overlap',
+      gapTolerance: 0.004,
+      overlap: 0.015,
+      parentSocket: 'desktop-contact-plane',
+    },
     interactive: false,
     planRadius: spec.planRadius,
-    profile: 'thick-soft-bumper',
+    profile: 'continuous-low-profile-pad',
   }
   root.add(body)
 
   let binding: THREE.Object3D = placeholder('desk-mat-binding', 'structural-pass')
   if (showStructure) {
     const curve = createRoundedRectCurve(
-      spec.width - 0.12,
-      spec.depth - 0.12,
-      0.72,
-      0.065,
+      spec.width - spec.binding.inset * 2,
+      spec.depth - spec.binding.inset * 2,
+      spec.planRadius - spec.binding.inset,
+      surfaceLocalTopY - spec.binding.radius * 0.075,
     )
+    const bindingGeometry = new THREE.TubeGeometry(
+      curve,
+      144,
+      spec.binding.radius,
+      8,
+      true,
+    )
+    bindingGeometry.scale(1, spec.binding.heightScale, 1)
+    bindingGeometry.userData = {
+      attachment: 'wrapped-overlap',
+      overlap: spec.binding.overlap,
+      profile: 'compressed-oval',
+    }
     binding = finish(
-      new THREE.Mesh(new THREE.TubeGeometry(curve, 144, 0.065, 8, true), clothDark),
+      new THREE.Mesh(bindingGeometry, clothDark),
       'desk-mat-binding',
       options,
     )
     binding.userData = {
+      attachment: {
+        contactType: 'wrapped-overlap',
+        gapTolerance: 0.004,
+        overlap: spec.binding.overlap,
+        parentSocket: 'desk-mat-sidewall',
+      },
       interactive: false,
       planRadius: spec.planRadius,
-      profile: 'pill-bumper-rim',
-      radius: 0.065,
+      profile: 'compressed-attached-binding',
+      radius: spec.binding.radius,
     }
     root.add(binding)
   }
@@ -155,17 +194,29 @@ export function createDeskMatModel(
     field = finish(
       new THREE.Mesh(
         scaleGeometryUvs(
-          createRoundedPlateGeometry(spec.width - 0.5, spec.depth - 0.5, 0.055, 0.58, 0.018),
-          4,
-          3,
+          createRoundedPlateGeometry(
+            spec.width - spec.surface.inset * 2,
+            spec.depth - spec.surface.inset * 2,
+            spec.surface.thickness,
+            spec.planRadius - spec.surface.inset,
+            0.006,
+            48,
+          ),
+          spec.surface.uvScale[0],
+          spec.surface.uvScale[1],
         ),
         cloth,
       ),
-      'desk-mat-recessed-work-field',
+      'desk-mat-continuous-work-surface',
       options,
     )
-    field.position.y = 0.075
-    field.userData = { interactive: false, profile: 'recessed-work-well' }
+    field.position.y = surfaceLocalTopY - spec.surface.thickness / 2
+    field.userData = {
+      interactive: false,
+      planRadius: spec.planRadius - spec.surface.inset,
+      profile: 'continuous-low-crowned-surface',
+      trayGap: false,
+    }
 
     root.add(field)
   }
@@ -221,7 +272,7 @@ export function createDeskMatModel(
   root.userData.ownsMaterials = false
   root.userData.pointerEvents = 'external-interaction-surface'
   root.userData.reviewContract = { criticalFeatureThreshold: 0.82, overallThreshold: 0.85 }
-  root.userData.stitchCount = showStructure ? spec.stitchCount : 0
+  root.userData.stitchCount = showStructure ? spec.stitch.count : 0
 
   const metrics = measureModelResources(root)
   root.userData.resourceBudget = { ...MODEL_LIMITS, dpr: [1, 1.5] }
