@@ -16,7 +16,7 @@ const colorGroups: Array<{
       { key: 'deskTop', label: '桌面' },
       { key: 'deskFrame', label: '桌框与围板' },
       { key: 'deskLegs', label: '桌腿与支撑' },
-      { key: 'deskInset', label: '支撑嵌板' },
+      { key: 'deskInset', label: '抽屉面' },
     ],
   },
   {

@@ -89,9 +89,9 @@ describe('procedural scene model factories', () => {
       background: '#d5dad8',
       mint: '#73858a',
       mintDark: '#4c5e63',
-      wood: '#927054',
-      woodDark: '#5f4939',
-      woodPanel: '#aa8768',
+      wood: '#73411f',
+      woodDark: '#593219',
+      woodPanel: '#70401f',
     })
 
     for (const [version, preset] of Object.entries(SCENE_PALETTE_PRESETS)) {
@@ -118,15 +118,16 @@ describe('procedural scene model factories', () => {
 
     expect(SCENE_MATERIAL_VERSION).toBe('V2.0')
     expect(SCENE_PALETTE.background).toBe('#d5dad8')
-    expect(SCENE_PALETTE.wood).toBe('#927054')
-    expect(SCENE_PALETTE.woodDark).toBe('#5f4939')
-    expect(SCENE_PALETTE.woodPanel).toBe('#aa8768')
+    expect(SCENE_PALETTE.wood).toBe('#73411f')
+    expect(SCENE_PALETTE.woodDark).toBe('#593219')
+    expect(SCENE_PALETTE.woodPanel).toBe('#70401f')
     expect(SCENE_PALETTE.mint).toBe('#73858a')
     expect(SCENE_PALETTE.mintDark).toBe('#4c5e63')
-    expect(materials.walnut.color.getHexString()).toBe('927054')
-    expect(materials.walnutDark.color.getHexString()).toBe('5f4939')
-    expect(materials.walnutLegs.color.getHexString()).toBe('5f4939')
-    expect(materials.walnutPanel.color.getHexString()).toBe('aa8768')
+    expect(materials.walnut.color.getHexString()).toBe('73411f')
+    expect(materials.walnutDark.color.getHexString()).toBe('593219')
+    expect(materials.walnutDrawer.color.getHexString()).toBe('64381b')
+    expect(materials.walnutLegs.color.getHexString()).toBe('593219')
+    expect(materials.walnutPanel.color.getHexString()).toBe('70401f')
     expect(materials.cloth.color.getHexString()).toBe('73858a')
     expect(materials.clothDark.color.getHexString()).toBe('4c5e63')
     expect(materials.notebookCover.color.getHexString()).toBe('173f35')
@@ -142,14 +143,21 @@ describe('procedural scene model factories', () => {
     expect(materials.paper.roughness).toBe(0.98)
     expect(materials.paperEdge.color.getHexString()).toBe('e6dcc4')
     expect(materials.paperEdge.roughness).toBe(0.96)
-    expect(materials.brass.color.getHexString()).toBe('ee7771')
-    expect(materials.brass.metalness).toBeLessThan(0.1)
+    expect(materials.brass.color.getHexString()).toBe('8f6a41')
+    expect(materials.brass).toMatchObject({
+      clearcoat: 0.12,
+      clearcoatRoughness: 0.2,
+      metalness: 0.92,
+      roughness: 0.34,
+    })
+    expect(materials.brassDark.color.getHexString()).toBe('59462f')
+    expect(materials.brassDark.metalness).toBe(0.92)
     expect(materials.walnut).toMatchObject({
-      aoMapIntensity: 0.18,
-      bumpScale: 0.0025,
-      clearcoat: 0.1,
-      clearcoatRoughness: 0.78,
-      roughness: 0.76,
+      aoMapIntensity: 0.26,
+      bumpScale: 0.0042,
+      clearcoat: 0.16,
+      clearcoatRoughness: 0.58,
+      roughness: 0.62,
     })
     expect(materials.cloth).toMatchObject({
       aoMapIntensity: 0.18,
@@ -165,17 +173,21 @@ describe('procedural scene model factories', () => {
     const colors = {
       ...getSceneColorConfig(),
       deskFrame: '#112233',
+      deskInset: '#335577',
       deskLegs: '#445566',
       notebookCover: '#778899',
     }
     const deskFrame = materials.walnutDark
+    const deskDrawer = materials.walnutDrawer
     const deskLegs = materials.walnutLegs
 
     applySceneColors(materials, colors)
 
     expect(materials.walnutDark).toBe(deskFrame)
+    expect(materials.walnutDrawer).toBe(deskDrawer)
     expect(materials.walnutLegs).toBe(deskLegs)
     expect(materials.walnutDark.color.getHexString()).toBe('112233')
+    expect(materials.walnutDrawer.color.getHexString()).toBe('2d4b6a')
     expect(materials.walnutLegs.color.getHexString()).toBe('445566')
     expect(materials.notebookCover.color.getHexString()).toBe('778899')
     expect(materials.paper.color.getHexString()).toBe('fffbe7')
@@ -194,6 +206,9 @@ describe('procedural scene model factories', () => {
       expect(materials.walnut.color.getHexString()).toBe(preset.wood.slice(1))
       expect(materials.walnutDark.color.getHexString()).toBe(preset.woodDark.slice(1))
       expect(materials.walnutPanel.color.getHexString()).toBe(preset.woodPanel.slice(1))
+      expect(materials.walnutDrawer.color.getHexString()).not.toBe(
+        materials.walnutPanel.color.getHexString(),
+      )
       expect(materials.cloth.color.getHexString()).toBe(preset.mint.slice(1))
       expect(materials.clothDark.color.getHexString()).toBe(preset.mintDark.slice(1))
       expect(materials.notebookCover.color.getHexString()).toBe('173f35')
@@ -229,6 +244,11 @@ describe('procedural scene model factories', () => {
         expect(new Set(albedo).size).toBe(1)
       }
     })
+
+    const woodValues = Array.from({ length: 16 * 16 }, (_, index) =>
+      sampleSurfaceChannels('wood', index % 16, Math.floor(index / 16), 16).albedo[0]
+    )
+    expect(Math.max(...woodValues) - Math.min(...woodValues)).toBeGreaterThan(20)
   })
 
   it('keeps large plan radii independent from thin panel thickness', () => {
@@ -276,6 +296,10 @@ describe('procedural scene model factories', () => {
     expect(DESK_MODEL_SPEC.leg.topRadius).toBeGreaterThan(
       DESK_MODEL_SPEC.leg.bottomRadius,
     )
+    expect(DESK_MODEL_SPEC.leg.height / DESK_MODEL_SPEC.tabletop.thickness).toBeGreaterThan(10)
+    expect(
+      DESK_MODEL_SPEC.tabletop.positionY + DESK_MODEL_SPEC.tabletop.thickness / 2,
+    ).toBeCloseTo(0.05)
     expect(NOTEBOOK_MODEL_SPEC.page.width).toBeLessThan(
       NOTEBOOK_MODEL_SPEC.cover.width,
     )
@@ -296,16 +320,14 @@ describe('procedural scene model factories', () => {
       DESK_MODEL_SPEC.tabletop.radius,
     )
     expect(deskRuntime.nodes.tabletop.geometry.getAttribute('uv1')).toBeTruthy()
-    expect(desk.userData.structure).toBe('single-top-panel-support-island')
-    expect(deskRuntime.nodes.legAssembly.name).toBe(
-      'desk-panel-support-assembly',
+    expect(desk.userData.modelId).toBe('warm-paper-atelier-desk')
+    expect(desk.userData.structure).toBe(
+      'three-drawer-tapered-leg-writing-desk',
     )
-    expect(deskRuntime.nodes.apron.userData.profile).toBe(
-      'recessed-capsule-rail',
-    )
+    expect(deskRuntime.nodes.legAssembly.name).toBe('desk-leg-assembly')
     expect(deskRuntime.nodes.legLeftFront.userData.taper).toMatchObject({
       bottomRadius: DESK_MODEL_SPEC.leg.bottomRadius,
-      direction: 'panel-support',
+      direction: 'narrows-downward',
       topRadius: DESK_MODEL_SPEC.leg.topRadius,
     })
     expect(deskRuntime.nodes.legLeftFront.material).toBe(materials.walnutLegs)
@@ -314,12 +336,47 @@ describe('procedural scene model factories', () => {
     expect(deskRuntime.nodes.legLeftFront.material).not.toBe(
       deskRuntime.nodes.apron.material,
     )
+    const frontLegInnerX = Math.abs(DESK_MODEL_SPEC.legPositions[2][0])
+      - DESK_MODEL_SPEC.leg.topRadius
+    const leftDrawer = DESK_MODEL_SPEC.drawers[0]
+    const rightDrawer = DESK_MODEL_SPEC.drawers[2]
+    expect(Math.abs(leftDrawer.positionX) + leftDrawer.width / 2).toBeLessThan(
+      frontLegInnerX,
+    )
+    expect(Math.abs(rightDrawer.positionX) + rightDrawer.width / 2).toBeLessThan(
+      frontLegInnerX,
+    )
+    expect(
+      DESK_MODEL_SPEC.legPositions[2][2] + DESK_MODEL_SPEC.leg.topRadius,
+    ).toBeCloseTo(
+      DESK_MODEL_SPEC.drawerPositionZ + DESK_MODEL_SPEC.drawerDepth / 2,
+      1,
+    )
     expect(deskRuntime.sockets['socket-apron-front']!.position.toArray()).toEqual(
       [...DESK_MODEL_SPEC.apron.position],
     )
     expect(desk.getObjectByName('desk-floating-underlayer')).toBeUndefined()
-    expect(desk.getObjectByName('drawer-center')).toBeUndefined()
-    expect(desk.getObjectByName('desk-knob-crowns')).toBeUndefined()
+    expect(desk.getObjectByName('drawer-center')).toBe(
+      deskRuntime.nodes.drawerCenter,
+    )
+    expect(deskRuntime.nodes.knobBases).toBeInstanceOf(THREE.InstancedMesh)
+    expect(deskRuntime.nodes.knobBases.count).toBe(3)
+    expect(deskRuntime.nodes.knobCrowns).toBeInstanceOf(THREE.InstancedMesh)
+    expect(deskRuntime.nodes.knobCrowns.count).toBe(3)
+    expect(deskRuntime.nodes.knobBases.material).toBe(materials.brassDark)
+    expect(deskRuntime.nodes.knobCrowns.material).toBe(materials.brass)
+    expect(deskRuntime.nodes.drawerCenterFace.material).toEqual([
+      materials.walnutDrawer,
+      materials.walnutDark,
+    ])
+    expect(deskRuntime.nodes.drawerCenter.userData.action).toEqual({
+      axis: [0, 0, 1],
+      limits: [0, 0.86],
+      role: 'linear-slide',
+    })
+    expect(deskRuntime.sockets['socket-drawer-center-slide']).toBeTruthy()
+    expect(deskRuntime.sockets['socket-drawer-center-knob']).toBeTruthy()
+    expect(deskRuntime.updateAttachments).toBeTypeOf('function')
     expect(deskRuntime.colliders.tabletop).toEqual({
       center: [0, DESK_MODEL_SPEC.tabletop.positionY, 0],
       id: 'tabletop',
@@ -546,6 +603,12 @@ describe('procedural scene model factories', () => {
 
   it('shows pass-critical repeated details from the structural pass', () => {
     const materials = createTestMaterials()
+    const deskStructural = trackRoot(
+      createDeskModel(materials, { pass: 'structural-pass' }),
+    )
+    const deskForm = trackRoot(
+      createDeskModel(materials, { pass: 'form-refinement' }),
+    )
     const mat = trackRoot(
       createDeskMatModel(materials, { pass: 'structural-pass' }),
     )
@@ -555,6 +618,10 @@ describe('procedural scene model factories', () => {
     const matRuntime = getRuntime<DeskMatModelNodes>(mat)
     const notebookRuntime = getRuntime<NotebookModelNodes>(notebook)
 
+    expect(deskStructural.getObjectByName('drawer-center')).toBeTruthy()
+    expect(deskStructural.getObjectByName('rear-apron')).toBeTruthy()
+    expect(deskStructural.getObjectByName('desk-knob-crowns')).toBeUndefined()
+    expect(deskForm.getObjectByName('desk-knob-crowns')).toBeTruthy()
     expect(matRuntime.nodes.stitches).toBeInstanceOf(THREE.InstancedMesh)
     expect((matRuntime.nodes.stitches as THREE.InstancedMesh).count).toBe(
       DESK_MAT_MODEL_SPEC.stitchCount,
@@ -672,6 +739,7 @@ describe('procedural scene model factories', () => {
       materials.stitch,
       materials.walnut,
       materials.walnutDark,
+      materials.walnutDrawer,
       materials.walnutPanel,
     ])
     const materialSpies = [...materialResources].map((material) =>

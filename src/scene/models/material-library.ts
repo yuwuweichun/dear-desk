@@ -16,9 +16,9 @@ export const SCENE_PALETTE_PRESETS = {
     background: '#d5dad8',
     mint: '#73858a',
     mintDark: '#4c5e63',
-    wood: '#927054',
-    woodDark: '#5f4939',
-    woodPanel: '#aa8768',
+    wood: '#73411f',
+    woodDark: '#593219',
+    woodPanel: '#70401f',
   },
   v3: {
     background: '#d8dee2',
@@ -171,6 +171,7 @@ export interface ModelMaterialLibrary {
   textures: THREE.Texture[]
   walnut: THREE.MeshPhysicalMaterial
   walnutDark: THREE.MeshPhysicalMaterial
+  walnutDrawer: THREE.MeshPhysicalMaterial
   walnutLegs: THREE.MeshPhysicalMaterial
   walnutPanel: THREE.MeshPhysicalMaterial
   dispose: () => void
@@ -182,6 +183,7 @@ export const applySceneColors = (
 ) => {
   materials.walnut.color.set(colors.deskTop)
   materials.walnutDark.color.set(colors.deskFrame)
+  materials.walnutDrawer.color.set(colors.deskInset).multiplyScalar(0.78)
   materials.walnutLegs.color.set(colors.deskLegs)
   materials.walnutPanel.color.set(colors.deskInset)
   materials.cloth.color.set(colors.matField)
@@ -255,27 +257,32 @@ export function sampleSurfaceChannels(
 
   if (family === 'wood') {
     const flow =
-      (periodicNoise2d(u, v, 2, 3, 101) - 0.5) * 0.075 +
-      (periodicNoise2d(u, v, 4, 5, 103) - 0.5) * 0.025
-    const grainCoordinate = v + flow
+      (periodicNoise2d(u, v, 2, 3, 101) - 0.5) * 0.105 +
+      (periodicNoise2d(u, v, 4, 5, 103) - 0.5) * 0.045
+    const waviness =
+      Math.sin((u * 3 + periodicNoise1d(v, 3, 105)) * Math.PI * 2) * 0.012
+    const grainCoordinate = v + flow + waviness
     const macro = periodicNoise1d(grainCoordinate, 5, 107)
     const meso = periodicNoise1d(grainCoordinate, 17, 109)
     const micro = periodicNoise1d(grainCoordinate, 53, 113)
+    const fine = periodicNoise1d(grainCoordinate + (macro - 0.5) * 0.012, 97, 127)
     const pore = Math.max(0, 0.16 - micro) / 0.16
     const grain =
-      (macro - 0.5) * 0.9 +
-      (meso - 0.5) * 0.62 +
-      (micro - 0.5) * 0.2
-    const value = grain * 4.5 - pore * 1.2
-    const albedo = clampByte(246 + value)
+      (macro - 0.5) * 0.38 +
+      (meso - 0.5) * 0.78 +
+      (micro - 0.5) * 0.34 +
+      (fine - 0.5) * 0.18
+    const streak = periodicNoise2d(u + flow, v, 19, 7, 131) - 0.5
+    const value = grain * 32 + streak * 7 - pore * 5
+    const albedo = clampByte(232 + value)
     return {
       albedo: [albedo, albedo, albedo],
-      ao: clampByte(241 + (macro - 0.5) * 7 - pore * 11),
+      ao: clampByte(236 + (macro - 0.5) * 15 - pore * 18),
       height: clampByte(
-        128 + (macro - 0.5) * 7 + (meso - 0.5) * 12 + (micro - 0.5) * 5 - pore * 5,
+        128 + (macro - 0.5) * 11 + (meso - 0.5) * 20 + (micro - 0.5) * 8 - pore * 7,
       ),
       roughness: clampByte(
-        193 - (macro - 0.5) * 9 + (meso - 0.5) * 13 + pore * 8,
+        224 - (macro - 0.5) * 17 + (meso - 0.5) * 22 + pore * 13,
       ),
     }
   }
@@ -424,28 +431,33 @@ export function createModelMaterialLibrary(
 
   const walnut = new THREE.MeshPhysicalMaterial({
     aoMap: wood.ao,
-    aoMapIntensity: 0.18,
+    aoMapIntensity: 0.26,
     bumpMap: wood.height,
-    bumpScale: 0.0025,
-    clearcoat: 0.1,
-    clearcoatRoughness: 0.78,
+    bumpScale: 0.0042,
+    clearcoat: 0.16,
+    clearcoatRoughness: 0.58,
     color: sceneColors.deskTop,
     map: wood.albedo,
-    roughness: 0.76,
+    roughness: 0.62,
     roughnessMap: wood.roughness,
   })
   walnut.name = 'animal-desk-wood-top'
   const walnutDark = walnut.clone()
   walnutDark.name = 'animal-desk-wood-frame'
   walnutDark.color.set(sceneColors.deskFrame)
-  walnutDark.roughness = 0.82
+  walnutDark.roughness = 0.68
   const walnutLegs = walnutDark.clone()
   walnutLegs.name = 'animal-desk-wood-legs'
   walnutLegs.color.set(sceneColors.deskLegs)
+  walnutLegs.roughness = 0.66
   const walnutPanel = walnut.clone()
   walnutPanel.name = 'animal-desk-wood-panel'
   walnutPanel.color.set(sceneColors.deskInset)
-  walnutPanel.roughness = 0.78
+  walnutPanel.roughness = 0.64
+  const walnutDrawer = walnutPanel.clone()
+  walnutDrawer.name = 'warm-paper-desk-drawer-front'
+  walnutDrawer.color.multiplyScalar(0.78)
+  walnutDrawer.roughness = 0.62
 
   const clothMaterial = new THREE.MeshPhysicalMaterial({
     aoMap: cloth.ao,
@@ -502,19 +514,19 @@ export function createModelMaterialLibrary(
   paperEdge.roughness = 0.96
 
   const brass = new THREE.MeshPhysicalMaterial({
-    clearcoat: 0.08,
-    clearcoatRoughness: 0.72,
-    color: SCENE_PALETTE.coral,
-    envMapIntensity: 0.38,
-    metalness: 0.08,
-    roughness: 0.62,
+    clearcoat: 0.12,
+    clearcoatRoughness: 0.2,
+    color: '#8f6a41',
+    envMapIntensity: 0.82,
+    metalness: 0.92,
+    roughness: 0.34,
   })
-  brass.name = 'animal-coral-accent'
+  brass.name = 'aged-brass-crown'
   const brassDark = brass.clone()
-  brassDark.name = 'animal-coral-accent-dark'
-  brassDark.color.set(SCENE_PALETTE.coralDark)
-  brassDark.envMapIntensity = 0.58
-  brassDark.roughness = 0.67
+  brassDark.name = 'aged-brass-neck'
+  brassDark.color.set('#59462f')
+  brassDark.envMapIntensity = 0.7
+  brassDark.roughness = 0.52
 
   const stitch = new THREE.MeshStandardMaterial({ color: '#fffbe7', roughness: 0.94 })
   stitch.name = 'stitch-thread'
@@ -524,6 +536,7 @@ export function createModelMaterialLibrary(
   const materials: THREE.Material[] = [
     walnut,
     walnutDark,
+    walnutDrawer,
     walnutLegs,
     walnutPanel,
     clothMaterial,
@@ -553,6 +566,7 @@ export function createModelMaterialLibrary(
     textures,
     walnut,
     walnutDark,
+    walnutDrawer,
     walnutLegs,
     walnutPanel,
     dispose: () => {

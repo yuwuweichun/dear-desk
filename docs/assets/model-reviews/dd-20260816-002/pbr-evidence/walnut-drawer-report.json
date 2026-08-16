@@ -1,0 +1,87 @@
+{
+  "ok": true,
+  "verdict": "pass",
+  "confidence": 0.784,
+  "estimatedFidelity": 0.784,
+  "targetThreshold": 0.7,
+  "materialId": "walnut-drawer",
+  "sourceImage": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260816-002/pbr-crops/walnut.png",
+  "outDir": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260816-002/pbr-evidence/walnut-drawer",
+  "palette": [
+    "#532F18",
+    "#3E2614",
+    "#6D3D1E",
+    "#10120C",
+    "#945528"
+  ],
+  "maps": {
+    "albedo": {
+      "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260816-002/pbr-evidence/walnut-drawer/walnut-drawer_albedo.png",
+      "url": "walnut-drawer_albedo.png",
+      "channel": "albedo",
+      "source": "reference-pixel-extraction"
+    },
+    "roughness": {
+      "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260816-002/pbr-evidence/walnut-drawer/walnut-drawer_roughness.png",
+      "url": "walnut-drawer_roughness.png",
+      "channel": "roughness",
+      "source": "reference-pixel-extraction"
+    },
+    "height": {
+      "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260816-002/pbr-evidence/walnut-drawer/walnut-drawer_height.png",
+      "url": "walnut-drawer_height.png",
+      "channel": "height",
+      "source": "reference-pixel-extraction"
+    },
+    "normal": {
+      "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260816-002/pbr-evidence/walnut-drawer/walnut-drawer_normal.png",
+      "url": "walnut-drawer_normal.png",
+      "channel": "normal",
+      "source": "reference-pixel-extraction"
+    },
+    "ao": {
+      "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260816-002/pbr-evidence/walnut-drawer/walnut-drawer_ao.png",
+      "url": "walnut-drawer_ao.png",
+      "channel": "ao",
+      "source": "reference-pixel-extraction"
+    }
+  },
+  "diagnostics": {
+    "sourceWidth": 1050,
+    "sourceHeight": 165,
+    "mapSize": 1024,
+    "cropBBoxPixels": {
+      "x": 0,
+      "y": 0,
+      "width": 1050,
+      "height": 165
+    },
+    "mask": {
+      "backgroundColor": "#422919",
+      "backgroundNoise": 59.338,
+      "transparentPixelFraction": 0.0,
+      "foregroundCoverage": 0.9999
+    },
+    "mapStats": {
+      "valueRange": 0.2974,
+      "heightP90Gradient": 0.03472,
+      "roughnessBase": 0.71,
+      "roughnessVariation": 0.065,
+      "normalStrength": 0.197,
+      "blurRadius": 21
+    },
+    "palette": [
+      "#532F18",
+      "#3E2614",
+      "#6D3D1E",
+      "#10120C",
+      "#945528"
+    ]
+  },
+  "warnings": [
+    "image is not clearly isolated from background; using most pixels as material evidence",
+    "object/background separation is weak",
+    "single-image inverse rendering cannot prove true physical PBR; confidence is capped"
+  ],
+  "limitation": "single-image PBR extraction is an estimate; 70%+ extraction confidence still needs render screenshot review"
+}

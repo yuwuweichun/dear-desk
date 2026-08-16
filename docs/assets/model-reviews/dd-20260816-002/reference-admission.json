@@ -1,0 +1,48 @@
+{
+  "reference": {
+    "path": "docs/assets/concepts/warm-paper-atelier-desk.png",
+    "technicalProbe": {
+      "type": "png",
+      "bytes": 1646019,
+      "width": 1672,
+      "height": 941,
+      "aspectRatio": 1.7768331562167907,
+      "technicalSuitability": "pass",
+      "warnings": []
+    },
+    "admission": {
+      "admitted": false,
+      "reasons": [
+        "foreground coverage 1.000 > 0.97 (no background to segment against — silhouette not isolable)"
+      ],
+      "interpretation": "The deterministic corner-colour segmenter treated the dark green gradient as foreground. This blocks use of the original pixels as silhouette ground truth, but does not invalidate their colour, material, or structural evidence."
+    }
+  },
+  "derivedSilhouetteReference": {
+    "path": "docs/assets/model-reviews/dd-20260816-002/reference-silhouette.png",
+    "purpose": "silhouette and framing gates only",
+    "derivation": {
+      "tool": "sharp from the existing workspace installation",
+      "method": "preserve original RGB; set alpha to 255 only for warm wood/brass pixels where r > 34, r > 1.09*g, and r > 1.18*b; clear the lower-left inset-board region y > 700 and x < 600",
+      "sourcePixelsChanged": false,
+      "materialEvidenceAllowed": false
+    },
+    "agentInspection": {
+      "intendedSubjectConfirmed": true,
+      "notes": "The retained connected component follows the visible desk and excludes the two explanatory inset panels. Darkest contact-shadow pixels are not treated as geometry evidence."
+    },
+    "admission": {
+      "admitted": true,
+      "reasons": [],
+      "provenance": {
+        "viewpoint": "front-three-quarter",
+        "width": 1672,
+        "height": 941,
+        "foregroundCoverage": 0.1739,
+        "largestComponentFraction": 0.9883,
+        "pHash": 18373605560354386152,
+        "duplicateOfHash": null
+      }
+    }
+  }
+}

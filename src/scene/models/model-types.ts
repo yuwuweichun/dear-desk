@@ -27,10 +27,12 @@ export interface SculptCollider {
 }
 
 export interface SculptRuntime<TNodes extends Record<string, THREE.Object3D>> {
+  attachmentBindings?: unknown
   colliders: Record<string, SculptCollider>
   destructionGroups: Record<string, THREE.Object3D[]>
   nodes: TNodes
   sockets: Record<string, THREE.Object3D>
+  updateAttachments?: () => void
 }
 
 export interface ModelResourceMetrics {
