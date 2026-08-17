@@ -191,6 +191,7 @@ export function createDeskModel(
         DESK_MODEL_SPEC.tabletop.thickness,
         DESK_MODEL_SPEC.tabletop.radius,
         0.09,
+        DESK_MODEL_SPEC.tabletop.curveSegments,
       ),
       1.8,
       0.95,

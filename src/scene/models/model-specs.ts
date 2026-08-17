@@ -36,6 +36,7 @@ export const DESK_MODEL_SPEC = {
     [5.08, -2.645, 3.48],
   ] as const,
   tabletop: {
+    curveSegments: 32,
     depth: 8,
     positionY: -0.12,
     radius: 0.52,
@@ -103,24 +104,17 @@ export const NOTEBOOK_MODEL_SPEC = {
   ] as const,
   hardware: {
     plateDepth: 0.38,
-    platePosition: [0.36, 0.082, -0.62] as const,
+    platePosition: [0, 0.082, -0.62] as const,
     plateRadius: 0.075,
     plateThickness: 0.034,
     plateWidth: 1.12,
     rivetOffsetX: 0.43,
     rivetRadius: 0.058,
   },
-  ribbon: {
-    endZ: (3.2 * 5) / 6 + 0.48,
-    openX: -1.4,
-    startZ: -(3.2 * 5) / 6 + 0.24,
-    tailX: 0.05,
-    width: 0.12,
-  },
   rootPosition: [0, 0.34, DESK_MAT_MODEL_SPEC.position[2]] as const,
   spine: {
-    depth: (3.2 * 5) / 3,
+    innerInset: 0.1,
     shoulderOffset: 0.095,
-    width: 0.28,
+    width: 0.32,
   },
 } as const

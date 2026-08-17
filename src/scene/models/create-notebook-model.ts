@@ -1,9 +1,9 @@
 import * as THREE from 'three'
 import {
+  createChamferedFrameGeometry,
+  createContinuousCaseGeometry,
   createCurvedPageGeometry,
-  createRibbonGeometry,
   createRoundedPlateGeometry,
-  createRoundedRectCurve,
   scaleGeometryUvs,
 } from './geometry'
 import type { ModelMaterialLibrary } from './material-library'
@@ -20,6 +20,7 @@ import {
 export interface NotebookModelNodes extends Record<string, THREE.Object3D> {
   backCover: THREE.Group
   bookJoints: THREE.InstancedMesh
+  caseShell: THREE.Mesh
   closedPageEdges: THREE.InstancedMesh
   coverPivot: THREE.Group
   frontCover: THREE.Group
@@ -30,8 +31,6 @@ export interface NotebookModelNodes extends Record<string, THREE.Object3D> {
   nameplate: THREE.Group
   pagePivot: THREE.Group
   rapidPageFlipPool: THREE.InstancedMesh
-  ribbon: THREE.Group
-  ribbonAnchor: THREE.Group
   rightPageEdges: THREE.InstancedMesh
   rightPages: THREE.Group
   rightTopPage: THREE.Mesh
@@ -55,8 +54,6 @@ const BOOK_HEIGHT =
 const PAGE_CENTER_X = 0.06
 const PAGE_PIVOT_LOCAL_X = NOTEBOOK_MODEL_SPEC.page.width / 2
 const OPEN_PAGE_Y = NOTEBOOK_MODEL_SPEC.cover.thickness + OPEN_STACK_THICKNESS / 2
-const OPEN_RIBBON_SURFACE_Y =
-  OPEN_PAGE_Y + OPEN_STACK_THICKNESS / 2 + 0.09
 const RAPID_PAGE_POOL_SIZE = 5
 const RAPID_PAGE_TURN_COUNT = 9
 const RAPID_PAGE_TURN_OVERLAP = 1.22
@@ -90,7 +87,7 @@ const materialFor = (
   materials: ModelMaterialLibrary,
 ) => (enabled ? detailed : materials.neutral)
 
-function createCover(
+function createCoverDetails(
   id: 'front-cover' | 'back-cover',
   exteriorDirection: -1 | 1,
   materials: ModelMaterialLibrary,
@@ -107,54 +104,101 @@ function createCover(
     width: NOTEBOOK_MODEL_SPEC.cover.width,
   }
 
-  const shellGeometry = addSecondaryUv(
-    scaleGeometryUvs(
-      createRoundedPlateGeometry(
-        NOTEBOOK_MODEL_SPEC.cover.width,
-        NOTEBOOK_MODEL_SPEC.cover.depth,
-        NOTEBOOK_MODEL_SPEC.cover.thickness,
-        NOTEBOOK_MODEL_SPEC.cover.planRadius,
-        0.026,
-      ),
-      5.4,
-      8.6,
-    ),
-  )
-  const shell = finishMesh(
-    new THREE.Mesh(
-      shellGeometry,
-      materialFor(usePbr, materials.notebookCover, materials),
-    ),
-    `${id}-cloth-shell`,
-    options,
-  )
-
-  shell.userData = {
-    componentIds: [`${id}-cloth-shell`, `${id}-board-core`, `${id}-inner-liner`],
-    exteriorDirection,
-    role: 'cloth-wrap-with-embedded-board',
-  }
-  cover.add(shell)
-
   if (showForm && exteriorDirection === 1) {
-    const seamCurve = createRoundedRectCurve(
-      NOTEBOOK_MODEL_SPEC.cover.width - NOTEBOOK_MODEL_SPEC.cover.seamInset * 2,
-      NOTEBOOK_MODEL_SPEC.cover.depth - NOTEBOOK_MODEL_SPEC.cover.seamInset * 2,
-      NOTEBOOK_MODEL_SPEC.cover.planRadius - NOTEBOOK_MODEL_SPEC.cover.seamInset,
-      NOTEBOOK_MODEL_SPEC.cover.thickness / 2 + 0.006,
+    const seamGeometry = addSecondaryUv(
+      createChamferedFrameGeometry(
+        NOTEBOOK_MODEL_SPEC.cover.width - NOTEBOOK_MODEL_SPEC.cover.seamInset * 2,
+        NOTEBOOK_MODEL_SPEC.cover.depth - NOTEBOOK_MODEL_SPEC.cover.seamInset * 2,
+        NOTEBOOK_MODEL_SPEC.cover.planRadius - NOTEBOOK_MODEL_SPEC.cover.seamInset,
+        0.018,
+        NOTEBOOK_MODEL_SPEC.cover.thickness / 2 + 0.006,
+      ),
     )
     const seam = finishMesh(
       new THREE.Mesh(
-        new THREE.TubeGeometry(seamCurve, 84, 0.009, 5, false),
+        seamGeometry,
         materialFor(usePbr, materials.notebookCoverDark, materials),
       ),
       'front-cover-wrap-seam',
       options,
       false,
     )
+    seam.userData = {
+      cornerCount: 4,
+      cornerStyle: 'symmetric-chamfer',
+      fixedCornerVertices: true,
+    }
     cover.add(seam)
   }
   return cover
+}
+
+function createContinuousCase(
+  materials: ModelMaterialLibrary,
+  usePbr: boolean,
+  options: ModelFactoryOptions,
+) {
+  const geometry = addSecondaryUv(
+    createContinuousCaseGeometry({
+      coverDepth: NOTEBOOK_MODEL_SPEC.cover.depth,
+      coverPlanRadius: NOTEBOOK_MODEL_SPEC.cover.planRadius,
+      coverThickness: NOTEBOOK_MODEL_SPEC.cover.thickness,
+      coverWidth: NOTEBOOK_MODEL_SPEC.cover.width,
+      innerSpineInset: NOTEBOOK_MODEL_SPEC.spine.innerInset,
+      spineWidth: NOTEBOOK_MODEL_SPEC.spine.width,
+      totalHeight: BOOK_HEIGHT + NOTEBOOK_MODEL_SPEC.cover.thickness / 2,
+    }),
+  )
+  const positions = geometry.getAttribute('position') as THREE.BufferAttribute
+  positions.setUsage(THREE.DynamicDrawUsage)
+  const closedPositions = new Float32Array(positions.array)
+  const frontVertexIndices = geometry.userData.frontVertexIndices as number[]
+  const frontVertexWeights = geometry.userData.frontVertexWeights as number[]
+  const shell = finishMesh(
+    new THREE.Mesh(
+      geometry,
+      materialFor(usePbr, materials.notebookCover, materials),
+    ),
+    'continuous-case-shell',
+    options,
+  )
+  shell.userData = {
+    endCaps: 'wrapped-cloth',
+    frontVertexCount: frontVertexIndices.length,
+    profile: 'single-continuous-rounded-case',
+    singleShell: true,
+    structuralRole: 'front-cover-spine-back-cover-shell',
+  }
+
+  const setFrontTransform = (angle: number, pivotY: number) => {
+    const hingeX = NOTEBOOK_MODEL_SPEC.coverHinge[0]
+    const hingeY = NOTEBOOK_MODEL_SPEC.coverHinge[1]
+    const cosine = Math.cos(angle)
+    const sine = Math.sin(angle)
+    for (let vertex = 0; vertex < frontVertexIndices.length; vertex += 1) {
+      const index = frontVertexIndices[vertex]!
+      const weight = frontVertexWeights[vertex]!
+      const offset = index * 3
+      const baseX = closedPositions[offset]!
+      const baseY = closedPositions[offset + 1]!
+      const baseZ = closedPositions[offset + 2]!
+      const localX = baseX - hingeX
+      const localY = baseY - hingeY
+      const transformedX = hingeX + cosine * localX - sine * localY
+      const transformedY = pivotY + sine * localX + cosine * localY
+      positions.setXYZ(
+        index,
+        THREE.MathUtils.lerp(baseX, transformedX, weight),
+        THREE.MathUtils.lerp(baseY, transformedY, weight),
+        baseZ,
+      )
+    }
+    positions.needsUpdate = true
+    geometry.computeVertexNormals()
+    geometry.computeBoundingBox()
+    geometry.computeBoundingSphere()
+  }
+  return { setFrontTransform, shell }
 }
 
 function createTextBlock(
@@ -299,37 +343,6 @@ function createOpeningLeaf(
   return { edges, pages, topPage }
 }
 
-function createSpine(
-  materials: ModelMaterialLibrary,
-  usePbr: boolean,
-  options: ModelFactoryOptions,
-) {
-  const radius = NOTEBOOK_MODEL_SPEC.spine.width / 2
-  const geometry = new THREE.CapsuleGeometry(
-    radius,
-    NOTEBOOK_MODEL_SPEC.spine.depth - radius * 2,
-    6,
-    18,
-  )
-  geometry.rotateX(Math.PI / 2)
-  geometry.scale(0.82, BOOK_HEIGHT / (radius * 2), 1)
-  const spine = finishMesh(
-    new THREE.Mesh(
-      addSecondaryUv(geometry),
-      materialFor(usePbr, materials.notebookCover, materials),
-    ),
-    'rounded-spine-case',
-    options,
-  )
-  spine.position.set(-NOTEBOOK_MODEL_SPEC.cover.width / 2 + radius * 0.42, BOOK_HEIGHT / 2, 0)
-  spine.userData = {
-    endCaps: 'rolled-cloth',
-    profile: 'compressed-convex-spine',
-    structuralRole: 'case-spine',
-  }
-  return spine
-}
-
 function createBookJoints(
   materials: ModelMaterialLibrary,
   usePbr: boolean,
@@ -416,86 +429,6 @@ function createNameplate(
   return { nameplate, rivets }
 }
 
-function createBookmark(
-  materials: ModelMaterialLibrary,
-  usePbr: boolean,
-  options: ModelFactoryOptions,
-) {
-  const ribbon = new THREE.Group()
-  ribbon.name = 'continuous-ribbon-bookmark'
-  const geometry = createRibbonGeometry(
-    NOTEBOOK_MODEL_SPEC.ribbon.width,
-    NOTEBOOK_MODEL_SPEC.ribbon.startZ,
-    NOTEBOOK_MODEL_SPEC.ribbon.endZ,
-    0.012,
-  )
-  const positions = geometry.getAttribute('position')
-  const baseX = new Float32Array(positions.count)
-  const baseY = new Float32Array(positions.count)
-  for (let index = 0; index < positions.count; index += 1) {
-    baseX[index] = positions.getX(index)
-    baseY[index] = positions.getY(index)
-  }
-  const mesh = finishMesh(
-    new THREE.Mesh(geometry, materialFor(usePbr, materials.ribbon, materials)),
-    'ribbon-v-tail-mesh',
-    options,
-  )
-  ribbon.add(mesh)
-
-  const setOpenProgress = (value: number) => {
-    const progress = THREE.MathUtils.clamp(value, 0, 1)
-    for (let index = 0; index < positions.count; index += 1) {
-      const z = positions.getZ(index)
-      const t = THREE.MathUtils.clamp(
-        THREE.MathUtils.inverseLerp(
-          NOTEBOOK_MODEL_SPEC.ribbon.startZ,
-          NOTEBOOK_MODEL_SPEC.ribbon.endZ,
-          z,
-        ),
-        0,
-        1,
-      )
-      const lengthEase = THREE.MathUtils.smoothstep(t, 0, 1)
-      const closedX = THREE.MathUtils.lerp(
-        NOTEBOOK_MODEL_SPEC.ribbon.openX,
-        NOTEBOOK_MODEL_SPEC.ribbon.tailX,
-        lengthEase,
-      )
-      const centerX = THREE.MathUtils.lerp(closedX, NOTEBOOK_MODEL_SPEC.ribbon.openX, progress)
-      const exposedTail = THREE.MathUtils.smoothstep(t, 0.88, 1)
-      const closedY = THREE.MathUtils.lerp(TEXT_BLOCK_Y, BACK_COVER_Y + 0.03, exposedTail)
-      const openY = THREE.MathUtils.lerp(
-        OPEN_RIBBON_SURFACE_Y,
-        OPEN_PAGE_Y - 0.03,
-        exposedTail,
-      )
-      positions.setX(index, (baseX[index] ?? 0) + centerX)
-      positions.setY(
-        index,
-        (baseY[index] ?? 0) + THREE.MathUtils.lerp(closedY, openY, progress) + Math.sin(t * Math.PI) * 0.008,
-      )
-    }
-    positions.needsUpdate = true
-    geometry.computeVertexNormals()
-    geometry.computeBoundingSphere()
-  }
-  ribbon.userData = {
-    attachment: {
-      contactType: 'embedded',
-      embedDepth: 0.028,
-      gapTolerance: 0.008,
-      localEnd: [NOTEBOOK_MODEL_SPEC.ribbon.tailX, 0, NOTEBOOK_MODEL_SPEC.ribbon.endZ],
-      localStart: [NOTEBOOK_MODEL_SPEC.ribbon.openX, 0, NOTEBOOK_MODEL_SPEC.ribbon.startZ],
-      parentSocket: 'ribbon-anchor',
-    },
-    setOpenProgress,
-    vNotchDepth: NOTEBOOK_MODEL_SPEC.ribbon.width * 0.72,
-  }
-  setOpenProgress(0)
-  return ribbon
-}
-
 function createGutter(
   materials: ModelMaterialLibrary,
   usePbr: boolean,
@@ -568,7 +501,14 @@ export function createNotebookModel(
     wrapperPosition: [...NOTEBOOK_MODEL_SPEC.rootPosition],
   }
 
-  const backCover = createCover('back-cover', -1, materials, usePbr, showForm, options)
+  const backCover = createCoverDetails(
+    'back-cover',
+    -1,
+    materials,
+    usePbr,
+    showForm,
+    options,
+  )
   backCover.position.y = BACK_COVER_Y
   const textBlock = createTextBlock(materials, usePbr, options)
   const closedPageEdges = createPageEdgeInstances(
@@ -581,14 +521,26 @@ export function createNotebookModel(
   )
   closedPageEdges.position.set(PAGE_CENTER_X, TEXT_BLOCK_Y, 0)
   closedPageEdges.visible = showForm
-  const spineCase = createSpine(materials, usePbr, options)
+  const { setFrontTransform, shell: caseShell } = createContinuousCase(
+    materials,
+    usePbr,
+    options,
+  )
+  const spineCase = caseShell
   const bookJoints = createBookJoints(materials, usePbr, showStructure, options)
 
   const coverPivot = new THREE.Group()
   coverPivot.name = 'front-cover-pivot'
   coverPivot.position.set(...NOTEBOOK_MODEL_SPEC.coverHinge)
   coverPivot.userData = { axis: [0, 0, 1], closedAngle: 0, openAngle: NOTEBOOK_MODEL_SPEC.openAngle }
-  const frontCover = createCover('front-cover', 1, materials, usePbr, showForm, options)
+  const frontCover = createCoverDetails(
+    'front-cover',
+    1,
+    materials,
+    usePbr,
+    showForm,
+    options,
+  )
   frontCover.position.set(-NOTEBOOK_MODEL_SPEC.coverHinge[0], 0, 0)
   const { nameplate, rivets } = createNameplate(materials, usePbr, showForm, options)
   if (showStructure) frontCover.add(nameplate)
@@ -607,29 +559,18 @@ export function createNotebookModel(
   const gutter = createGutter(materials, usePbr, options)
   gutter.position.set(NOTEBOOK_MODEL_SPEC.pageHinge[0], OPEN_PAGE_Y + OPEN_STACK_THICKNESS / 2 + 0.004, 0)
   gutter.visible = false
-  const ribbon = createBookmark(materials, usePbr, options)
-  ribbon.visible = showStructure
-  const ribbonAnchor = new THREE.Group()
-  ribbonAnchor.name = 'ribbon-spine-socket'
-  ribbonAnchor.position.set(
-    NOTEBOOK_MODEL_SPEC.ribbon.openX,
-    OPEN_PAGE_Y,
-    NOTEBOOK_MODEL_SPEC.ribbon.startZ,
-  )
   const rapidPageFlipPool = createRapidPageFlipPool(materials, usePbr, options)
 
   root.add(
     backCover,
     textBlock,
     closedPageEdges,
-    spineCase,
+    caseShell,
     bookJoints,
     coverPivot,
     pagePivot,
     right.pages,
     gutter,
-    ribbon,
-    ribbonAnchor,
     rapidPageFlipPool,
   )
 
@@ -653,6 +594,7 @@ export function createNotebookModel(
       NOTEBOOK_MODEL_SPEC.cover.thickness / 2,
       THREE.MathUtils.smoothstep(coverProgress, 0.5, 1),
     )
+    setFrontTransform(coverPivot.rotation.z, coverPivot.position.y)
     pagePivot.rotation.z = NOTEBOOK_MODEL_SPEC.openAngle * spreadProgress
     pagePivot.position.set(...NOTEBOOK_MODEL_SPEC.pageHinge)
     right.pages.visible = spreadProgress > 0.015
@@ -666,8 +608,6 @@ export function createNotebookModel(
     closedPageEdges.scale.y = closedScale
     textBlock.visible = spreadProgress < 0.985
     closedPageEdges.visible = showForm && spreadProgress < 0.985
-    ;(ribbon.userData.setOpenProgress as (next: number) => void)(spreadProgress)
-
     const flipProgress = THREE.MathUtils.clamp(
       THREE.MathUtils.inverseLerp(COVER_STAGE_END, FLIP_STAGE_END, progress),
       0,
@@ -715,6 +655,7 @@ export function createNotebookModel(
   const nodes: NotebookModelNodes = {
     backCover,
     bookJoints,
+    caseShell,
     closedPageEdges,
     coverPivot,
     frontCover,
@@ -725,8 +666,6 @@ export function createNotebookModel(
     nameplate,
     pagePivot,
     rapidPageFlipPool,
-    ribbon,
-    ribbonAnchor,
     rightPageEdges: right.edges,
     rightPages: right.pages,
     rightTopPage: right.topPage,
@@ -736,7 +675,7 @@ export function createNotebookModel(
     textBlock,
   }
   setSculptRuntime(root, {
-    attachmentBindings: { ribbon: ribbon.userData.attachment },
+    attachmentBindings: {},
     colliders: {
       'notebook-hit-area': {
         center: [0, BOOK_HEIGHT / 2, 0],
@@ -752,7 +691,7 @@ export function createNotebookModel(
       },
     },
     destructionGroups: {
-      binding: [spineCase, bookJoints, gutter, ribbon],
+      binding: [caseShell, bookJoints, gutter],
       covers: [backCover, frontCover],
       hardware: [nameplate, rivets],
       pages: [textBlock, closedPageEdges, right.pages, left.pages],
@@ -761,7 +700,6 @@ export function createNotebookModel(
     sockets: {
       'cover-hinge': coverPivot,
       'page-gutter': pagePivot,
-      'ribbon-anchor': ribbonAnchor,
     },
   })
 

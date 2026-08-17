@@ -93,59 +93,6 @@ export function createCurvedPageGeometry(
   return geometry
 }
 
-export function createRibbonGeometry(
-  width: number,
-  startZ: number,
-  endZ: number,
-  thickness = 0.012,
-) {
-  const halfWidth = width / 2
-  const notchDepth = width * 0.72
-  const segmentCount = 32
-  const bodyEndZ = endZ - notchDepth
-  const positions: number[] = []
-  const uvs: number[] = []
-  const indices: number[] = []
-
-  for (let segment = 0; segment <= segmentCount; segment += 1) {
-    const t = segment / segmentCount
-    const z = THREE.MathUtils.lerp(startZ, bodyEndZ, t)
-    positions.push(-halfWidth, thickness / 2, z, halfWidth, thickness / 2, z)
-    uvs.push(0, t, 1, t)
-    if (segment === segmentCount) continue
-    const left = segment * 2
-    indices.push(left, left + 2, left + 1, left + 1, left + 2, left + 3)
-  }
-
-  const bodyLeft = segmentCount * 2
-  const bodyRight = bodyLeft + 1
-  const leftTip = positions.length / 3
-  positions.push(-halfWidth, thickness / 2, endZ)
-  uvs.push(0, 1)
-  const notch = positions.length / 3
-  positions.push(0, thickness / 2, bodyEndZ)
-  uvs.push(0.5, 1 - notchDepth / (endZ - startZ))
-  const rightTip = positions.length / 3
-  positions.push(halfWidth, thickness / 2, endZ)
-  uvs.push(1, 1)
-  indices.push(bodyLeft, leftTip, notch, notch, rightTip, bodyRight)
-
-  const geometry = new THREE.BufferGeometry()
-  geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3))
-  geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2))
-  geometry.setIndex(indices)
-  geometry.computeVertexNormals()
-  geometry.computeBoundingBox()
-  geometry.computeBoundingSphere()
-  geometry.userData = {
-    longitudinalSegments: segmentCount,
-    notchDepth,
-    role: 'v-notched-ribbon',
-    thickness,
-  }
-  return geometry
-}
-
 export function createRoundedRectCurve(
   width: number,
   depth: number,
@@ -167,6 +114,249 @@ export function createRoundedRectCurve(
   curve.add(new THREE.LineCurve3(point(-halfWidth, halfDepth - r), point(-halfWidth, -halfDepth + r)))
   curve.add(new THREE.QuadraticBezierCurve3(point(-halfWidth, -halfDepth + r), point(-halfWidth, -halfDepth), point(-halfWidth + r, -halfDepth)))
   return curve
+}
+
+export function createChamferedFrameGeometry(
+  width: number,
+  depth: number,
+  chamfer: number,
+  strokeWidth: number,
+  y = 0,
+) {
+  const halfStroke = strokeWidth / 2
+  const createPoints = (
+    halfWidth: number,
+    halfDepth: number,
+    requestedCut: number,
+  ) => {
+    const cut = Math.min(requestedCut, halfWidth, halfDepth)
+    return [
+      [-halfWidth + cut, -halfDepth],
+      [halfWidth - cut, -halfDepth],
+      [halfWidth, -halfDepth + cut],
+      [halfWidth, halfDepth - cut],
+      [halfWidth - cut, halfDepth],
+      [-halfWidth + cut, halfDepth],
+      [-halfWidth, halfDepth - cut],
+      [-halfWidth, -halfDepth + cut],
+    ] as const
+  }
+  const outer = createPoints(
+    width / 2 + halfStroke,
+    depth / 2 + halfStroke,
+    chamfer + halfStroke,
+  )
+  const inner = createPoints(
+    width / 2 - halfStroke,
+    depth / 2 - halfStroke,
+    Math.max(0, chamfer - halfStroke),
+  )
+  const positions: number[] = []
+  const uvs: number[] = []
+  for (const loop of [outer, inner]) {
+    for (const [x, z] of loop) {
+      positions.push(x, y, z)
+      uvs.push(x / (width + strokeWidth) + 0.5, z / (depth + strokeWidth) + 0.5)
+    }
+  }
+  const indices: number[] = []
+  for (let corner = 0; corner < 8; corner += 1) {
+    const next = (corner + 1) % 8
+    indices.push(corner, 8 + next, next, corner, 8 + corner, 8 + next)
+  }
+  const geometry = new THREE.BufferGeometry()
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3))
+  geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2))
+  geometry.setIndex(indices)
+  geometry.computeVertexNormals()
+  geometry.computeBoundingBox()
+  geometry.computeBoundingSphere()
+  geometry.userData = {
+    cornerCount: 4,
+    cornerStyle: 'symmetric-chamfer',
+    fixedCornerVertices: true,
+    strokeWidth,
+  }
+  return geometry
+}
+
+interface ContinuousCaseGeometryOptions {
+  coverDepth: number
+  coverPlanRadius: number
+  coverThickness: number
+  coverWidth: number
+  innerSpineInset: number
+  spineWidth: number
+  totalHeight: number
+}
+
+interface CaseProfilePoint {
+  frontWeight: number
+  x: number
+  y: number
+}
+
+export function createContinuousCaseGeometry({
+  coverDepth,
+  coverPlanRadius,
+  coverThickness,
+  coverWidth,
+  innerSpineInset,
+  spineWidth,
+  totalHeight,
+}: ContinuousCaseGeometryOptions) {
+  const coverLeft = -coverWidth / 2
+  const coverRight = coverWidth / 2
+  const outerLeft = coverLeft - spineWidth / 2
+  const innerLeft = coverLeft - innerSpineInset
+  const frontBottom = totalHeight - coverThickness
+  const middle = totalHeight / 2
+  const profile: CaseProfilePoint[] = [
+    { frontWeight: 0, x: coverRight, y: 0 },
+    { frontWeight: 0, x: coverLeft, y: 0 },
+  ]
+  const appendCubic = (
+    start: THREE.Vector2,
+    controlA: THREE.Vector2,
+    controlB: THREE.Vector2,
+    end: THREE.Vector2,
+    segments: number,
+    startWeight: number,
+    endWeight: number,
+  ) => {
+    const curve = new THREE.CubicBezierCurve(start, controlA, controlB, end)
+    for (let step = 1; step <= segments; step += 1) {
+      const point = curve.getPoint(step / segments)
+      profile.push({
+        frontWeight: THREE.MathUtils.lerp(startWeight, endWeight, step / segments),
+        x: point.x,
+        y: point.y,
+      })
+    }
+  }
+  appendCubic(
+    new THREE.Vector2(coverLeft, 0),
+    new THREE.Vector2(outerLeft, 0),
+    new THREE.Vector2(outerLeft, middle * 0.48),
+    new THREE.Vector2(outerLeft, middle),
+    10,
+    0,
+    0,
+  )
+  appendCubic(
+    new THREE.Vector2(outerLeft, middle),
+    new THREE.Vector2(outerLeft, middle * 1.52),
+    new THREE.Vector2(outerLeft, totalHeight),
+    new THREE.Vector2(coverLeft, totalHeight),
+    10,
+    0,
+    1,
+  )
+  profile.push(
+    { frontWeight: 1, x: coverRight, y: totalHeight },
+    { frontWeight: 1, x: coverRight, y: frontBottom },
+    { frontWeight: 1, x: coverLeft, y: frontBottom },
+  )
+  appendCubic(
+    new THREE.Vector2(coverLeft, frontBottom),
+    new THREE.Vector2(innerLeft, frontBottom - 0.035),
+    new THREE.Vector2(innerLeft, middle + 0.045),
+    new THREE.Vector2(innerLeft, middle),
+    8,
+    1,
+    0,
+  )
+  appendCubic(
+    new THREE.Vector2(innerLeft, middle),
+    new THREE.Vector2(innerLeft, middle - 0.045),
+    new THREE.Vector2(innerLeft, coverThickness + 0.035),
+    new THREE.Vector2(coverLeft, coverThickness),
+    8,
+    0,
+    0,
+  )
+  profile.push(
+    { frontWeight: 0, x: coverRight, y: coverThickness },
+  )
+
+  const depthSegments = 96
+  const ringSize = profile.length
+  const positions: number[] = []
+  const uvs: number[] = []
+  const frontVertexIndices: number[] = []
+  const frontVertexWeights: number[] = []
+  const halfDepth = coverDepth / 2
+  const planRadius = Math.min(coverPlanRadius, halfDepth, coverWidth / 2)
+  for (let ring = 0; ring <= depthSegments; ring += 1) {
+    const z = THREE.MathUtils.lerp(-halfDepth, halfDepth, ring / depthSegments)
+    const endDistance = halfDepth - Math.abs(z)
+    const circleOffset = Math.max(0, planRadius - endDistance)
+    const rightInset =
+      circleOffset > 0
+        ? planRadius - Math.sqrt(Math.max(0, planRadius ** 2 - circleOffset ** 2))
+        : 0
+    for (const point of profile) {
+      const x = point.x === coverRight ? point.x - rightInset : point.x
+      const vertexIndex = positions.length / 3
+      positions.push(x, point.y, z)
+      uvs.push(
+        ((x - outerLeft) / (coverRight - outerLeft)) * 1.15,
+        ((z + halfDepth) / coverDepth) * 1.9,
+      )
+      if (point.frontWeight > 0) {
+        frontVertexIndices.push(vertexIndex)
+        frontVertexWeights.push(point.frontWeight)
+      }
+    }
+  }
+
+  const indices: number[] = []
+  for (let ring = 0; ring < depthSegments; ring += 1) {
+    for (let edge = 0; edge < ringSize; edge += 1) {
+      const a = ring * ringSize + edge
+      const b = ring * ringSize + ((edge + 1) % ringSize)
+      const c = (ring + 1) * ringSize + ((edge + 1) % ringSize)
+      const d = (ring + 1) * ringSize + edge
+      indices.push(a, c, b, a, d, c)
+    }
+  }
+
+  const contour = profile.map(({ x, y }) => new THREE.Vector2(x, y))
+  const capTriangles = THREE.ShapeUtils.triangulateShape(contour, [])
+  const addCap = (ring: number, desiredNormal: -1 | 1) => {
+    for (const triangle of capTriangles) {
+      const a = triangle[0]!
+      const b = triangle[1]!
+      const c = triangle[2]!
+      const pointA = contour[a]!
+      const pointB = contour[b]!
+      const pointC = contour[c]!
+      const cross =
+        (pointB.x - pointA.x) * (pointC.y - pointA.y) -
+        (pointB.y - pointA.y) * (pointC.x - pointA.x)
+      const vertices = [ring * ringSize + a, ring * ringSize + b, ring * ringSize + c]
+      if (Math.sign(cross) === desiredNormal) indices.push(...vertices)
+      else indices.push(vertices[0]!, vertices[2]!, vertices[1]!)
+    }
+  }
+  addCap(0, -1)
+  addCap(depthSegments, 1)
+
+  const geometry = new THREE.BufferGeometry()
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3))
+  geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2))
+  geometry.setIndex(indices)
+  geometry.computeVertexNormals()
+  geometry.computeBoundingBox()
+  geometry.computeBoundingSphere()
+  geometry.userData = {
+    frontVertexIndices,
+    frontVertexWeights,
+    planarUvRepeat: [1.15, 1.9],
+    profile: 'single-continuous-rounded-case',
+    singleShell: true,
+  }
+  return geometry
 }
 
 export function scaleGeometryUvs(

@@ -132,9 +132,11 @@ describe('procedural scene model factories', () => {
     expect(materials.clothDark.color.getHexString()).toBe('4c5e63')
     expect(materials.notebookCover.color.getHexString()).toBe('173f35')
     expect(materials.notebookCoverDark.color.getHexString()).toBe('0e2d27')
-    expect(materials.notebookCover.aoMapIntensity).toBe(0.28)
-    expect(materials.notebookCover.bumpScale).toBe(0.006)
-    expect(materials.notebookCover.roughness).toBe(0.88)
+    expect(materials.notebookCover.aoMapIntensity).toBe(2.2)
+    expect(materials.notebookCover.bumpScale).toBe(0.35)
+    expect(materials.notebookCover.roughness).toBe(0.8)
+    expect(materials.notebookCover.anisotropy).toBe(0.22)
+    expect(materials.notebookCover.sheen).toBe(0.18)
     expect(materials.notebookCoverDark.roughness).toBe(0.98)
     expect(materials.notebookCover).not.toBe(materials.cloth)
     expect(materials.paper.color.getHexString()).toBe('fffbe7')
@@ -325,6 +327,10 @@ describe('procedural scene model factories', () => {
     expect(deskRuntime.nodes.tabletop.userData.planRadius).toBe(
       DESK_MODEL_SPEC.tabletop.radius,
     )
+    expect(deskRuntime.nodes.tabletop.geometry.userData.curveSegments).toBe(
+      DESK_MODEL_SPEC.tabletop.curveSegments,
+    )
+    expect(DESK_MODEL_SPEC.tabletop.curveSegments).toBe(32)
     expect(deskRuntime.nodes.tabletop.geometry.getAttribute('uv1')).toBeTruthy()
     expect(desk.userData.modelId).toBe('warm-paper-atelier-desk')
     expect(desk.userData.structure).toBe(
@@ -473,9 +479,7 @@ describe('procedural scene model factories', () => {
     expect(notebookRuntime.sockets['page-gutter']).toBe(
       notebookRuntime.nodes.pagePivot,
     )
-    expect(notebookRuntime.sockets['ribbon-anchor']).toBe(
-      notebookRuntime.nodes.ribbonAnchor,
-    )
+    expect(notebookRuntime.sockets['ribbon-anchor']).toBeUndefined()
     expect(notebookRuntime.nodes.coverPivot.position.toArray()).toEqual([
       ...NOTEBOOK_MODEL_SPEC.coverHinge,
     ])
@@ -494,23 +498,27 @@ describe('procedural scene model factories', () => {
     expect(notebook.userData.structure).toBe(
       'clothbound-rounded-spine-articulated-notebook',
     )
-    const frontCoverShell = notebook.getObjectByName('front-cover-cloth-shell') as THREE.Mesh
-    expect(frontCoverShell.geometry.getAttribute('uv1')).toBeTruthy()
+    const caseShell = notebookRuntime.nodes.caseShell
+    expect(caseShell.name).toBe('continuous-case-shell')
+    expect(caseShell.geometry.getAttribute('uv1')).toBeTruthy()
+    expect(caseShell.geometry.userData.planarUvRepeat).toEqual([1.15, 1.9])
+    expect(caseShell.geometry.userData.singleShell).toBe(true)
     expect(notebookRuntime.nodes.frontCover.userData.profile).toBe(
       'cloth-wrapped-soft-cover',
     )
-    expect(frontCoverShell.material).toBe(materials.notebookCover)
-    expect((notebook.getObjectByName('back-cover-cloth-shell') as THREE.Mesh).material).toBe(
-      materials.notebookCover,
-    )
+    expect(caseShell.material).toBe(materials.notebookCover)
+    expect(notebook.getObjectByName('front-cover-cloth-shell')).toBeUndefined()
+    expect(notebook.getObjectByName('back-cover-cloth-shell')).toBeUndefined()
     expect(notebookRuntime.nodes.textBlock.name).toBe('closed-text-block')
     expect(notebookRuntime.nodes.textBlock.userData.profile).toBe(
       'rounded-bowed-text-block',
     )
-    expect(notebookRuntime.nodes.spineCase.name).toBe('rounded-spine-case')
+    expect(notebookRuntime.nodes.spineCase).toBe(caseShell)
     expect(notebookRuntime.nodes.spineCase.userData).toMatchObject({
-      endCaps: 'rolled-cloth',
-      profile: 'compressed-convex-spine',
+      endCaps: 'wrapped-cloth',
+      profile: 'single-continuous-rounded-case',
+      singleShell: true,
+      structuralRole: 'front-cover-spine-back-cover-shell',
     })
     expect(notebookRuntime.nodes.spineCase.material).toBe(
       materials.notebookCover,
@@ -532,6 +540,34 @@ describe('procedural scene model factories', () => {
     expect(NOTEBOOK_MODEL_SPEC.cover.thickness).toBeLessThanOrEqual(
       NOTEBOOK_MODEL_SPEC.page.stackThickness / 2,
     )
+    const coverSeam = notebook.getObjectByName('front-cover-wrap-seam')
+    expect(coverSeam?.userData).toMatchObject({
+      cornerCount: 4,
+      cornerStyle: 'symmetric-chamfer',
+      fixedCornerVertices: true,
+    })
+    expect((coverSeam as THREE.Mesh).geometry.getAttribute('position').count).toBe(16)
+    expect((coverSeam as THREE.Mesh).geometry.index?.count).toBe(48)
+    expect((coverSeam as THREE.Mesh).geometry.userData).toMatchObject({
+      cornerCount: 4,
+      cornerStyle: 'symmetric-chamfer',
+      fixedCornerVertices: true,
+      strokeWidth: 0.018,
+    })
+    const seamPositions = (coverSeam as THREE.Mesh).geometry.getAttribute(
+      'position',
+    ) as THREE.BufferAttribute
+    const seamPoint = (index: number) =>
+      new THREE.Vector3().fromBufferAttribute(seamPositions, index)
+    const chamferLengths = [
+      seamPoint(1).distanceTo(seamPoint(2)),
+      seamPoint(3).distanceTo(seamPoint(4)),
+      seamPoint(5).distanceTo(seamPoint(6)),
+      seamPoint(7).distanceTo(seamPoint(0)),
+    ]
+    for (const length of chamferLengths.slice(1)) {
+      expect(length).toBeCloseTo(chamferLengths[0]!, 6)
+    }
     expect(notebook.getObjectByName('planner-soft-spine')).toBeUndefined()
     expect(notebook.getObjectByName('planner-spine-capsule')).toBeUndefined()
     expect(notebook.getObjectByName('notebook-binding')).toBeUndefined()
@@ -541,16 +577,9 @@ describe('procedural scene model factories', () => {
     expect(notebook.getObjectByName('left-page-inset-band')).toBeUndefined()
     expect(notebook.getObjectByName('left-page-rules')).toBeUndefined()
     expect(notebook.getObjectByName('right-page-rules')).toBeUndefined()
-    expect(notebook.getObjectByName('continuous-ribbon-bookmark')).toBe(
-      notebookRuntime.nodes.ribbon,
-    )
-    expect(notebook.getObjectByName('ribbon-v-tail-mesh')).toBeTruthy()
-    expect(notebookRuntime.attachmentBindings).toMatchObject({
-      ribbon: {
-        contactType: 'embedded',
-        parentSocket: 'ribbon-anchor',
-      },
-    })
+    expect(notebook.getObjectByName('continuous-ribbon-bookmark')).toBeUndefined()
+    expect(notebook.getObjectByName('ribbon-v-tail-mesh')).toBeUndefined()
+    expect(notebookRuntime.attachmentBindings).toEqual({})
     expect(notebook.getObjectByName('planner-corner-badge')).toBeUndefined()
     expect(notebook.getObjectByName('blank-brass-nameplate')).toBe(
       notebookRuntime.nodes.nameplate,
@@ -560,6 +589,14 @@ describe('procedural scene model factories', () => {
     )
     expect(notebookRuntime.nodes.rivets).toBeInstanceOf(THREE.InstancedMesh)
     expect(notebookRuntime.nodes.rivets.count).toBe(2)
+    expect(notebookRuntime.nodes.nameplate.position.x).toBe(0)
+    const nameplatePlate = notebook.getObjectByName(
+      'blank-brass-nameplate-plate',
+    ) as THREE.Mesh
+    nameplatePlate.geometry.computeBoundingBox()
+    expect(
+      nameplatePlate.geometry.boundingBox!.getCenter(new THREE.Vector3()).x,
+    ).toBeCloseTo(0)
     expect(notebookRuntime.colliders['notebook-hit-area']!.size).toEqual([
       NOTEBOOK_MODEL_SPEC.cover.width,
       NOTEBOOK_MODEL_SPEC.cover.thickness * 2 +
@@ -572,6 +609,17 @@ describe('procedural scene model factories', () => {
       animateRapidPages?: boolean,
     ) => void
     const getOpenProgress = notebook.userData.getOpenProgress as () => number
+    const casePositions = caseShell.geometry.getAttribute(
+      'position',
+    ) as THREE.BufferAttribute
+    const closedCasePositions = new Float32Array(casePositions.array)
+    const frontVertexIndices = caseShell.geometry.userData
+      .frontVertexIndices as number[]
+    const frontVertexIndex = frontVertexIndices[0]!
+    const fixedVertexIndex = Array.from(
+      { length: casePositions.count },
+      (_, index) => index,
+    ).find((index) => !frontVertexIndices.includes(index))!
     setOpenProgress(1)
     expect(getOpenProgress()).toBe(1)
     expect(notebookRuntime.nodes.coverPivot.rotation.z).toBeCloseTo(
@@ -586,16 +634,11 @@ describe('procedural scene model factories', () => {
     expect(notebookRuntime.nodes.rightPages.visible).toBe(true)
     expect(notebookRuntime.nodes.gutter.visible).toBe(true)
     expect(notebookRuntime.nodes.textBlock.scale.y).toBeCloseTo(0.04)
-    const ribbonMesh = notebookRuntime.nodes.ribbon.getObjectByName(
-      'ribbon-v-tail-mesh',
-    ) as THREE.Mesh<THREE.BufferGeometry>
-    const ribbonPositions = ribbonMesh.geometry.getAttribute('position')
-    const surfaceVertices = Array.from({ length: ribbonPositions.count }, (_, index) => ({
-      y: ribbonPositions.getY(index),
-      z: ribbonPositions.getZ(index),
-    })).filter(({ z }) => z < NOTEBOOK_MODEL_SPEC.ribbon.endZ - 0.7)
-    expect(Math.min(...surfaceVertices.map(({ y }) => y))).toBeGreaterThan(
-      NOTEBOOK_MODEL_SPEC.cover.thickness + 0.19,
+    expect(casePositions.getX(frontVertexIndex)).not.toBeCloseTo(
+      closedCasePositions[frontVertexIndex * 3]!,
+    )
+    expect(casePositions.getX(fixedVertexIndex)).toBeCloseTo(
+      closedCasePositions[fixedVertexIndex * 3]!,
     )
     setOpenProgress(0.5)
     expect(getOpenProgress()).toBe(0.5)
@@ -647,6 +690,9 @@ describe('procedural scene model factories', () => {
     expect(notebookRuntime.nodes.textBlock.scale.y).toBe(1)
     expect(notebookRuntime.nodes.textBlock.visible).toBe(true)
     expect(notebookRuntime.nodes.spineCase.visible).toBe(true)
+    expect(casePositions.getX(frontVertexIndex)).toBeCloseTo(
+      closedCasePositions[frontVertexIndex * 3]!,
+    )
     expect(notebookRuntime.nodes.leftPages.visible).toBe(false)
     expect(notebookRuntime.nodes.rightPages.visible).toBe(false)
   })
@@ -676,7 +722,7 @@ describe('procedural scene model factories', () => {
     expect((matRuntime.nodes.stitches as THREE.InstancedMesh).count).toBe(
       DESK_MAT_MODEL_SPEC.stitch.count,
     )
-    expect(notebook.getObjectByName('continuous-ribbon-bookmark')).toBeTruthy()
+    expect(notebook.getObjectByName('continuous-ribbon-bookmark')).toBeUndefined()
     expect(notebookRuntime.nodes.rightTopPage.parent).toBeNull()
   })
 
@@ -702,12 +748,19 @@ describe('procedural scene model factories', () => {
       new THREE.Vector3(),
     )
     expect(textBlockSize.y).toBeCloseTo(NOTEBOOK_MODEL_SPEC.page.stackThickness)
-    expect(spineSize.y).toBeCloseTo(
+    expect(spineSize.y).toBeGreaterThanOrEqual(
       NOTEBOOK_MODEL_SPEC.cover.thickness * 2 +
         NOTEBOOK_MODEL_SPEC.page.stackThickness,
-      1,
     )
-    expect(spineSize.z).toBeCloseTo(NOTEBOOK_MODEL_SPEC.cover.depth)
+    expect(spineSize.z).toBeGreaterThanOrEqual(NOTEBOOK_MODEL_SPEC.cover.depth)
+    expect(spineSize.x).toBeGreaterThan(NOTEBOOK_MODEL_SPEC.spine.width)
+    const spineBounds = runtime.nodes.spineCase.geometry.boundingBox!
+    expect(spineBounds.max.x).toBeGreaterThan(
+      -NOTEBOOK_MODEL_SPEC.cover.width / 2,
+    )
+    expect(spineBounds.min.x).toBeLessThan(
+      -NOTEBOOK_MODEL_SPEC.cover.width / 2,
+    )
   })
 
   it('uses independent deterministic PBR channels for every surface family', () => {

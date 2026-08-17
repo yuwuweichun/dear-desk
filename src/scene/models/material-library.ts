@@ -161,12 +161,11 @@ export interface ModelMaterialLibrary {
   brassDark: THREE.MeshPhysicalMaterial
   cloth: THREE.MeshPhysicalMaterial
   clothDark: THREE.MeshPhysicalMaterial
-  notebookCover: THREE.MeshStandardMaterial
-  notebookCoverDark: THREE.MeshStandardMaterial
+  notebookCover: THREE.MeshPhysicalMaterial
+  notebookCoverDark: THREE.MeshPhysicalMaterial
   neutral: THREE.MeshStandardMaterial
   paper: THREE.MeshStandardMaterial
   paperEdge: THREE.MeshStandardMaterial
-  ribbon: THREE.MeshPhysicalMaterial
   stitch: THREE.MeshStandardMaterial
   textureCount: number
   textures: THREE.Texture[]
@@ -483,18 +482,18 @@ export function createModelMaterialLibrary(
 
   const notebookCover = new THREE.MeshPhysicalMaterial({
     aoMap: cloth.ao,
-    aoMapIntensity: 0.28,
-    anisotropy: 0.12,
+    aoMapIntensity: 2.2,
+    anisotropy: 0.22,
     anisotropyRotation: Math.PI / 2,
     bumpMap: cloth.height,
-    bumpScale: 0.006,
+    bumpScale: 0.35,
     color: sceneColors.notebookCover,
     map: cloth.albedo,
-    roughness: 0.88,
+    roughness: 0.8,
     roughnessMap: cloth.roughness,
-    sheen: 0.1,
+    sheen: 0.18,
     sheenColor: new THREE.Color('#87978d'),
-    sheenRoughness: 0.92,
+    sheenRoughness: 0.86,
   })
   notebookCover.name = 'ink-green-cloth-cover'
   const notebookCoverDark = notebookCover.clone()
@@ -534,18 +533,6 @@ export function createModelMaterialLibrary(
   brassDark.envMapIntensity = 0.7
   brassDark.roughness = 0.52
 
-  const ribbon = new THREE.MeshPhysicalMaterial({
-    anisotropy: 0.16,
-    anisotropyRotation: Math.PI / 2,
-    color: '#6f2028',
-    roughness: 0.9,
-    sheen: 0.14,
-    sheenColor: new THREE.Color('#9b4650'),
-    sheenRoughness: 0.96,
-    side: THREE.DoubleSide,
-  })
-  ribbon.name = 'burgundy-grosgrain-ribbon'
-
   const stitch = new THREE.MeshStandardMaterial({ color: '#aab5b4', roughness: 0.88 })
   stitch.name = 'stitch-thread'
   const neutral = new THREE.MeshStandardMaterial({ color: '#d8ded9', roughness: 0.82 })
@@ -565,7 +552,6 @@ export function createModelMaterialLibrary(
     paperEdge,
     brass,
     brassDark,
-    ribbon,
     stitch,
     neutral,
   ]
@@ -580,7 +566,6 @@ export function createModelMaterialLibrary(
     neutral,
     paper: paperMaterial,
     paperEdge,
-    ribbon,
     stitch,
     textureCount: textures.length,
     textures,

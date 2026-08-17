@@ -128,7 +128,7 @@
        -> materials.dispose()            // shared material + 16 textures
        -> SceneEnvironment cleanup       // PMREM + RoomEnvironment</code></pre>
         </div>
-        <p>本子工厂保留稳定根位置、透明命中盒和封面铰链；<code>NotebookObject</code> 把既有状态机进度传给 <code>setOpenProgress</code>。只有 <code>notebookPhase === 'editing'</code> 时隐藏 3D 本子，避免它穿出 DOM 日记；approaching、opening、closing 和 retreating 阶段仍显示模型，关闭后恢复。</p>
+        <p>本子工厂保留稳定根位置、透明命中盒和封面铰链；可见前封面、连续圆背和后封面由单一 <code>continuous-case-shell</code> 网格负责，不再叠放独立封面板与书脊。网格保存闭合基准顶点，并给活动封面及圆背肩部分配连续弯折权重；<code>setOpenProgress</code> 根据既有 pivot 角度更新这些顶点、法线和包围体，固定后壳与圆背下半区保持不动。铭牌和压线仍随 pivot 刚性运动；压线使用外、内两组固定八折点组成的窄框面，四条斜边严格等长，不依赖 TubeGeometry 路径重采样。<code>NotebookObject</code> 只传入既有状态机进度。只有 <code>notebookPhase === 'editing'</code> 时隐藏 3D 本子，避免它穿出 DOM 日记；approaching、opening、closing 和 retreating 阶段仍显示模型，关闭后恢复。</p>
         <p>桌垫的可见织物模型与透明 placement hit surface 分离，所以材质和滚边几何不承担贴纸事件。重复织线、页缘、页线与铆钉使用实例化几何；材质库以确定性 1024px 程序纹理为 wood、cloth、kraft、paper 四个 family 各提供 albedo、AO、height 和 roughness，共 16 张纹理。当前 <code>SCENE_MATERIAL_VERSION</code> 为 <code>V2.0</code>；<code>SCENE_PALETTE_PRESETS</code> 保存已全部否决的 V1-V10 历史角色色，默认 <code>SCENE_PALETTE</code> 仍解析为运行回退值 V2。开发环境可用 <code>?palette=v1..v10</code> 决定调色器初始值，production 和无效参数均回到 V2；该选择与实时试色都不进入 store、IndexedDB 或 localStorage。</p>
         <p><code>ProductApp</code> 以组件级 <code>SceneColorConfig</code> 持有九项临时 HEX，并把它传给 <code>SceneColorEditor</code> 与 <code>DeskScene</code>。材质库只创建一次 16 张程序纹理；后续输入通过 <code>applySceneColors()</code> 原位更新九个材质颜色，背景/fog 由 R3F prop 同步，不重建纹理、相机或 Canvas。桌面、桌框与围板、收分桌腿、抽屉面、桌垫工作面、垫体/包边、本子外壳和书脊/接缝各有明确材质所有权；抽屉面从 <code>deskInset</code> 派生较深木色，纸张、贴纸、PBR 与灯光不进入调色配置。</p>
       </section>
@@ -237,7 +237,7 @@
       <section id="rendering" data-search-title="DOM、R3F 与翻页渲染边界">
         <p class="section-index">08 · 渲染</p>
         <h2>R3F 给出空间本子，DOM 适配层保持表单语义</h2>
-        <p><code>NotebookObject</code> 用透明命中几何发出打开意图，并驱动 <code>createNotebookModel</code> 的封面铰链、左右页堆、中缝和书签；它不读取正文或 Blob。<code>JournalPanel</code> 对齐聚焦后的本子，提供空白左页、统一右页、局部模式控件、按日期 textarea 和纸页贴纸。旧 <code>RoundedBox</code> / <code>scene-visuals</code> 已不在当前桌子、桌垫、本子模型路径中。</p>
+        <p><code>NotebookObject</code> 用透明命中几何发出打开意图，并驱动 <code>createNotebookModel</code> 的封面铰链、左右页堆和中缝；它不读取正文或 Blob。<code>JournalPanel</code> 对齐聚焦后的本子，提供空白左页、统一右页、局部模式控件、按日期 textarea 和纸页贴纸。旧 <code>RoundedBox</code> / <code>scene-visuals</code> 已不在当前桌子、桌垫、本子模型路径中。</p>
         <p>renderer 使用 ACES filmic tone mapping、显式曝光、PCF 阴影和 DPR <code>[1, 1.5]</code>；<code>SceneEnvironment</code> 生成并释放 PMREM 环境反射。场景只有一盏投影方向光，另有不投影的低强度补光；雾从主体之外开始，避免吞掉桌体层次。</p>
         <p><code>JournalStickerLayer</code> 的坐标是纸页内 <code>0..1</code> 归一化值。今天页保留 pointer capture、预览位置和 pointer up 提交；历史页即使进入正文书写也只复用 PNG 投影并关闭贴纸 pointer events。桌面 <code>StickerObject</code> 仍创建对象 URL 和 Three.js Texture，并在卸载时释放两者。</p>
         <p><code>src/ui/</code> 是业务交互控件与 <code>animal-island-ui@1.5.1</code> 之间的适配边界：<code>Button</code> 将 loading 映射为原生 disabled，<code>IconButton</code> 固化可访问名称，<code>TextInput</code> 和 <code>SegmentedControl</code> 统一输入与选择语义。第二轮重写删除了让组件回到旧式深色小圆角外观的覆盖，<code>theme.css</code> 现在保留库的胶囊、按压阴影、Nunito/Noto Sans、青绿 active 与暖白 surface，只补 Dear Desk 的业务色彩和领域布局。App、Journal 和 Sticker 的交互控件从该层导入；<code>ProductApp</code> 对无需业务语义适配的纯展示型 <code>Time</code> 直接传入 <code>type="hud"</code>。领域专用 textarea、文件输入、颜色 swatch、range、纸页命中区、Forge mount 与抠图 Canvas 不进入通用组件库。</p>
@@ -325,7 +325,7 @@ edit historical text:
           <div><code><a href="../../src/scene/models/material-library.ts">models/material-library.ts</a></code><span><code>SceneColorConfig</code>、<code>applySceneColors</code>、独立桌腿材质、默认 V2 解析与 wood/cloth/kraft/paper 的 16 张 PBR 通道</span></div>
           <div><code><a href="../../src/scene/models/create-desk-model.ts">models/create-desk-model.ts</a></code><span><code>createDeskModel</code>、三抽屉、收分桌腿、实例化黄铜旋钮、附件/action 与释放入口</span></div>
           <div><code><a href="../../src/scene/models/create-desk-mat-model.ts">models/create-desk-mat-model.ts</a></code><span><code>createDeskMatModel</code>、平面圆角、滚边与实例化织线</span></div>
-          <div><code><a href="../../src/scene/models/create-notebook-model.ts">models/create-notebook-model.ts</a></code><span><code>createNotebookModel</code>、<code>setOpenProgress</code>、页堆、中缝与连续书签</span></div>
+          <div><code><a href="../../src/scene/models/create-notebook-model.ts">models/create-notebook-model.ts</a></code><span><code>createNotebookModel</code>、<code>setOpenProgress</code>、单网格连续壳体及其弯折、页堆与中缝</span></div>
           <div><code><a href="../../src/scene/models/SceneEnvironment.tsx">models/SceneEnvironment.tsx</a></code><span>程序化环境反射和 PMREM 释放</span></div>
           <div><code><a href="../../src/scene/ModelReviewScene.tsx">ModelReviewScene.tsx</a></code><span>开发环境 <code>?review=desk|mat|notebook</code> 的固定对象审查入口</span></div>
           <div><code><a href="../../src/features/stickers/StickerStudio.tsx">StickerStudio.tsx</a></code><span>文字/图片、抠图、Forge 预览和目标选择</span></div>
