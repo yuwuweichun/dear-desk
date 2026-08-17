@@ -13,16 +13,16 @@
     <div class="topbar-inner">
       <a class="brand" href="../index.html" aria-label="返回 Dear Desk 文档入口">
         <span class="brand-mark" aria-hidden="true">DD</span>
-        <span>System Architecture</span>
+        <span>← 文档首页</span>
       </a>
       <div class="search-shell">
         <label class="sr-only" for="doc-search">搜索本文档</label>
         <span class="search-icon" aria-hidden="true"></span>
-        <input id="doc-search" type="search" autocomplete="off" placeholder="搜索架构、翻页、贴纸或源码" aria-controls="search-results" aria-expanded="false">
+        <input id="doc-search" type="search" autocomplete="off" placeholder="搜索文档" aria-controls="search-results" aria-expanded="false">
         <kbd aria-hidden="true">/</kbd>
         <div id="search-results" class="search-results" role="listbox" aria-label="搜索结果" hidden></div>
       </div>
-      <span class="top-meta">CURRENT · 2026-08-16</span>
+      <span class="top-meta">CURRENT · 2026-08-17</span>
       <button class="toc-toggle" type="button" aria-controls="sidebar" aria-expanded="false">目录</button>
     </div>
   </header>
@@ -31,6 +31,7 @@
     <aside id="sidebar" class="sidebar" aria-label="文档目录">
       <p class="sidebar-label">系统导读</p>
       <nav>
+        <a href="../index.html">← 文档首页</a>
         <a href="#start">架构结论</a>
         <a href="#mental-model">最小心智模型</a>
         <a href="#runtime">运行时结构</a>
@@ -50,18 +51,18 @@
     <main>
       <header id="start" class="doc-head">
         <div class="eyebrow">Dear Desk · 当前事实架构</div>
-        <h1>本地记录与贴纸，投影成双页日记和单活跃 WebGL 桌面</h1>
-        <p class="lead">Dear Desk 是纯前端、本地优先的单页应用。IndexedDB v3 保存文字、贴纸 source、Forge PNG 与两种表面的位置；Zustand 协调本子开合、双页游标、仿真翻页和贴纸工作流；DOM 承担可读页面与表单，R3F 只负责需要空间关系的桌面和本子外形。</p>
+        <h1>写下的内容怎样留在本地，又怎样变成桌面上的一本日记？</h1>
+        <p class="lead">你看到的是一张可以打开本子、写日记和摆贴纸的桌面。文字和贴纸先保存在当前浏览器里，页面状态只负责协调当下操作，桌面与纸页再把同一份内容画出来；因此动画可以变化，已经保存的记录不会跟着模型消失。</p>
         <div class="callout">
           <strong>当前事实</strong>
-          <p>本子聚焦开合、Sticker Forge、双页日记和历史正文书写均已有源码。DD-20260816-002 已把原宽板岛台替换为暖木三抽屉书写桌，同时保持桌垫、本子、桌面贴纸坐标与产品相机边界；桌子、桌垫和本子仍是可释放的程序化 Three.js 模型。通用 DOM 控件和贴纸工作台继续使用 <code>animal-island-ui</code> 适配层，无持续职责的常驻品牌/“本地”顶栏已删除，核心页面使用完整视口。当前书写桌视觉与第二轮 UI 重构均等待用户验收。</p>
+          <p>当前应用已经能打开本子、阅读和书写日期页面、制作贴纸并把它们留在桌面或日记中。本子打开时长边书脊始终贴着桌面，书口先向上立起，再让左右两半从书脊向两侧摊开；旧的连续快速扫页已经移除。所有内容仍只保存在当前浏览器，三维物体和动画只是可随时重建的画面。</p>
         </div>
       </header>
 
       <section id="mental-model" data-search-title="最小心智模型">
         <p class="section-index">01 · 心智模型</p>
-        <h2>事实、协调、投影和瞬时动画必须分开</h2>
-        <p>系统没有服务端。用户显式保存后，浏览器当前 origin 下的 IndexedDB 是持久化事实；页面内的 Zustand store 是运行期协调层；DOM、R3F 和 Sticker Forge 是消费者或临时视觉生产者。纸张翻动角度、Three.js Mesh、对象 URL 和 worker 都不是业务数据。</p>
+        <h2>保存的内容、当前操作和眼前画面各有自己的责任</h2>
+        <p>可以把它理解成三层：浏览器里的资料柜保存文字和贴纸；页面里的值班员记住现在打开哪一天、正在做什么；桌面、本子和表单只负责把结果呈现出来。源码把资料柜实现为浏览器数据库 <code>IndexedDB</code>，把值班员实现为页面状态 <code>Zustand store</code>，再由普通页面元素和三维场景共同显示。纸张角度、模型节点和临时图片地址都不是已保存的日记内容。</p>
         <div class="workflow" aria-label="系统分层关系">
           <div><span>01</span><strong>用户意图</strong><small>记录、翻页、制作、放置</small></div>
           <div><span>02</span><strong>应用动作</strong><small>Zustand 锁定合法状态变化</small></div>
@@ -122,13 +123,13 @@
   -> createDeskMatModel(materials)
   -> NotebookObject
        -> createNotebookModel(materials)
-       -> userData.setOpenProgress(t)    // existing NotebookPhase timing
+       -> userData.setOpenProgress(t)    // rise -> center spread -> settle
   -> unmount
        -> model.userData.dispose()       // factory-owned geometry
        -> materials.dispose()            // shared material + 16 textures
        -> SceneEnvironment cleanup       // PMREM + RoomEnvironment</code></pre>
         </div>
-        <p>本子工厂保留稳定根位置、透明命中盒和封面铰链；可见前封面、连续圆背和后封面由单一 <code>continuous-case-shell</code> 网格负责，不再叠放独立封面板与书脊。网格保存闭合基准顶点，并给活动封面及圆背肩部分配连续弯折权重；<code>setOpenProgress</code> 根据既有 pivot 角度更新这些顶点、法线和包围体，固定后壳与圆背下半区保持不动。铭牌和压线仍随 pivot 刚性运动；压线使用外、内两组固定八折点组成的窄框面，四条斜边严格等长，不依赖 TubeGeometry 路径重采样。<code>NotebookObject</code> 只传入既有状态机进度。只有 <code>notebookPhase === 'editing'</code> 时隐藏 3D 本子，避免它穿出 DOM 日记；approaching、opening、closing 和 retreating 阶段仍显示模型，关闭后恢复。</p>
+        <p>本子工厂保留稳定根位置、透明命中盒和封面铰链；所有可见部件现在统一挂在中央展示锚点 <code>centered-opening-presentation</code> 下。它内部的桌面书脊铰链 <code>tabletop-spine-hinge</code> 位于长边装订轴，立起时绕这条轴旋转，轴本身不离开桌面；书口因此向上，而不是让整块封面朝镜头抬起。<code>getNotebookPresentationState</code> 先把进度映射为立起，再映射为左右摊开和落定。展开阶段的公共书脊角度严格使用 <code>1 - spreadProgress</code>：右半册世界角度从 <code>π/2</code> 到 <code>0</code>，左半册在相同公共角度上叠加 <code>π × spreadProgress</code>，因此任意时刻两侧离开直立位置的角位移绝对值相同。展示锚点同时补偿书脊横向位置，所以直立书脊和最终跨页中心共享桌面中线。完全闭合与书脊贴桌立起时，单一 <code>continuous-case-shell</code> 网格负责前封面、连续圆背和后封面；装饰性的 <code>book-joints</code> 已删除。<code>spreadProgress</code> 一旦大于零，连续壳体就退出，<code>front-cover-board</code> 与 <code>back-cover-board</code> 同帧接替；两块封面的中线补偿从 <code>0</code> 随展开进度连续插值到各自的 <code>0.2</code>，所以闭合圆背端部不会在纸面中线冒出，也不会在动画末端跳变。<code>setOpenProgress</code> 同时更新两侧页堆、书脊倾角和中心补偿；全开末段把左页 pivot 降到右页高度并精确转到 <code>π</code>。接近全平时，动画中的左右独立顶页退出，由 <code>createContinuousOpenSpreadGeometry</code> 生成的单一 <code>continuous-open-page-spread</code> 接替；它以同一组顶点连续表达左右纸面、纸根肩部、中央凹曲率、整页拱度和书头/书尾纸边，不再存在 <code>center-gutter-valley</code>、独立纸根材质或颜色分界。旧的 <code>rapid-page-flip-pool</code> 也已删除，不再用临时页片从第一页连续扫页。<code>NotebookObject</code> 只传入既有状态机进度；关闭沿同一时间轴逆放。production 在 <code>notebookPhase === 'editing'</code> 时隐藏 3D 本子并交给 DOM 日记；当前 development 调试例外继续显示进度为 <code>1</code> 的全开 3D 终态，并暂不挂载二维日记。</p>
         <p>桌垫的可见织物模型与透明 placement hit surface 分离，所以材质和滚边几何不承担贴纸事件。重复织线、页缘、页线与铆钉使用实例化几何；材质库以确定性 1024px 程序纹理为 wood、cloth、kraft、paper 四个 family 各提供 albedo、AO、height 和 roughness，共 16 张纹理。当前 <code>SCENE_MATERIAL_VERSION</code> 为 <code>V2.0</code>；<code>SCENE_PALETTE_PRESETS</code> 保存已全部否决的 V1-V10 历史角色色，默认 <code>SCENE_PALETTE</code> 仍解析为运行回退值 V2。开发环境可用 <code>?palette=v1..v10</code> 决定调色器初始值，production 和无效参数均回到 V2；该选择与实时试色都不进入 store、IndexedDB 或 localStorage。</p>
         <p><code>ProductApp</code> 以组件级 <code>SceneColorConfig</code> 持有九项临时 HEX，并把它传给 <code>SceneColorEditor</code> 与 <code>DeskScene</code>。材质库只创建一次 16 张程序纹理；后续输入通过 <code>applySceneColors()</code> 原位更新九个材质颜色，背景/fog 由 R3F prop 同步，不重建纹理、相机或 Canvas。桌面、桌框与围板、收分桌腿、抽屉面、桌垫工作面、垫体/包边、本子外壳和书脊/接缝各有明确材质所有权；抽屉面从 <code>deskInset</code> 派生较深木色，纸张、贴纸、PBR 与灯光不进入调色配置。</p>
       </section>
@@ -138,7 +139,7 @@
         <h2>日期索引确定右页，局部会话再控制阅读、书写与保存</h2>
         <ol class="checks">
           <li><strong>加载今天</strong><span><code>App</code> 调用 <code>loadToday()</code> 和 <code>loadStickers()</code>，保持桌面摘要、当天编辑和贴纸目标兼容。</span></li>
-          <li><strong>打开本子</strong><span>3D 命中区或 DOM 按钮把 <code>NotebookPhase</code> 推进到 <code>editing</code>；<code>JournalPanel</code> 此时挂载，并以 <code>reading + idle</code> 开始。</span></li>
+          <li><strong>打开本子</strong><span>3D 命中区或 DOM 按钮把 <code>NotebookPhase</code> 推进到 <code>editing</code>；production 此时挂载 <code>JournalPanel</code> 并以 <code>reading + idle</code> 开始，当前 development 为调试动画而停留在全开 3D 终态，不挂载二维日记。</span></li>
           <li><strong>建立页序</strong><span><code>loadJournalPages()</code> 并行读取 <code>DailyEntryRepository.listDates()</code> 与 <code>StickerRepository.listJournalDates()</code>，合并今天、去重、排序并丢弃未来日期。</span></li>
           <li><strong>按需读取</strong><span>首次读取当前右页和相邻上一日期的正文与贴纸 Blob；页序查询本身只读取日期/instance 字段，不加载全部历史 PNG。</span></li>
           <li><strong>呈现当前日期</strong><span><code>journalCursor</code> 只代表右页日期。左页不显示日期、正文或贴纸，只保留上一页命中；右页统一投影今天或历史正文与贴纸。</span></li>
@@ -237,7 +238,7 @@
       <section id="rendering" data-search-title="DOM、R3F 与翻页渲染边界">
         <p class="section-index">08 · 渲染</p>
         <h2>R3F 给出空间本子，DOM 适配层保持表单语义</h2>
-        <p><code>NotebookObject</code> 用透明命中几何发出打开意图，并驱动 <code>createNotebookModel</code> 的封面铰链、左右页堆和中缝；它不读取正文或 Blob。<code>JournalPanel</code> 对齐聚焦后的本子，提供空白左页、统一右页、局部模式控件、按日期 textarea 和纸页贴纸。旧 <code>RoundedBox</code> / <code>scene-visuals</code> 已不在当前桌子、桌垫、本子模型路径中。</p>
+        <p><code>NotebookObject</code> 用透明命中几何发出打开意图，并驱动 <code>createNotebookModel</code> 的中央展示锚点、封面铰链、左右页堆和连续跨页纸面；它不读取正文或 Blob。桌面端与移动端 near 机位已放宽视野，竖起轮廓不会撞到上边界。production 中的 <code>JournalPanel</code> 在 3D 跨页中心回到桌面中线后接管，提供空白左页、统一右页、局部模式控件、按日期 textarea 和纸页贴纸；当前 development 通过 <code>import.meta.env.DEV</code> 保留全开 3D 本子并抑制这次 DOM 接管，便于检查动画终点。旧 <code>RoundedBox</code> / <code>scene-visuals</code> 已不在当前桌子、桌垫、本子模型路径中。</p>
         <p>renderer 使用 ACES filmic tone mapping、显式曝光、PCF 阴影和 DPR <code>[1, 1.5]</code>；<code>SceneEnvironment</code> 生成并释放 PMREM 环境反射。场景只有一盏投影方向光，另有不投影的低强度补光；雾从主体之外开始，避免吞掉桌体层次。</p>
         <p><code>JournalStickerLayer</code> 的坐标是纸页内 <code>0..1</code> 归一化值。今天页保留 pointer capture、预览位置和 pointer up 提交；历史页即使进入正文书写也只复用 PNG 投影并关闭贴纸 pointer events。桌面 <code>StickerObject</code> 仍创建对象 URL 和 Three.js Texture，并在卸载时释放两者。</p>
         <p><code>src/ui/</code> 是业务交互控件与 <code>animal-island-ui@1.5.1</code> 之间的适配边界：<code>Button</code> 将 loading 映射为原生 disabled，<code>IconButton</code> 固化可访问名称，<code>TextInput</code> 和 <code>SegmentedControl</code> 统一输入与选择语义。第二轮重写删除了让组件回到旧式深色小圆角外观的覆盖，<code>theme.css</code> 现在保留库的胶囊、按压阴影、Nunito/Noto Sans、青绿 active 与暖白 surface，只补 Dear Desk 的业务色彩和领域布局。App、Journal 和 Sticker 的交互控件从该层导入；<code>ProductApp</code> 对无需业务语义适配的纯展示型 <code>Time</code> 直接传入 <code>type="hud"</code>。领域专用 textarea、文件输入、颜色 swatch、range、纸页命中区、Forge mount 与抠图 Canvas 不进入通用组件库。</p>
@@ -317,7 +318,7 @@ edit historical text:
           <div><code><a href="../../src/persistence/daily-entry-repository.ts">daily-entry-repository.ts</a></code><span><code>getByDate</code>、<code>listDates</code> 与显式保存</span></div>
           <div><code><a href="../../src/persistence/sticker-repository.ts">sticker-repository.ts</a></code><span>按 surface/date 查询、日期索引、四表事务与编辑</span></div>
           <div><code><a href="../../src/persistence/database.ts">src/persistence/database.ts</a></code><span>IndexedDB v1/v2/v3 schema 与旧实例迁移</span></div>
-          <div><code><a href="../../src/scene/NotebookObject.tsx">NotebookObject.tsx</a></code><span>封面铰链、内侧纸面、空间轮廓和打开意图</span></div>
+          <div><code><a href="../../src/scene/NotebookObject.tsx">NotebookObject.tsx</a></code><span>打开意图、阶段计时与可逆的展示进度驱动</span></div>
           <div><code><a href="../../src/scene/DeskScene.tsx">src/scene/DeskScene.tsx</a></code><span>R3F root、相机转场、桌面 placement 与单 Canvas 生命周期</span></div>
           <div><code><a href="../../src/scene/SceneColorEditor.tsx">src/scene/SceneColorEditor.tsx</a></code><span>九项临时色块/HEX、重置、复制反馈与桌面/移动面板命令</span></div>
           <div><code><a href="../../src/scene/scene-color.ts">src/scene/scene-color.ts</a></code><span>完整六位 HEX 校验与可复制配置序列化</span></div>
@@ -325,7 +326,7 @@ edit historical text:
           <div><code><a href="../../src/scene/models/material-library.ts">models/material-library.ts</a></code><span><code>SceneColorConfig</code>、<code>applySceneColors</code>、独立桌腿材质、默认 V2 解析与 wood/cloth/kraft/paper 的 16 张 PBR 通道</span></div>
           <div><code><a href="../../src/scene/models/create-desk-model.ts">models/create-desk-model.ts</a></code><span><code>createDeskModel</code>、三抽屉、收分桌腿、实例化黄铜旋钮、附件/action 与释放入口</span></div>
           <div><code><a href="../../src/scene/models/create-desk-mat-model.ts">models/create-desk-mat-model.ts</a></code><span><code>createDeskMatModel</code>、平面圆角、滚边与实例化织线</span></div>
-          <div><code><a href="../../src/scene/models/create-notebook-model.ts">models/create-notebook-model.ts</a></code><span><code>createNotebookModel</code>、<code>setOpenProgress</code>、单网格连续壳体及其弯折、页堆与中缝</span></div>
+          <div><code><a href="../../src/scene/models/create-notebook-model.ts">models/create-notebook-model.ts</a></code><span><code>createNotebookModel</code>、中央展示锚点、<code>setOpenProgress</code>、闭合连续壳体、全开封面板、同高页堆与连续跨页纸面</span></div>
           <div><code><a href="../../src/scene/models/SceneEnvironment.tsx">models/SceneEnvironment.tsx</a></code><span>程序化环境反射和 PMREM 释放</span></div>
           <div><code><a href="../../src/scene/ModelReviewScene.tsx">ModelReviewScene.tsx</a></code><span>开发环境 <code>?review=desk|mat|notebook</code> 的固定对象审查入口</span></div>
           <div><code><a href="../../src/features/stickers/StickerStudio.tsx">StickerStudio.tsx</a></code><span>文字/图片、抠图、Forge 预览和目标选择</span></div>
@@ -339,7 +340,7 @@ edit historical text:
       <section id="verification" data-search-title="验证证据与未覆盖边界">
         <p class="section-index">12 · 验证</p>
         <h2>自动证据、模型规格和双视口 UI 检查均已通过</h2>
-        <p>当前 14 个测试文件共 56 个测试覆盖既有日期、保存、翻页、贴纸和迁移行为，也覆盖模型层级、材质与资源释放、九项调色键、HEX 校验、连续调色节点稳定性、复制配置、独立桌腿绑定、本子/纸张边界、HUD 时钟和 UI 适配层的点击与输入透传。ESLint、TypeScript/Vite production build、文档引用检查和 <code>git diff --check</code> 均通过。</p>
+        <p>当前 14 个测试文件共 62 个测试覆盖既有日期、保存、翻页、贴纸和迁移行为，也覆盖模型层级、材质与资源释放、九项调色键、HEX 校验、本子竖起/摊开端点、左右镜像角位移、连续跨页网格、旧页缝与快速页片删除、开发环境的 3D 终态停留、响应式时长、HUD 时钟和 UI 适配层的点击与输入透传。ESLint、TypeScript/Vite production build 和文档引用检查均通过。</p>
         <div class="table-wrap">
           <table>
             <thead><tr><th>能力</th><th>当前状态</th><th>证据边界</th></tr></thead>
@@ -348,7 +349,7 @@ edit historical text:
               <tr><td>独立贴纸工作台与双 surface</td><td><span class="status status-review">已完成</span></td><td>自动测试、构建与开发者验收；浏览器证据边界见 DD-20260808-002</td></tr>
               <tr><td>双页本子与仿真翻页</td><td><span class="status status-review">已完成</span></td><td>DD-20260809-001 自动测试、lint、build 与开发者验收</td></tr>
               <tr><td>统一阅读与历史正文书写</td><td><span class="status status-review">待验收</span></td><td>43 个全量测试、lint、build 及桌面/移动打开与关闭恢复流程通过</td></tr>
-              <tr><td>程序化桌子、桌垫与本子</td><td><span class="status status-review">待验收</span></td><td>桌子已按 DD-20260816-002 重建为暖木三抽屉书写桌，56 项测试与产品桌面/移动截图通过；固定 silhouette IoU 为 <code>0.6311</code>，低于 <code>img2threejs</code> 的 <code>0.85</code> 阈值，因此该程序化近似仍等待用户视觉验收</td></tr>
+              <tr><td>程序化桌子、桌垫与本子</td><td><span class="status status-review">待验收</span></td><td>本子已按 DD-20260817-007 改为书脊贴桌立起、左右半册镜像同速摊开和逆向关闭；全开终点左右页堆同高，由一张带中折曲率与端面纸边的连续网格覆盖，闭合圆背附件和独立页缝节点不再露出。自动测试覆盖直立书脊、镜像角位移、连续跨页拓扑、封面接缝与终态结构切换。桌子程序化近似的既有 silhouette IoU 仍为 <code>0.6311</code>，因此整体模型视觉继续等待用户验收</td></tr>
               <tr><td>临时场景颜色编辑器</td><td><span class="status status-review">待验收</span></td><td>九项表面独立实时改色、重置、复制和刷新恢复已通过 1440 × 900 与 390 × 844；桌腿/桌框高辨识测试色证明材质分离，保持单 Canvas</td></tr>
               <tr><td>通用 DOM 与贴纸工作台重写</td><td><span class="status status-review">待验收</span></td><td><code>animal-island-ui@1.5.1</code> 经 <code>src/ui/</code> 接入；旧控件样式和旧工作台背景已删除，桌面、日记、文字/图片贴纸制作与抠图关键流程在桌面/移动端通过</td></tr>
               <tr><td>左上角 Animal Island 时间 HUD</td><td><span class="status status-review">待验收</span></td><td><code>ProductApp</code> 直接使用 <code>Time type="hud"</code>；针对性测试及 1440 × 900、390 × 844 浏览器检查确认旧记录状态已删除、无重叠与页面横向溢出</td></tr>
@@ -362,7 +363,7 @@ edit historical text:
         </div>
       </section>
 
-      <footer>Dear Desk 当前系统架构 · 基于可运行源码、56 个自动测试与 DD-20260816-002 实施结果 · 2026-08-16</footer>
+      <footer>Dear Desk 当前系统架构 · 基于可运行源码、62 个自动测试与 DD-20260817-007 实施结果 · 2026-08-17</footer>
     </main>
   </div>
 

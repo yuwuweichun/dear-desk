@@ -81,11 +81,10 @@ export function NotebookObject({
 
   const setOpenProgress = useCallback((
     progress: number,
-    animateRapidPages = false,
   ) => {
     if (!model) return
     const update = model.userData.setOpenProgress
-    if (typeof update === 'function') update(progress, animateRapidPages)
+    if (typeof update === 'function') update(progress)
   }, [model])
 
   useEffect(() => {
@@ -142,13 +141,10 @@ export function NotebookObject({
       duration,
     )
     const elapsedProgress = elapsed / duration
-    const progress = active.phase === 'opening' && !reducedMotion
+    const progress = reducedMotion
       ? elapsedProgress
       : easeInOutCubic(elapsedProgress)
-    setOpenProgress(
-      MathUtils.lerp(active.from, active.to, progress),
-      active.phase === 'opening' && !reducedMotion,
-    )
+    setOpenProgress(MathUtils.lerp(active.from, active.to, progress))
 
     if (elapsed >= duration) {
       motion.current = null
@@ -188,7 +184,7 @@ export function NotebookObject({
       <primitive
         object={model}
         dispose={null}
-        visible={isNotebookModelVisible(notebookPhase)}
+        visible={isNotebookModelVisible(notebookPhase, import.meta.env.DEV)}
       />
     </group>
   )

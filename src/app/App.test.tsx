@@ -7,7 +7,7 @@ import { AppStoreProvider } from '../state/app-store-context'
 import { App } from './App'
 
 vi.mock('../features/journal/JournalPanel', () => ({
-  JournalPanel: () => null,
+  JournalPanel: () => <div data-testid="journal-panel" />,
 }))
 vi.mock('../features/stickers/StickerControls', () => ({
   StickerControls: () => null,
@@ -59,6 +59,25 @@ describe('App time HUD', () => {
 
     expect(screen.queryByText('Thursday')).not.toBeInTheDocument()
     expect(screen.queryByText('Aug 13')).not.toBeInTheDocument()
+  })
+})
+
+describe('App notebook animation debugging', () => {
+  it('holds the open 3D endpoint without mounting the journal in development', () => {
+    const store = createAppStore(createRepository(), date)
+    store.setState({ notebookPhase: 'editing' })
+
+    render(
+      <AppStoreProvider store={store}>
+        <App />
+      </AppStoreProvider>,
+    )
+
+    expect(document.querySelector('.app-shell')).toHaveAttribute(
+      'data-hold-notebook-open-for-debug',
+      'true',
+    )
+    expect(screen.queryByTestId('journal-panel')).not.toBeInTheDocument()
   })
 })
 

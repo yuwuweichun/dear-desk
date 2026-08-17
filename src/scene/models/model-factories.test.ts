@@ -473,6 +473,7 @@ describe('procedural scene model factories', () => {
     expect(NOTEBOOK_MODEL_SPEC.deskRotation).toEqual([0, 0, 0])
     expect(NOTEBOOK_MODEL_SPEC.deskRotation[1]).toBe(0)
     expect(NOTEBOOK_MODEL_SPEC.deskRotation[2]).toBe(0)
+    expect(NOTEBOOK_MODEL_SPEC.openAngle).toBeCloseTo(Math.PI)
     expect(notebookRuntime.sockets['cover-hinge']).toBe(
       notebookRuntime.nodes.coverPivot,
     )
@@ -489,11 +490,23 @@ describe('procedural scene model factories', () => {
     expect(notebookRuntime.nodes.frontCover.parent).toBe(
       notebookRuntime.nodes.coverPivot,
     )
+    expect(notebookRuntime.nodes.frontCoverBoard.parent).toBe(
+      notebookRuntime.nodes.frontCover,
+    )
+    expect(notebookRuntime.nodes.backCoverBoard.parent).toBe(
+      notebookRuntime.nodes.backCover,
+    )
     expect(notebookRuntime.nodes.leftPages.parent).toBe(
       notebookRuntime.nodes.pagePivot,
     )
     expect(notebookRuntime.nodes.coverPivot.children).not.toContain(
       notebookRuntime.nodes.leftPages,
+    )
+    expect(notebookRuntime.nodes.bookVisual.parent).toBe(
+      notebookRuntime.nodes.spineLiftPivot,
+    )
+    expect(notebookRuntime.nodes.spineLiftPivot.parent).toBe(
+      notebookRuntime.nodes.presentationPivot,
     )
     expect(notebook.userData.structure).toBe(
       'clothbound-rounded-spine-articulated-notebook',
@@ -523,14 +536,7 @@ describe('procedural scene model factories', () => {
     expect(notebookRuntime.nodes.spineCase.material).toBe(
       materials.notebookCover,
     )
-    expect(notebookRuntime.nodes.bookJoints.material).toBe(
-      materials.notebookCoverDark,
-    )
-    expect(notebookRuntime.nodes.bookJoints.name).toBe('book-joints')
-    expect(notebookRuntime.nodes.bookJoints.count).toBe(2)
-    expect(notebookRuntime.nodes.bookJoints.userData.profile).toBe(
-      'recessed-spine-shoulders',
-    )
+    expect(notebook.getObjectByName('book-joints')).toBeUndefined()
     expect(NOTEBOOK_MODEL_SPEC.coverHinge[0]).toBeCloseTo(
       -NOTEBOOK_MODEL_SPEC.cover.width / 2,
     )
@@ -606,7 +612,6 @@ describe('procedural scene model factories', () => {
 
     const setOpenProgress = notebook.userData.setOpenProgress as (
       progress: number,
-      animateRapidPages?: boolean,
     ) => void
     const getOpenProgress = notebook.userData.getOpenProgress as () => number
     const casePositions = caseShell.geometry.getAttribute(
@@ -629,10 +634,61 @@ describe('procedural scene model factories', () => {
       NOTEBOOK_MODEL_SPEC.openAngle,
     )
     expect(notebookRuntime.nodes.textBlock.visible).toBe(false)
-    expect(notebookRuntime.nodes.spineCase.visible).toBe(true)
+    expect(notebookRuntime.nodes.spineCase.visible).toBe(false)
+    expect(notebookRuntime.nodes.frontCoverBoard.visible).toBe(true)
+    expect(notebookRuntime.nodes.backCoverBoard.visible).toBe(true)
     expect(notebookRuntime.nodes.leftPages.visible).toBe(true)
     expect(notebookRuntime.nodes.rightPages.visible).toBe(true)
-    expect(notebookRuntime.nodes.gutter.visible).toBe(true)
+    expect(notebookRuntime.nodes.openSpread.visible).toBe(true)
+    expect(notebookRuntime.nodes.leftTopPage.visible).toBe(false)
+    expect(notebookRuntime.nodes.rightTopPage.visible).toBe(false)
+    expect(notebookRuntime.nodes.openSpread.geometry.userData).toMatchObject({
+      continuousAcrossFold: true,
+      foldValleyDepth: 0.032,
+      profile: 'continuous-open-page-spread',
+      rootShoulderHeight: 0.055,
+    })
+    expect(notebook.getObjectByName('center-gutter-valley')).toBeUndefined()
+    expect(notebookRuntime.nodes.presentationPivot.position.x).toBeCloseTo(
+      -NOTEBOOK_MODEL_SPEC.pageHinge[0],
+    )
+    expect(notebookRuntime.nodes.presentationPivot.position.y).toBeCloseTo(0)
+    expect(notebookRuntime.nodes.presentationPivot.rotation.x).toBeCloseTo(0)
+    notebook.updateMatrixWorld(true)
+    expect(
+      notebookRuntime.nodes.openSpread.getWorldPosition(new THREE.Vector3()).x,
+    ).toBeCloseTo(0)
+    expect(
+      notebookRuntime.nodes.leftPages.getWorldPosition(new THREE.Vector3()).y,
+    ).toBeCloseTo(
+      notebookRuntime.nodes.rightPages.getWorldPosition(new THREE.Vector3()).y,
+    )
+    const leftTopBounds = new THREE.Box3().setFromObject(
+      notebookRuntime.nodes.leftTopPage,
+    )
+    const rightTopBounds = new THREE.Box3().setFromObject(
+      notebookRuntime.nodes.rightTopPage,
+    )
+    expect(leftTopBounds.min.y).toBeCloseTo(rightTopBounds.min.y)
+    expect(leftTopBounds.max.y).toBeCloseTo(rightTopBounds.max.y)
+    notebookRuntime.nodes.rightTopPage.geometry.computeBoundingBox()
+    expect(
+      notebookRuntime.nodes.rightTopPage.geometry.boundingBox!.max.y,
+    ).toBeGreaterThan(0.06)
+    expect(notebookRuntime.nodes.rightTopPage.userData).toMatchObject({
+      broadCrownHeight: 0.025,
+      gutterOpeningInset: -0.01,
+      pageRootLiftHeight: 0.065,
+    })
+    const frontCoverBounds = new THREE.Box3().setFromObject(
+      notebookRuntime.nodes.frontCoverBoard,
+    )
+    const backCoverBounds = new THREE.Box3().setFromObject(
+      notebookRuntime.nodes.backCoverBoard,
+    )
+    expect(frontCoverBounds.max.x).toBeCloseTo(-backCoverBounds.min.x)
+    expect(frontCoverBounds.max.x).toBeLessThan(0.02)
+    expect(backCoverBounds.min.x).toBeGreaterThan(-0.02)
     expect(notebookRuntime.nodes.textBlock.scale.y).toBeCloseTo(0.04)
     expect(casePositions.getX(frontVertexIndex)).not.toBeCloseTo(
       closedCasePositions[frontVertexIndex * 3]!,
@@ -640,43 +696,51 @@ describe('procedural scene model factories', () => {
     expect(casePositions.getX(fixedVertexIndex)).toBeCloseTo(
       closedCasePositions[fixedVertexIndex * 3]!,
     )
-    setOpenProgress(0.5)
-    expect(getOpenProgress()).toBe(0.5)
-    expect(notebookRuntime.nodes.coverPivot.rotation.z).toBeCloseTo(
-      NOTEBOOK_MODEL_SPEC.openAngle / 2,
+    setOpenProgress(0.3)
+    expect(getOpenProgress()).toBe(0.3)
+    expect(notebookRuntime.nodes.spineLiftPivot.rotation.z).toBeCloseTo(
+      Math.PI / 2,
     )
+    expect(notebookRuntime.nodes.presentationPivot.position.x).toBeCloseTo(
+      -NOTEBOOK_MODEL_SPEC.pageHinge[0],
+    )
+    expect(notebookRuntime.nodes.presentationPivot.position.y).toBe(0)
+    notebook.updateMatrixWorld(true)
+    expect(
+      notebookRuntime.nodes.spineLiftPivot.getWorldPosition(new THREE.Vector3()).x,
+    ).toBeCloseTo(0)
+    expect(
+      notebookRuntime.nodes.spineLiftPivot.getWorldPosition(new THREE.Vector3()).y,
+    ).toBeCloseTo(0)
+    expect(notebookRuntime.nodes.coverPivot.rotation.z).toBe(0)
     expect(notebookRuntime.nodes.pagePivot.rotation.z).toBe(0)
     expect(notebookRuntime.nodes.textBlock.scale.y).toBe(1)
     expect(notebookRuntime.nodes.textBlock.visible).toBe(true)
-    for (const progress of [0.1, 0.3, 0.5, 0.6]) {
-      setOpenProgress(progress)
-      expect(notebookRuntime.nodes.pagePivot.rotation.z).toBe(0)
-      expect(notebookRuntime.nodes.leftPages.visible).toBe(false)
-      expect(notebookRuntime.nodes.rightPages.visible).toBe(false)
-      expect(notebookRuntime.nodes.textBlock.scale.y).toBe(1)
-      expect(notebookRuntime.nodes.textBlock.visible).toBe(true)
-      expect(notebookRuntime.nodes.spineCase.visible).toBe(true)
-    }
-    setOpenProgress(0.2, true)
-    expect(notebookRuntime.nodes.rapidPageFlipPool.visible).toBe(false)
+    expect(notebookRuntime.nodes.leftPages.visible).toBe(false)
+    expect(notebookRuntime.nodes.rightPages.visible).toBe(false)
+    expect(notebookRuntime.nodes.spineCase.visible).toBe(true)
+    expect(notebookRuntime.nodes.frontCoverBoard.visible).toBe(false)
+    expect(notebookRuntime.nodes.backCoverBoard.visible).toBe(false)
+
+    setOpenProgress(0.6)
+    expect(notebookRuntime.nodes.spineLiftPivot.rotation.z).toBeGreaterThan(0)
+    expect(notebookRuntime.nodes.spineLiftPivot.rotation.z).toBeLessThan(
+      Math.PI / 2,
+    )
     expect(notebookRuntime.nodes.coverPivot.rotation.z).toBeGreaterThan(0)
     expect(notebookRuntime.nodes.coverPivot.rotation.z).toBeLessThan(
       NOTEBOOK_MODEL_SPEC.openAngle,
     )
-    for (const progress of [0.42, 0.56, 0.7, 0.84]) {
-      setOpenProgress(progress, true)
-      expect(notebookRuntime.nodes.coverPivot.rotation.z).toBeCloseTo(
-        NOTEBOOK_MODEL_SPEC.openAngle,
-      )
-      expect(notebookRuntime.nodes.rapidPageFlipPool.visible).toBe(true)
-      expect(notebookRuntime.nodes.rapidPageFlipPool.userData.activeCount).toBeGreaterThan(0)
-      expect(notebookRuntime.nodes.rapidPageFlipPool.userData.activeCount).toBeLessThanOrEqual(2)
-      expect(notebookRuntime.nodes.textBlock.scale.y).toBe(1)
-      expect(notebookRuntime.nodes.textBlock.visible).toBe(true)
-    }
-    setOpenProgress(0.96, true)
-    expect(notebookRuntime.nodes.rapidPageFlipPool.visible).toBe(false)
-    expect(notebookRuntime.nodes.rapidPageFlipPool.userData.activeCount).toBe(0)
+    expect(notebookRuntime.nodes.spineCase.visible).toBe(false)
+    expect(notebookRuntime.nodes.frontCoverBoard.visible).toBe(true)
+    expect(notebookRuntime.nodes.backCoverBoard.visible).toBe(true)
+    expect(notebookRuntime.nodes.frontCoverBoard.position.x).toBeCloseTo(
+      -(NOTEBOOK_MODEL_SPEC.pageHinge[0] - NOTEBOOK_MODEL_SPEC.coverHinge[0]) / 2,
+    )
+    expect(notebookRuntime.nodes.backCoverBoard.position.x).toBeCloseTo(
+      (NOTEBOOK_MODEL_SPEC.pageHinge[0] - NOTEBOOK_MODEL_SPEC.coverHinge[0]) / 2,
+    )
+    expect(notebook.getObjectByName('rapid-page-flip-pool')).toBeUndefined()
     setOpenProgress(-1)
     expect(getOpenProgress()).toBe(0)
     expect(notebookRuntime.nodes.coverPivot.rotation.z).toBe(0)
@@ -687,9 +751,15 @@ describe('procedural scene model factories', () => {
     expect(notebookRuntime.nodes.pagePivot.position.toArray()).toEqual([
       ...NOTEBOOK_MODEL_SPEC.pageHinge,
     ])
+    expect(notebookRuntime.nodes.presentationPivot.position.toArray()).toEqual([
+      0, 0, 0,
+    ])
+    expect(notebookRuntime.nodes.spineLiftPivot.rotation.z).toBe(0)
     expect(notebookRuntime.nodes.textBlock.scale.y).toBe(1)
     expect(notebookRuntime.nodes.textBlock.visible).toBe(true)
     expect(notebookRuntime.nodes.spineCase.visible).toBe(true)
+    expect(notebookRuntime.nodes.frontCoverBoard.visible).toBe(false)
+    expect(notebookRuntime.nodes.backCoverBoard.visible).toBe(false)
     expect(casePositions.getX(frontVertexIndex)).toBeCloseTo(
       closedCasePositions[frontVertexIndex * 3]!,
     )

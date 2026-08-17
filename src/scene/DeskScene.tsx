@@ -108,8 +108,8 @@ const getCameraPoses = (mobile: boolean) => ({
     ? cameraPose([0.1, 8.4, 14.2], [0, -0.5, 0.15], 42)
     : cameraPose([0.15, 6.8, 13.6], [0, -0.75, 0.15], 36),
   near: mobile
-    ? cameraPose([0, 10.6, 6.2], [0, 0.22, 0.2], 39)
-    : cameraPose([0, 8.6, 5.1], [0, 0.22, 0.2], 33),
+    ? cameraPose([0, 10.6, 6.2], [0, 0.22, 0.2], 43)
+    : cameraPose([0, 8.6, 5.1], [0, 0.22, 0.2], 37),
 })
 
 const quaternionForPose = (pose: CameraPose) => {

@@ -1,6 +1,7 @@
 import * as THREE from 'three'
 import {
   createChamferedFrameGeometry,
+  createContinuousOpenSpreadGeometry,
   createContinuousCaseGeometry,
   createCurvedPageGeometry,
   createRoundedPlateGeometry,
@@ -16,26 +17,30 @@ import {
   setSculptRuntime,
   type ModelFactoryOptions,
 } from './model-types'
+import { getNotebookPresentationState } from '../notebook-transition'
 
 export interface NotebookModelNodes extends Record<string, THREE.Object3D> {
   backCover: THREE.Group
-  bookJoints: THREE.InstancedMesh
+  backCoverBoard: THREE.Mesh
+  bookVisual: THREE.Group
   caseShell: THREE.Mesh
   closedPageEdges: THREE.InstancedMesh
   coverPivot: THREE.Group
   frontCover: THREE.Group
-  gutter: THREE.Mesh
+  frontCoverBoard: THREE.Mesh
   leftPageEdges: THREE.InstancedMesh
   leftPages: THREE.Group
   leftTopPage: THREE.Mesh
   nameplate: THREE.Group
+  openSpread: THREE.Mesh
   pagePivot: THREE.Group
-  rapidPageFlipPool: THREE.InstancedMesh
+  presentationPivot: THREE.Group
   rightPageEdges: THREE.InstancedMesh
   rightPages: THREE.Group
   rightTopPage: THREE.Mesh
   rivets: THREE.InstancedMesh
   root: THREE.Group
+  spineLiftPivot: THREE.Group
   spineCase: THREE.Mesh
   textBlock: THREE.Mesh
 }
@@ -53,13 +58,12 @@ const BOOK_HEIGHT =
   NOTEBOOK_MODEL_SPEC.page.stackThickness
 const PAGE_CENTER_X = 0.06
 const PAGE_PIVOT_LOCAL_X = NOTEBOOK_MODEL_SPEC.page.width / 2
+const OPEN_TOP_PAGE_INSET = -0.01
 const OPEN_PAGE_Y = NOTEBOOK_MODEL_SPEC.cover.thickness + OPEN_STACK_THICKNESS / 2
-const RAPID_PAGE_POOL_SIZE = 5
-const RAPID_PAGE_TURN_COUNT = 9
-const RAPID_PAGE_TURN_OVERLAP = 1.22
-const COVER_STAGE_END = 0.36
-const FLIP_STAGE_END = 0.9
-const RAPID_PAGE_Y = BOOK_HEIGHT + 0.018
+const SPINE_AXIS_X = NOTEBOOK_MODEL_SPEC.pageHinge[0]
+const OPEN_COVER_CENTER_OFFSET =
+  SPINE_AXIS_X - NOTEBOOK_MODEL_SPEC.coverHinge[0]
+const UPRIGHT_ANGLE = Math.PI / 2
 
 const addSecondaryUv = <T extends THREE.BufferGeometry>(geometry: T) => {
   const uv = geometry.getAttribute('uv')
@@ -104,6 +108,34 @@ function createCoverDetails(
     width: NOTEBOOK_MODEL_SPEC.cover.width,
   }
 
+  const board = finishMesh(
+    new THREE.Mesh(
+      addSecondaryUv(
+        scaleGeometryUvs(
+          createRoundedPlateGeometry(
+            NOTEBOOK_MODEL_SPEC.cover.width,
+            NOTEBOOK_MODEL_SPEC.cover.depth,
+            NOTEBOOK_MODEL_SPEC.cover.thickness,
+            NOTEBOOK_MODEL_SPEC.cover.planRadius,
+            0.012,
+          ),
+          1.7,
+          2.7,
+        ),
+      ),
+      materialFor(usePbr, materials.notebookCover, materials),
+    ),
+    `${id}-board`,
+    options,
+  )
+  board.position.x = -exteriorDirection * OPEN_COVER_CENTER_OFFSET
+  board.visible = false
+  board.userData = {
+    profile: 'flat-open-cover-board',
+    structuralRole: id === 'front-cover' ? 'front-case-board' : 'back-case-board',
+  }
+  cover.add(board)
+
   if (showForm && exteriorDirection === 1) {
     const seamGeometry = addSecondaryUv(
       createChamferedFrameGeometry(
@@ -130,7 +162,7 @@ function createCoverDetails(
     }
     cover.add(seam)
   }
-  return cover
+  return { board, cover }
 }
 
 function createContinuousCase(
@@ -316,21 +348,32 @@ function createOpeningLeaf(
   const topGeometry = addSecondaryUv(
     scaleGeometryUvs(
       createCurvedPageGeometry(
-        NOTEBOOK_MODEL_SPEC.page.width * 0.98,
+        NOTEBOOK_MODEL_SPEC.page.width * 0.975,
         NOTEBOOK_MODEL_SPEC.page.depth * 0.985,
-        side === 'right' ? 1 : -1,
+        1,
       ),
       1.5,
       2.5,
     ),
   )
+  if (side === 'left') {
+    topGeometry.scale(1, -1, 1)
+    topGeometry.computeVertexNormals()
+  }
+  topGeometry.translate(OPEN_TOP_PAGE_INSET, 0, 0)
   const topPage = finishMesh(
     new THREE.Mesh(topGeometry, materialFor(usePbr, materials.paper, materials)),
     `${side}-top-page`,
     options,
   )
-  topPage.position.y = OPEN_STACK_THICKNESS / 2 + 0.008
-  topPage.userData = { crownHeight: 0.073, side }
+  topPage.position.y =
+    (OPEN_STACK_THICKNESS / 2 + 0.008) * (side === 'left' ? -1 : 1)
+  topPage.userData = {
+    broadCrownHeight: 0.025,
+    gutterOpeningInset: OPEN_TOP_PAGE_INSET,
+    pageRootLiftHeight: 0.065,
+    side,
+  }
   const edges = createPageEdgeInstances(
     `${side}-page-edge-layers`,
     side,
@@ -341,40 +384,6 @@ function createOpeningLeaf(
   )
   pages.add(slab, topPage, edges)
   return { edges, pages, topPage }
-}
-
-function createBookJoints(
-  materials: ModelMaterialLibrary,
-  usePbr: boolean,
-  showStructure: boolean,
-  options: ModelFactoryOptions,
-) {
-  const geometry = new THREE.CapsuleGeometry(
-    NOTEBOOK_MODEL_SPEC.joint.width,
-    NOTEBOOK_MODEL_SPEC.cover.depth - NOTEBOOK_MODEL_SPEC.joint.inset * 2,
-    3,
-    8,
-  )
-  geometry.rotateX(Math.PI / 2)
-  const joints = new THREE.InstancedMesh(
-    geometry,
-    materialFor(usePbr, materials.notebookCoverDark, materials),
-    2,
-  )
-  joints.name = 'book-joints'
-  joints.visible = showStructure
-  const dummy = new THREE.Object3D()
-  for (const [index, x] of [
-    -NOTEBOOK_MODEL_SPEC.cover.width / 2 + NOTEBOOK_MODEL_SPEC.spine.shoulderOffset,
-    NOTEBOOK_MODEL_SPEC.joint.axisX,
-  ].entries()) {
-    dummy.position.set(x, BOOK_HEIGHT + 0.005, 0)
-    dummy.updateMatrix()
-    joints.setMatrixAt(index, dummy.matrix)
-  }
-  joints.instanceMatrix.needsUpdate = true
-  joints.userData = { count: 2, profile: 'recessed-spine-shoulders' }
-  return finishMesh(joints, 'book-joints', options, false)
 }
 
 function createNameplate(
@@ -429,58 +438,28 @@ function createNameplate(
   return { nameplate, rivets }
 }
 
-function createGutter(
-  materials: ModelMaterialLibrary,
-  usePbr: boolean,
-  options: ModelFactoryOptions,
-) {
-  const geometry = new THREE.PlaneGeometry(0.16, NOTEBOOK_MODEL_SPEC.page.depth * 0.97, 6, 28)
-  const positions = geometry.getAttribute('position')
-  for (let index = 0; index < positions.count; index += 1) {
-    const normalizedX = Math.min(1, Math.abs(positions.getX(index)) / 0.08)
-    positions.setZ(index, -0.048 * Math.pow(1 - normalizedX, 1.35))
-  }
-  geometry.rotateX(-Math.PI / 2)
-  geometry.computeVertexNormals()
-  geometry.userData = { profile: 'soft-v-page-root', valleyDepth: 0.048 }
-  return finishMesh(
-    new THREE.Mesh(geometry, materialFor(usePbr, materials.paperEdge, materials)),
-    'center-gutter-valley',
-    options,
-    false,
-  )
-}
-
-function createRapidPageFlipPool(
+function createOpenSpread(
   materials: ModelMaterialLibrary,
   usePbr: boolean,
   options: ModelFactoryOptions,
 ) {
   const geometry = addSecondaryUv(
-    createRoundedPlateGeometry(
-      NOTEBOOK_MODEL_SPEC.page.width * 0.985,
-      NOTEBOOK_MODEL_SPEC.page.depth * 0.985,
-      0.008,
-      NOTEBOOK_MODEL_SPEC.page.planRadius,
-      0.002,
+    scaleGeometryUvs(
+      createContinuousOpenSpreadGeometry(
+        NOTEBOOK_MODEL_SPEC.page.width * 1.95,
+        NOTEBOOK_MODEL_SPEC.page.depth,
+      ),
+      3,
+      2.5,
     ),
   )
-  geometry.translate(NOTEBOOK_MODEL_SPEC.page.width * 0.4925, 0, 0)
-  const pool = new THREE.InstancedMesh(
-    geometry,
-    materialFor(usePbr, materials.paper, materials),
-    RAPID_PAGE_POOL_SIZE,
+  const spread = finishMesh(
+    new THREE.Mesh(geometry, materialFor(usePbr, materials.paper, materials)),
+    'continuous-open-page-spread',
+    options,
   )
-  pool.name = 'rapid-page-flip-pool'
-  pool.visible = false
-  const hidden = new THREE.Matrix4().makeScale(0, 0, 0)
-  for (let index = 0; index < RAPID_PAGE_POOL_SIZE; index += 1) {
-    pool.setMatrixAt(index, hidden)
-  }
-  pool.instanceMatrix.setUsage(THREE.DynamicDrawUsage)
-  pool.instanceMatrix.needsUpdate = true
-  pool.userData = { activeCount: 0, poolSize: RAPID_PAGE_POOL_SIZE }
-  return finishMesh(pool, 'rapid-page-flip-pool', options)
+  spread.visible = false
+  return spread
 }
 
 export function createNotebookModel(
@@ -500,8 +479,29 @@ export function createNotebookModel(
     structure: 'clothbound-rounded-spine-articulated-notebook',
     wrapperPosition: [...NOTEBOOK_MODEL_SPEC.rootPosition],
   }
+  const presentationPivot = new THREE.Group()
+  presentationPivot.name = 'centered-opening-presentation'
+  presentationPivot.userData = {
+    anchor: 'notebook-visual-center',
+    sequence: ['rise', 'center-spread', 'settle'],
+    uprightAngle: UPRIGHT_ANGLE,
+  }
+  const spineLiftPivot = new THREE.Group()
+  spineLiftPivot.name = 'tabletop-spine-hinge'
+  spineLiftPivot.position.x = SPINE_AXIS_X
+  spineLiftPivot.userData = {
+    axis: [0, 0, 1],
+    contact: 'tabletop',
+    role: 'upright-book-spine',
+  }
+  const bookVisual = new THREE.Group()
+  bookVisual.name = 'notebook-visual-body'
+  bookVisual.position.x = -SPINE_AXIS_X
+  spineLiftPivot.add(bookVisual)
+  presentationPivot.add(spineLiftPivot)
+  root.add(presentationPivot)
 
-  const backCover = createCoverDetails(
+  const { board: backCoverBoard, cover: backCover } = createCoverDetails(
     'back-cover',
     -1,
     materials,
@@ -527,13 +527,12 @@ export function createNotebookModel(
     options,
   )
   const spineCase = caseShell
-  const bookJoints = createBookJoints(materials, usePbr, showStructure, options)
 
   const coverPivot = new THREE.Group()
   coverPivot.name = 'front-cover-pivot'
   coverPivot.position.set(...NOTEBOOK_MODEL_SPEC.coverHinge)
   coverPivot.userData = { axis: [0, 0, 1], closedAngle: 0, openAngle: NOTEBOOK_MODEL_SPEC.openAngle }
-  const frontCover = createCoverDetails(
+  const { board: frontCoverBoard, cover: frontCover } = createCoverDetails(
     'front-cover',
     1,
     materials,
@@ -556,50 +555,68 @@ export function createNotebookModel(
   left.pages.position.set(PAGE_PIVOT_LOCAL_X, 0, 0)
   pagePivot.add(left.pages)
 
-  const gutter = createGutter(materials, usePbr, options)
-  gutter.position.set(NOTEBOOK_MODEL_SPEC.pageHinge[0], OPEN_PAGE_Y + OPEN_STACK_THICKNESS / 2 + 0.004, 0)
-  gutter.visible = false
-  const rapidPageFlipPool = createRapidPageFlipPool(materials, usePbr, options)
-
-  root.add(
+  const openSpread = createOpenSpread(materials, usePbr, options)
+  openSpread.position.set(
+    NOTEBOOK_MODEL_SPEC.pageHinge[0],
+    OPEN_PAGE_Y + OPEN_STACK_THICKNESS / 2 + 0.008,
+    0,
+  )
+  bookVisual.add(
     backCover,
     textBlock,
     closedPageEdges,
     caseShell,
-    bookJoints,
     coverPivot,
     pagePivot,
     right.pages,
-    gutter,
-    rapidPageFlipPool,
+    openSpread,
   )
 
   if (!showForm) {
     right.pages.remove(right.topPage, right.edges)
     left.pages.remove(left.topPage, left.edges)
+    bookVisual.remove(openSpread)
   }
 
-  const setOpenProgress = (value: number, animateRapidPages = false) => {
+  const setOpenProgress = (value: number) => {
     const progress = THREE.MathUtils.clamp(value, 0, 1)
     root.userData.openProgress = progress
-    const coverProgress = animateRapidPages
-      ? THREE.MathUtils.smoothstep(progress, 0, COVER_STAGE_END)
-      : progress
-    const spreadProgress = animateRapidPages
-      ? THREE.MathUtils.smoothstep(progress, FLIP_STAGE_END - 0.035, 1)
-      : THREE.MathUtils.smoothstep(progress, 0.62, 1)
-    coverPivot.rotation.z = NOTEBOOK_MODEL_SPEC.openAngle * coverProgress
+    const presentation = getNotebookPresentationState(progress)
+    const spreadProgress = presentation.spreadProgress
+    const uprightAngle = UPRIGHT_ANGLE * presentation.uprightProgress
+    presentationPivot.position.x =
+      -SPINE_AXIS_X * presentation.spineCenterProgress
+    spineLiftPivot.rotation.z = uprightAngle
+    presentationPivot.userData.presentationState = { ...presentation }
+    coverPivot.rotation.z = NOTEBOOK_MODEL_SPEC.openAngle * spreadProgress
     coverPivot.position.y = THREE.MathUtils.lerp(
       NOTEBOOK_MODEL_SPEC.coverHinge[1],
       NOTEBOOK_MODEL_SPEC.cover.thickness / 2,
-      THREE.MathUtils.smoothstep(coverProgress, 0.5, 1),
+      THREE.MathUtils.smoothstep(spreadProgress, 0.5, 1),
     )
     setFrontTransform(coverPivot.rotation.z, coverPivot.position.y)
     pagePivot.rotation.z = NOTEBOOK_MODEL_SPEC.openAngle * spreadProgress
-    pagePivot.position.set(...NOTEBOOK_MODEL_SPEC.pageHinge)
+    pagePivot.position.set(
+      NOTEBOOK_MODEL_SPEC.pageHinge[0],
+      THREE.MathUtils.lerp(
+        NOTEBOOK_MODEL_SPEC.pageHinge[1],
+        OPEN_PAGE_Y,
+        THREE.MathUtils.smoothstep(spreadProgress, 0.5, 1),
+      ),
+      NOTEBOOK_MODEL_SPEC.pageHinge[2],
+    )
     right.pages.visible = spreadProgress > 0.015
     left.pages.visible = spreadProgress > 0.015
-    gutter.visible = showStructure && spreadProgress > 0.015
+    const showSeparateCovers = spreadProgress > 0.001
+    caseShell.visible = !showSeparateCovers
+    backCoverBoard.visible = showSeparateCovers
+    frontCoverBoard.visible = showSeparateCovers
+    backCoverBoard.position.x = OPEN_COVER_CENTER_OFFSET * spreadProgress
+    frontCoverBoard.position.x = -OPEN_COVER_CENTER_OFFSET * spreadProgress
+    const showContinuousOpenSpread = spreadProgress >= 0.985
+    openSpread.visible = showForm && showContinuousOpenSpread
+    left.topPage.visible = !showContinuousOpenSpread
+    right.topPage.visible = !showContinuousOpenSpread
     const openScale = THREE.MathUtils.lerp(0.08, 1, spreadProgress)
     right.pages.scale.y = openScale
     left.pages.scale.y = openScale
@@ -608,45 +625,6 @@ export function createNotebookModel(
     closedPageEdges.scale.y = closedScale
     textBlock.visible = spreadProgress < 0.985
     closedPageEdges.visible = showForm && spreadProgress < 0.985
-    const flipProgress = THREE.MathUtils.clamp(
-      THREE.MathUtils.inverseLerp(COVER_STAGE_END, FLIP_STAGE_END, progress),
-      0,
-      1,
-    )
-    const showRapidPages = animateRapidPages && progress >= COVER_STAGE_END && progress < FLIP_STAGE_END
-    rapidPageFlipPool.visible = showRapidPages
-    let activePageCount = 0
-    const dummy = new THREE.Object3D()
-    for (let index = 0; index < RAPID_PAGE_POOL_SIZE; index += 1) {
-      let localProgress = -1
-      for (let turn = index; turn < RAPID_PAGE_TURN_COUNT; turn += RAPID_PAGE_POOL_SIZE) {
-        const start = turn / RAPID_PAGE_TURN_COUNT
-        const end = (turn + RAPID_PAGE_TURN_OVERLAP) / RAPID_PAGE_TURN_COUNT
-        if (flipProgress >= start && flipProgress < end) {
-          localProgress = THREE.MathUtils.inverseLerp(start, end, flipProgress)
-          break
-        }
-      }
-      if (!showRapidPages || localProgress < 0) {
-        dummy.scale.set(0, 0, 0)
-        dummy.updateMatrix()
-        rapidPageFlipPool.setMatrixAt(index, dummy.matrix)
-        continue
-      }
-      activePageCount += 1
-      const turnProgress = THREE.MathUtils.smoothstep(localProgress, 0, 1)
-      dummy.position.set(
-        NOTEBOOK_MODEL_SPEC.pageHinge[0],
-        RAPID_PAGE_Y + Math.sin(localProgress * Math.PI) * 0.12,
-        (index - 2) * 0.003,
-      )
-      dummy.rotation.set(0, 0, NOTEBOOK_MODEL_SPEC.openAngle * turnProgress)
-      dummy.scale.set(1, 1, 1)
-      dummy.updateMatrix()
-      rapidPageFlipPool.setMatrixAt(index, dummy.matrix)
-    }
-    rapidPageFlipPool.instanceMatrix.needsUpdate = true
-    rapidPageFlipPool.userData.activeCount = activePageCount
   }
   root.userData.setOpenProgress = setOpenProgress
   root.userData.getOpenProgress = () => Number(root.userData.openProgress ?? 0)
@@ -654,23 +632,26 @@ export function createNotebookModel(
 
   const nodes: NotebookModelNodes = {
     backCover,
-    bookJoints,
+    backCoverBoard,
+    bookVisual,
     caseShell,
     closedPageEdges,
     coverPivot,
     frontCover,
-    gutter,
+    frontCoverBoard,
     leftPageEdges: left.edges,
     leftPages: left.pages,
     leftTopPage: left.topPage,
     nameplate,
+    openSpread,
     pagePivot,
-    rapidPageFlipPool,
+    presentationPivot,
     rightPageEdges: right.edges,
     rightPages: right.pages,
     rightTopPage: right.topPage,
     rivets,
     root,
+    spineLiftPivot,
     spineCase,
     textBlock,
   }
@@ -691,10 +672,10 @@ export function createNotebookModel(
       },
     },
     destructionGroups: {
-      binding: [caseShell, bookJoints, gutter],
+      binding: [caseShell],
       covers: [backCover, frontCover],
       hardware: [nameplate, rivets],
-      pages: [textBlock, closedPageEdges, right.pages, left.pages],
+      pages: [textBlock, closedPageEdges, right.pages, left.pages, openSpread],
     },
     nodes,
     sockets: {

@@ -83,12 +83,7 @@ export const NOTEBOOK_MODEL_SPEC = {
   },
   coverHinge: [-1.6, 0.48, 0] as const,
   deskRotation: [0, 0, 0] as const,
-  joint: {
-    axisX: -1.43,
-    inset: 0.18,
-    width: 0.026,
-  },
-  openAngle: Math.PI * 0.97,
+  openAngle: Math.PI,
   page: {
     depth: (3.2 * 5) / 3 - 0.28,
     foreEdgeInset: 0.18,
