@@ -104,7 +104,6 @@ function ProductApp() {
       data-camera-preset={deskCameraPreset}
       data-camera-transitioning={deskCameraTransitioning}
       data-free-camera-enabled={freeCameraEnabled}
-      data-hold-notebook-open-for-debug={import.meta.env.DEV || undefined}
       data-notebook-phase={notebookPhase}
       data-sticker-workflow={stickerWorkflow}
     >
@@ -191,7 +190,7 @@ function ProductApp() {
         )
       ) : null}
 
-      {import.meta.env.PROD ? <JournalPanel /> : null}
+      {notebookPhase === 'editing' ? <JournalPanel /> : null}
       {stickerWorkflow !== 'composing' ? <StickerControls /> : null}
     </main>
   )

@@ -184,7 +184,7 @@ export function NotebookObject({
       <primitive
         object={model}
         dispose={null}
-        visible={isNotebookModelVisible(notebookPhase, import.meta.env.DEV)}
+        visible={isNotebookModelVisible(notebookPhase)}
       />
     </group>
   )

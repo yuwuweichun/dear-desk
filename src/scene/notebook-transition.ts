@@ -80,5 +80,4 @@ export const getDeskCameraTransitionDuration = (
 
 export const isNotebookModelVisible = (
   phase: NotebookPhase,
-  holdOpenForAnimationDebug = false,
-) => phase !== 'editing' || holdOpenForAnimationDebug
+) => phase !== 'editing'

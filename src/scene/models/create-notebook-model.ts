@@ -1,7 +1,6 @@
 import * as THREE from 'three'
 import {
   createChamferedFrameGeometry,
-  createContinuousOpenSpreadGeometry,
   createContinuousCaseGeometry,
   createCurvedPageGeometry,
   createRoundedPlateGeometry,
@@ -32,7 +31,6 @@ export interface NotebookModelNodes extends Record<string, THREE.Object3D> {
   leftPages: THREE.Group
   leftTopPage: THREE.Mesh
   nameplate: THREE.Group
-  openSpread: THREE.Mesh
   pagePivot: THREE.Group
   presentationPivot: THREE.Group
   rightPageEdges: THREE.InstancedMesh
@@ -438,30 +436,6 @@ function createNameplate(
   return { nameplate, rivets }
 }
 
-function createOpenSpread(
-  materials: ModelMaterialLibrary,
-  usePbr: boolean,
-  options: ModelFactoryOptions,
-) {
-  const geometry = addSecondaryUv(
-    scaleGeometryUvs(
-      createContinuousOpenSpreadGeometry(
-        NOTEBOOK_MODEL_SPEC.page.width * 1.95,
-        NOTEBOOK_MODEL_SPEC.page.depth,
-      ),
-      3,
-      2.5,
-    ),
-  )
-  const spread = finishMesh(
-    new THREE.Mesh(geometry, materialFor(usePbr, materials.paper, materials)),
-    'continuous-open-page-spread',
-    options,
-  )
-  spread.visible = false
-  return spread
-}
-
 export function createNotebookModel(
   materials: ModelMaterialLibrary,
   options: ModelFactoryOptions = {},
@@ -555,12 +529,6 @@ export function createNotebookModel(
   left.pages.position.set(PAGE_PIVOT_LOCAL_X, 0, 0)
   pagePivot.add(left.pages)
 
-  const openSpread = createOpenSpread(materials, usePbr, options)
-  openSpread.position.set(
-    NOTEBOOK_MODEL_SPEC.pageHinge[0],
-    OPEN_PAGE_Y + OPEN_STACK_THICKNESS / 2 + 0.008,
-    0,
-  )
   bookVisual.add(
     backCover,
     textBlock,
@@ -569,13 +537,11 @@ export function createNotebookModel(
     coverPivot,
     pagePivot,
     right.pages,
-    openSpread,
   )
 
   if (!showForm) {
     right.pages.remove(right.topPage, right.edges)
     left.pages.remove(left.topPage, left.edges)
-    bookVisual.remove(openSpread)
   }
 
   const setOpenProgress = (value: number) => {
@@ -613,10 +579,9 @@ export function createNotebookModel(
     frontCoverBoard.visible = showSeparateCovers
     backCoverBoard.position.x = OPEN_COVER_CENTER_OFFSET * spreadProgress
     frontCoverBoard.position.x = -OPEN_COVER_CENTER_OFFSET * spreadProgress
-    const showContinuousOpenSpread = spreadProgress >= 0.985
-    openSpread.visible = showForm && showContinuousOpenSpread
-    left.topPage.visible = !showContinuousOpenSpread
-    right.topPage.visible = !showContinuousOpenSpread
+    const hideOpeningTopPages = spreadProgress >= 0.985
+    left.topPage.visible = !hideOpeningTopPages
+    right.topPage.visible = !hideOpeningTopPages
     const openScale = THREE.MathUtils.lerp(0.08, 1, spreadProgress)
     right.pages.scale.y = openScale
     left.pages.scale.y = openScale
@@ -643,7 +608,6 @@ export function createNotebookModel(
     leftPages: left.pages,
     leftTopPage: left.topPage,
     nameplate,
-    openSpread,
     pagePivot,
     presentationPivot,
     rightPageEdges: right.edges,
@@ -675,7 +639,7 @@ export function createNotebookModel(
       binding: [caseShell],
       covers: [backCover, frontCover],
       hardware: [nameplate, rivets],
-      pages: [textBlock, closedPageEdges, right.pages, left.pages, openSpread],
+      pages: [textBlock, closedPageEdges, right.pages, left.pages],
     },
     nodes,
     sockets: {

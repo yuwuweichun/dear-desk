@@ -94,7 +94,6 @@ describe('notebook transition timing', () => {
 
   it('hides the 3D notebook only while the DOM journal owns the open pages', () => {
     expect(isNotebookModelVisible('editing')).toBe(false)
-    expect(isNotebookModelVisible('editing', true)).toBe(true)
     for (const phase of [
       'desk',
       'approaching',

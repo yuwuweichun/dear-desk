@@ -639,15 +639,9 @@ describe('procedural scene model factories', () => {
     expect(notebookRuntime.nodes.backCoverBoard.visible).toBe(true)
     expect(notebookRuntime.nodes.leftPages.visible).toBe(true)
     expect(notebookRuntime.nodes.rightPages.visible).toBe(true)
-    expect(notebookRuntime.nodes.openSpread.visible).toBe(true)
     expect(notebookRuntime.nodes.leftTopPage.visible).toBe(false)
     expect(notebookRuntime.nodes.rightTopPage.visible).toBe(false)
-    expect(notebookRuntime.nodes.openSpread.geometry.userData).toMatchObject({
-      continuousAcrossFold: true,
-      foldValleyDepth: 0.032,
-      profile: 'continuous-open-page-spread',
-      rootShoulderHeight: 0.055,
-    })
+    expect(notebook.getObjectByName('continuous-open-page-spread')).toBeUndefined()
     expect(notebook.getObjectByName('center-gutter-valley')).toBeUndefined()
     expect(notebookRuntime.nodes.presentationPivot.position.x).toBeCloseTo(
       -NOTEBOOK_MODEL_SPEC.pageHinge[0],
@@ -655,9 +649,6 @@ describe('procedural scene model factories', () => {
     expect(notebookRuntime.nodes.presentationPivot.position.y).toBeCloseTo(0)
     expect(notebookRuntime.nodes.presentationPivot.rotation.x).toBeCloseTo(0)
     notebook.updateMatrixWorld(true)
-    expect(
-      notebookRuntime.nodes.openSpread.getWorldPosition(new THREE.Vector3()).x,
-    ).toBeCloseTo(0)
     expect(
       notebookRuntime.nodes.leftPages.getWorldPosition(new THREE.Vector3()).y,
     ).toBeCloseTo(

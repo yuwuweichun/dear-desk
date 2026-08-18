@@ -62,8 +62,8 @@ describe('App time HUD', () => {
   })
 })
 
-describe('App notebook animation debugging', () => {
-  it('holds the open 3D endpoint without mounting the journal in development', () => {
+describe('App notebook animation handoff', () => {
+  it('mounts the journal when the notebook reaches editing', () => {
     const store = createAppStore(createRepository(), date)
     store.setState({ notebookPhase: 'editing' })
 
@@ -73,11 +73,7 @@ describe('App notebook animation debugging', () => {
       </AppStoreProvider>,
     )
 
-    expect(document.querySelector('.app-shell')).toHaveAttribute(
-      'data-hold-notebook-open-for-debug',
-      'true',
-    )
-    expect(screen.queryByTestId('journal-panel')).not.toBeInTheDocument()
+    expect(screen.getByTestId('journal-panel')).toBeInTheDocument()
   })
 })
 
