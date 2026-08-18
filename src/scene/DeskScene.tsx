@@ -420,11 +420,11 @@ function DeskContents({
     <>
       <color attach="background" args={[colors.background]} />
       <fog attach="fog" args={[colors.background, 28, 43]} />
-      <hemisphereLight args={['#fffbe7', '#79b8aa', 1.15]} />
+      <hemisphereLight args={['#fffbe7', '#79b8aa', 0.86]} />
       <directionalLight
         castShadow
         color="#fff4d6"
-        intensity={2.05}
+        intensity={1.68}
         position={[-5.5, 10.5, 7]}
         shadow-mapSize={[1536, 1536]}
         shadow-bias={-0.00016}
@@ -437,8 +437,8 @@ function DeskContents({
         shadow-camera-near={1}
         shadow-camera-far={24}
       />
-      <directionalLight color="#8de0d1" intensity={0.42} position={[7, 5, -6]} />
-      <SceneEnvironment intensity={0.42} />
+      <directionalLight color="#8de0d1" intensity={0.28} position={[7, 5, -6]} />
+      <SceneEnvironment intensity={0.28} />
       <CameraRig
         deskCameraPreset={deskCameraPreset}
         deskCameraTransitioning={deskCameraTransitioning}
@@ -635,7 +635,7 @@ export function DeskScene({ colors, fallback }: DeskSceneProps) {
           state.gl.outputColorSpace = THREE.SRGBColorSpace
           state.gl.shadowMap.type = THREE.PCFShadowMap
           state.gl.toneMapping = THREE.ACESFilmicToneMapping
-          state.gl.toneMappingExposure = 1.04
+          state.gl.toneMappingExposure = 0.98
           state.events.connect?.(container)
           state.setEvents({
             compute: (event, eventState) => {

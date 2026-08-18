@@ -187,7 +187,7 @@ function createContinuousCase(
   const shell = finishMesh(
     new THREE.Mesh(
       geometry,
-      materialFor(usePbr, materials.notebookCover, materials),
+      materialFor(usePbr, materials.notebookCoverEdge, materials),
     ),
     'continuous-case-shell',
     options,
@@ -251,12 +251,12 @@ function createTextBlock(
           2.7,
         ),
       ),
-      materialFor(usePbr, materials.paperEdge, materials),
+      materialFor(usePbr, materials.paperBlock, materials),
     ),
     'closed-text-block',
     options,
   )
-  textBlock.position.set(PAGE_CENTER_X, TEXT_BLOCK_Y, 0)
+  textBlock.position.set(PAGE_CENTER_X, TEXT_BLOCK_Y - 0.018, 0)
   textBlock.userData = {
     exposedEdges: ['fore-edge', 'head', 'tail'],
     profile: 'rounded-bowed-text-block',
@@ -284,9 +284,10 @@ function createPageEdgeInstances(
   const page = NOTEBOOK_MODEL_SPEC.page
   const cool = new THREE.Color('#eadfc7')
   const warm = new THREE.Color('#cbb998')
+  const edgeInset = side === 'closed' ? 0.025 : 0.008
   for (let index = 0; index < PAGE_EDGE_LAYERS; index += 1) {
     const t = index / (PAGE_EDGE_LAYERS - 1)
-    const y = -thickness / 2 + 0.008 + t * (thickness - 0.016)
+    const y = -thickness / 2 + edgeInset + t * (thickness - edgeInset * 2)
     const offset = Math.sin((index + 1) * 2.17) * 0.011
     dummy.position.set(page.width / 2 - 0.012, y, offset)
     dummy.rotation.set(0, Math.PI / 2, 0)
@@ -306,6 +307,9 @@ function createPageEdgeInstances(
       edges.setMatrixAt(PAGE_EDGE_LAYERS * 2 + index, dummy.matrix)
     }
     const color = cool.clone().lerp(warm, 0.2 + t * 0.42)
+    if (side === 'closed' && index === PAGE_EDGE_LAYERS - 1) {
+      color.multiplyScalar(0.68)
+    }
     edges.setColorAt(index, color)
     edges.setColorAt(PAGE_EDGE_LAYERS + index, color)
     if (side === 'closed') edges.setColorAt(PAGE_EDGE_LAYERS * 2 + index, color)

@@ -163,8 +163,10 @@ export interface ModelMaterialLibrary {
   clothDark: THREE.MeshPhysicalMaterial
   notebookCover: THREE.MeshPhysicalMaterial
   notebookCoverDark: THREE.MeshPhysicalMaterial
+  notebookCoverEdge: THREE.MeshPhysicalMaterial
   neutral: THREE.MeshStandardMaterial
   paper: THREE.MeshStandardMaterial
+  paperBlock: THREE.MeshStandardMaterial
   paperEdge: THREE.MeshStandardMaterial
   stitch: THREE.MeshStandardMaterial
   textureCount: number
@@ -482,31 +484,37 @@ export function createModelMaterialLibrary(
 
   const notebookCover = new THREE.MeshPhysicalMaterial({
     aoMap: cloth.ao,
-    aoMapIntensity: 2.2,
-    anisotropy: 0.22,
+    aoMapIntensity: 0.9,
+    anisotropy: 0.05,
     anisotropyRotation: Math.PI / 2,
     bumpMap: cloth.height,
-    bumpScale: 0.35,
+    bumpScale: 0.008,
     color: sceneColors.notebookCover,
     map: cloth.albedo,
-    roughness: 0.8,
+    roughness: 0.94,
     roughnessMap: cloth.roughness,
-    sheen: 0.18,
+    sheen: 0.04,
     sheenColor: new THREE.Color('#87978d'),
-    sheenRoughness: 0.86,
+    sheenRoughness: 0.98,
   })
   notebookCover.name = 'ink-green-cloth-cover'
   const notebookCoverDark = notebookCover.clone()
   notebookCoverDark.name = 'ink-green-kraft-cover-dark'
   notebookCoverDark.color.set(sceneColors.notebookJoint)
   notebookCoverDark.roughness = 0.98
+  const notebookCoverEdge = notebookCover.clone()
+  notebookCoverEdge.name = 'ink-green-cover-edge-low-spec'
+  notebookCoverEdge.roughness = 0.985
+  notebookCoverEdge.anisotropy = 0
+  notebookCoverEdge.sheen = 0.012
+  notebookCoverEdge.sheenRoughness = 1
 
   const paperMaterial = new THREE.MeshStandardMaterial({
     aoMap: paper.ao,
     aoMapIntensity: 0.12,
     bumpMap: paper.height,
     bumpScale: 0.0018,
-    color: SCENE_PALETTE.paper,
+    color: '#f6efdc',
     map: paper.albedo,
     roughness: 0.98,
     roughnessMap: paper.roughness,
@@ -515,8 +523,13 @@ export function createModelMaterialLibrary(
   paperMaterial.name = 'animal-warm-paper'
   const paperEdge = paperMaterial.clone()
   paperEdge.name = 'animal-warm-paper-edge'
-  paperEdge.color.set(SCENE_PALETTE.paperEdge)
-  paperEdge.roughness = 0.96
+  paperEdge.color.set('#d8ccb0')
+  paperEdge.roughness = 0.98
+  const paperBlock = paperEdge.clone()
+  paperBlock.name = 'animal-warm-paper-block'
+  paperBlock.color.set('#b9aa8b')
+  paperBlock.aoMapIntensity = 0.04
+  paperBlock.roughness = 0.99
 
   const brass = new THREE.MeshPhysicalMaterial({
     clearcoat: 0.12,
@@ -548,7 +561,9 @@ export function createModelMaterialLibrary(
     clothDark,
     notebookCover,
     notebookCoverDark,
+    notebookCoverEdge,
     paperMaterial,
+    paperBlock,
     paperEdge,
     brass,
     brassDark,
@@ -563,8 +578,10 @@ export function createModelMaterialLibrary(
     clothDark,
     notebookCover,
     notebookCoverDark,
+    notebookCoverEdge,
     neutral,
     paper: paperMaterial,
+    paperBlock,
     paperEdge,
     stitch,
     textureCount: textures.length,

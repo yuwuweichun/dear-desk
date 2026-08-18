@@ -132,19 +132,25 @@ describe('procedural scene model factories', () => {
     expect(materials.clothDark.color.getHexString()).toBe('4c5e63')
     expect(materials.notebookCover.color.getHexString()).toBe('173f35')
     expect(materials.notebookCoverDark.color.getHexString()).toBe('0e2d27')
-    expect(materials.notebookCover.aoMapIntensity).toBe(2.2)
-    expect(materials.notebookCover.bumpScale).toBe(0.35)
-    expect(materials.notebookCover.roughness).toBe(0.8)
-    expect(materials.notebookCover.anisotropy).toBe(0.22)
-    expect(materials.notebookCover.sheen).toBe(0.18)
+    expect(materials.notebookCover.aoMapIntensity).toBe(0.9)
+    expect(materials.notebookCover.bumpScale).toBe(0.008)
+    expect(materials.notebookCover.roughness).toBe(0.94)
+    expect(materials.notebookCover.anisotropy).toBe(0.05)
+    expect(materials.notebookCover.sheen).toBe(0.04)
     expect(materials.notebookCoverDark.roughness).toBe(0.98)
+    expect(materials.notebookCoverEdge.roughness).toBe(0.985)
+    expect(materials.notebookCoverEdge.sheen).toBe(0.012)
+    expect(materials.notebookCoverEdge.anisotropy).toBe(0)
     expect(materials.notebookCover).not.toBe(materials.cloth)
-    expect(materials.paper.color.getHexString()).toBe('fffbe7')
+    expect(materials.paper.color.getHexString()).toBe('f6efdc')
     expect(materials.paper.aoMapIntensity).toBe(0.12)
     expect(materials.paper.bumpScale).toBe(0.0018)
     expect(materials.paper.roughness).toBe(0.98)
-    expect(materials.paperEdge.color.getHexString()).toBe('e6dcc4')
-    expect(materials.paperEdge.roughness).toBe(0.96)
+    expect(materials.paperBlock.color.getHexString()).toBe('b9aa8b')
+    expect(materials.paperBlock.aoMapIntensity).toBe(0.04)
+    expect(materials.paperBlock.roughness).toBe(0.99)
+    expect(materials.paperEdge.color.getHexString()).toBe('d8ccb0')
+    expect(materials.paperEdge.roughness).toBe(0.98)
     expect(materials.brass.color.getHexString()).toBe('8f6a41')
     expect(materials.brass).toMatchObject({
       clearcoat: 0.12,
@@ -198,7 +204,7 @@ describe('procedural scene model factories', () => {
     expect(materials.walnutDrawer.color.getHexString()).toBe('2d4b6a')
     expect(materials.walnutLegs.color.getHexString()).toBe('445566')
     expect(materials.notebookCover.color.getHexString()).toBe('778899')
-    expect(materials.paper.color.getHexString()).toBe('fffbe7')
+    expect(materials.paper.color.getHexString()).toBe('f6efdc')
   })
 
   it('applies each candidate only to scene surfaces', () => {
@@ -221,8 +227,8 @@ describe('procedural scene model factories', () => {
       expect(materials.clothDark.color.getHexString()).toBe(preset.mintDark.slice(1))
       expect(materials.notebookCover.color.getHexString()).toBe('173f35')
       expect(materials.notebookCoverDark.color.getHexString()).toBe('0e2d27')
-      expect(materials.paper.color.getHexString()).toBe('fffbe7')
-      expect(materials.paperEdge.color.getHexString()).toBe('e6dcc4')
+      expect(materials.paper.color.getHexString()).toBe('f6efdc')
+      expect(materials.paperEdge.color.getHexString()).toBe('d8ccb0')
     }
   })
 
@@ -519,7 +525,7 @@ describe('procedural scene model factories', () => {
     expect(notebookRuntime.nodes.frontCover.userData.profile).toBe(
       'cloth-wrapped-soft-cover',
     )
-    expect(caseShell.material).toBe(materials.notebookCover)
+    expect(caseShell.material).toBe(materials.notebookCoverEdge)
     expect(notebook.getObjectByName('front-cover-cloth-shell')).toBeUndefined()
     expect(notebook.getObjectByName('back-cover-cloth-shell')).toBeUndefined()
     expect(notebookRuntime.nodes.textBlock.name).toBe('closed-text-block')
@@ -534,7 +540,7 @@ describe('procedural scene model factories', () => {
       structuralRole: 'front-cover-spine-back-cover-shell',
     })
     expect(notebookRuntime.nodes.spineCase.material).toBe(
-      materials.notebookCover,
+      materials.notebookCoverEdge,
     )
     expect(notebook.getObjectByName('book-joints')).toBeUndefined()
     expect(NOTEBOOK_MODEL_SPEC.coverHinge[0]).toBeCloseTo(

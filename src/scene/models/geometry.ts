@@ -326,6 +326,25 @@ export function createContinuousCaseGeometry({
   const contour = profile.map(({ x, y }) => new THREE.Vector2(x, y))
   const capTriangles = THREE.ShapeUtils.triangulateShape(contour, [])
   const addCap = (ring: number, desiredNormal: -1 | 1) => {
+    // End caps get their own vertices so their planar normals do not bleed into
+    // the rounded side profile and widen the edge highlight.
+    const capVertexIndices = new Map<number, number>()
+    const capVertex = (sourceIndex: number) => {
+      const existing = capVertexIndices.get(sourceIndex)
+      if (existing !== undefined) return existing
+      const offset = sourceIndex * 3
+      const uvOffset = sourceIndex * 2
+      const nextIndex = positions.length / 3
+      positions.push(positions[offset]!, positions[offset + 1]!, positions[offset + 2]!)
+      uvs.push(uvs[uvOffset]!, uvs[uvOffset + 1]!)
+      const sourceFrontIndex = frontVertexIndices.indexOf(sourceIndex)
+      if (sourceFrontIndex >= 0) {
+        frontVertexIndices.push(nextIndex)
+        frontVertexWeights.push(frontVertexWeights[sourceFrontIndex]!)
+      }
+      capVertexIndices.set(sourceIndex, nextIndex)
+      return nextIndex
+    }
     for (const triangle of capTriangles) {
       const a = triangle[0]!
       const b = triangle[1]!
@@ -336,7 +355,11 @@ export function createContinuousCaseGeometry({
       const cross =
         (pointB.x - pointA.x) * (pointC.y - pointA.y) -
         (pointB.y - pointA.y) * (pointC.x - pointA.x)
-      const vertices = [ring * ringSize + a, ring * ringSize + b, ring * ringSize + c]
+      const vertices = [
+        capVertex(ring * ringSize + a),
+        capVertex(ring * ringSize + b),
+        capVertex(ring * ringSize + c),
+      ]
       if (Math.sign(cross) === desiredNormal) indices.push(...vertices)
       else indices.push(vertices[0]!, vertices[2]!, vertices[1]!)
     }
