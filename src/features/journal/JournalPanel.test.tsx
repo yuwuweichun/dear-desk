@@ -2,6 +2,7 @@ import { act, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
 import type { DailyEntry, DailyEntryRepository, LocalDate } from '../../domain/daily-entry'
+import { JOURNAL_FONT_STORAGE_KEY } from '../../domain/journal-font'
 import { createAppStore } from '../../state/app-store'
 import { AppStoreProvider } from '../../state/app-store-context'
 import { JournalPanel } from './JournalPanel'
@@ -53,6 +54,10 @@ const startWriting = async (user: ReturnType<typeof userEvent.setup>) => {
 }
 
 describe('JournalPanel', () => {
+  beforeEach(() => {
+    window.localStorage.clear()
+  })
+
   it('opens in reading mode with a blank left page and keeps the mode across turns', async () => {
     const repository = createRepository({
       [previousDate]: dailyEntry(previousDate, '上一页留下的内容'),
@@ -105,6 +110,35 @@ describe('JournalPanel', () => {
     expect(await screen.findByText('今天把第一句话留在桌上。')).toBeVisible()
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument()
     expect(screen.getByRole('status')).toHaveTextContent('已收笔，内容已存入本地。')
+  })
+
+  it('changes the writing font from the editing toolbar and restores the preference', async () => {
+    const repository = createRepository({
+      [date]: dailyEntry(date, '字体会同时影响阅读与书写。'),
+    })
+    const user = userEvent.setup()
+    const first = await renderJournal(repository)
+
+    await user.click(screen.getByRole('button', { name: '编辑' }))
+    await user.click(screen.getByRole('button', { name: /更换字体，当前纸页宋体/ }))
+
+    const menu = screen.getByRole('menu', { name: '选择日记字体' })
+    expect(within(menu).getByRole('menuitemradio', { name: /云峰晶晶体/ })).toBeVisible()
+    expect(within(menu).getByRole('menuitemradio', { name: /玄冬楷书/ })).toBeVisible()
+    await user.click(within(menu).getByRole('menuitemradio', { name: /玄冬楷书/ }))
+
+    expect(screen.getByRole('dialog')).toHaveAttribute('data-journal-font', 'xuandong')
+    expect(window.localStorage.getItem(JOURNAL_FONT_STORAGE_KEY)).toBe('xuandong')
+
+    await user.click(screen.getByRole('button', { name: '开始书写本页' }))
+    expect(screen.getByRole('textbox', { name: '本页记录' })).toHaveValue(
+      '字体会同时影响阅读与书写。',
+    )
+
+    first.unmount()
+    const second = await renderJournal(repository)
+    expect(screen.getByRole('dialog')).toHaveAttribute('data-journal-font', 'xuandong')
+    second.unmount()
   })
 
   it('edits and saves a historical page without replacing todays entry alias', async () => {

@@ -5,6 +5,14 @@
   font-weight: 700;
 }
 
+@font-face {
+  font-family: "Xuandong Kaishu";
+  src: url('/fonts/Xuandong-Kaishu.ttf') format('truetype');
+  font-display: swap;
+  font-style: normal;
+  font-weight: 400;
+}
+
 :root {
   color: #f7f1e5;
   background: #c9f0e5;
@@ -375,6 +383,7 @@ textarea:focus-visible {
 }
 
 .journal-panel {
+  --journal-writing-font: Georgia, "Songti SC", serif;
   position: absolute;
   z-index: 20;
   top: 12%;
@@ -391,6 +400,14 @@ textarea:focus-visible {
   color: var(--paper-ink);
   perspective: 1800px;
   animation: journal-reveal 120ms ease-out both;
+}
+
+.journal-panel[data-journal-font="jingjing"] {
+  --journal-writing-font: "Dear Desk JingJing", "Songti SC", serif;
+}
+
+.journal-panel[data-journal-font="xuandong"] {
+  --journal-writing-font: "Xuandong Kaishu", "Songti SC", serif;
 }
 
 @keyframes journal-reveal {
@@ -610,7 +627,7 @@ textarea:focus-visible {
   z-index: 1;
   margin: 0;
   color: var(--paper-ink);
-  font-family: Georgia, "Songti SC", serif;
+  font-family: var(--journal-writing-font);
   font-size: 18px;
   line-height: 1.8;
 }
@@ -711,7 +728,7 @@ textarea:focus-visible {
   border: 0;
   background: transparent;
   color: var(--paper-ink);
-  font-family: Georgia, "Songti SC", serif;
+  font-family: var(--journal-writing-font);
   font-size: 19px;
   line-height: 1.85;
   letter-spacing: 0;
@@ -781,6 +798,87 @@ textarea:focus-visible {
 .journal-writing-button {
   font-size: 13px;
   font-weight: 800;
+}
+
+.journal-font-control {
+  position: relative;
+}
+
+.journal-font-button.dd-icon-button {
+  width: 100%;
+  height: 54px;
+  min-width: 100%;
+  padding: 0;
+  border-radius: 18px;
+  color: #725d42;
+  background: #fffbe7;
+  border-color: #d4c9b4;
+  box-shadow: 0 5px 0 rgba(61, 52, 40, 0.2);
+}
+
+.journal-font-menu {
+  position: absolute;
+  z-index: 40;
+  top: 0;
+  right: calc(100% + 10px);
+  width: 224px;
+  display: grid;
+  gap: 6px;
+  padding: 8px;
+  border: 2px solid #d4c9b4;
+  border-radius: 8px;
+  background: #fffdf6;
+  box-shadow: 0 6px 0 rgba(61, 52, 40, 0.18), 0 18px 34px rgba(31, 24, 18, 0.2);
+}
+
+.journal-font-option {
+  width: 100%;
+  min-height: 48px;
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) 18px;
+  align-items: center;
+  gap: 9px;
+  padding: 5px 8px;
+  border: 2px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: #725d42;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 800;
+  text-align: left;
+}
+
+.journal-font-option:hover,
+.journal-font-option:focus-visible,
+.journal-font-option[aria-checked="true"] {
+  border-color: #83d7c5;
+  background: #e8faf5;
+}
+
+.journal-font-option__sample {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border: 1px solid #d8cfbf;
+  border-radius: 5px;
+  background: var(--paper);
+  color: var(--paper-ink);
+  font-size: 24px;
+  font-weight: 400;
+}
+
+.journal-font-option[data-font-preview="paper"] .journal-font-option__sample {
+  font-family: Georgia, "Songti SC", serif;
+}
+
+.journal-font-option[data-font-preview="jingjing"] .journal-font-option__sample {
+  font-family: "Dear Desk JingJing", "Songti SC", serif;
+}
+
+.journal-font-option[data-font-preview="xuandong"] .journal-font-option__sample {
+  font-family: "Xuandong Kaishu", "Songti SC", serif;
 }
 
 .page-turn-sheet {
@@ -1240,6 +1338,11 @@ textarea:focus-visible {
 
   .journal-writing-button {
     min-width: 0;
+  }
+
+  .journal-font-menu {
+    right: calc(100% + 8px);
+    width: min(216px, calc(100vw - 92px));
   }
 
   .sticker-studio {
