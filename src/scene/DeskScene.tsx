@@ -358,6 +358,7 @@ interface DeskContentsProps {
   deskCameraTransitioning: boolean
   freeCameraEnabled: boolean
   notebookPhase: NotebookPhase
+  notebookCoverLabel: string
   placePendingDeskSticker: (position: StickerPosition) => Promise<boolean>
   colors: SceneColorConfig
   previewStickerPosition: (instanceId: string, position: StickerPosition) => void
@@ -377,6 +378,7 @@ function DeskContents({
   deskCameraTransitioning,
   freeCameraEnabled,
   notebookPhase,
+  notebookCoverLabel,
   placePendingDeskSticker,
   colors,
   previewStickerPosition,
@@ -502,6 +504,7 @@ function DeskContents({
         onAdvance={advanceNotebookPhase}
         onOpen={requestNotebookOpen}
         reducedMotion={reducedMotion}
+        label={notebookCoverLabel}
       />
     </>
   )
@@ -528,6 +531,9 @@ export function DeskScene({ colors, fallback }: DeskSceneProps) {
     (state) => state.commitStickerPosition,
   )
   const notebookPhase = useAppStore((state) => state.notebookPhase)
+  const notebookCoverLabel = useAppStore(
+    (state) => state.notebookCoverSettings?.label ?? '',
+  )
   const placePendingDeskSticker = useAppStore((state) => state.placePendingDeskSticker)
   const previewStickerPosition = useAppStore(
     (state) => state.previewStickerPosition,
@@ -547,6 +553,7 @@ export function DeskScene({ colors, fallback }: DeskSceneProps) {
     deskCameraTransitioning,
     freeCameraEnabled,
     notebookPhase,
+    notebookCoverLabel,
     placePendingDeskSticker,
     colors,
     previewStickerPosition,
@@ -681,6 +688,7 @@ export function DeskScene({ colors, fallback }: DeskSceneProps) {
       deskCameraTransitioning,
       freeCameraEnabled,
       notebookPhase,
+      notebookCoverLabel,
       placePendingDeskSticker,
       colors,
       previewStickerPosition,
@@ -702,6 +710,7 @@ export function DeskScene({ colors, fallback }: DeskSceneProps) {
     deskCameraTransitioning,
     freeCameraEnabled,
     notebookPhase,
+    notebookCoverLabel,
     placePendingDeskSticker,
     colors,
     previewStickerPosition,

@@ -1,5 +1,6 @@
 import { useFrame, useThree } from '@react-three/fiber'
 import { useCallback, useEffect, useRef, useState } from 'react'
+import * as THREE from 'three'
 import type { Group } from 'three'
 import { MathUtils } from 'three'
 
@@ -9,6 +10,7 @@ import {
   type NotebookModelNodes,
 } from './models/create-notebook-model'
 import type { ModelMaterialLibrary } from './models/material-library'
+import { createNameplateText } from './nameplate-text'
 import { NOTEBOOK_MODEL_SPEC } from './models/model-specs'
 import { getSculptRuntime } from './models/model-types'
 import {
@@ -24,6 +26,7 @@ interface NotebookObjectProps {
   onAdvance: (from: NotebookPhase) => void
   onOpen: () => void
   reducedMotion: boolean
+  label: string
 }
 
 const OPEN_ANGLE = NOTEBOOK_MODEL_SPEC.openAngle
@@ -37,6 +40,7 @@ export function NotebookObject({
   onAdvance,
   onOpen,
   reducedMotion,
+  label,
 }: NotebookObjectProps) {
   const { size } = useThree()
   const [model, setModel] = useState<Group | null>(null)
@@ -78,6 +82,31 @@ export function NotebookObject({
       if (typeof dispose === 'function') dispose()
     }
   }, [materials])
+
+  useEffect(() => {
+    if (!runtime) return
+    const nameplate = runtime.nodes.nameplate
+    const previous = nameplate.getObjectByName('custom-nameplate-engraving')
+    if (previous) {
+      nameplate.remove(previous)
+      const mesh = previous as THREE.Mesh
+      mesh.geometry.dispose()
+      if (Array.isArray(mesh.material)) mesh.material.forEach((material) => material.dispose())
+      else {
+        ;(mesh.material as THREE.MeshPhysicalMaterial).map?.dispose()
+        mesh.material.dispose()
+      }
+    }
+    const next = createNameplateText(label)
+    if (next) nameplate.add(next)
+    return () => {
+      if (!next) return
+      nameplate.remove(next)
+      next.geometry.dispose()
+      ;(next.material as THREE.MeshPhysicalMaterial).map?.dispose()
+      next.material.dispose()
+    }
+  }, [label, runtime])
 
   const setOpenProgress = useCallback((
     progress: number,

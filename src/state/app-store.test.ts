@@ -3,6 +3,7 @@ import type {
   DailyEntryRepository,
   LocalDate,
 } from '../domain/daily-entry'
+import type { NotebookCoverSettingsRepository } from '../domain/notebook-cover-settings'
 import type {
   PlacedSticker,
   StickerDraft,
@@ -111,6 +112,24 @@ const createStickerRepository = (): StickerRepository => ({
 })
 
 describe('app store', () => {
+  it('loads and saves the nameplate without replacing the saved value on failure', async () => {
+    const coverRepository: NotebookCoverSettingsRepository = {
+      get: vi.fn().mockResolvedValue({
+        id: 'primary', label: 'OLD NAME', updatedAt: '2026-08-19T01:00:00.000Z',
+      }),
+      save: vi.fn().mockRejectedValue(new Error('磁盘不可用')),
+    }
+    const store = createAppStore(createRepository(), date, undefined, coverRepository)
+    await store.getState().loadNotebookCoverSettings()
+    expect(store.getState().notebookCoverSettings?.label).toBe('OLD NAME')
+    await expect(store.getState().saveNotebookCoverLabel('NEW NAME')).resolves.toBe(false)
+    expect(store.getState()).toMatchObject({
+      notebookCoverSettings: { label: 'OLD NAME' },
+      notebookCoverStatus: 'error',
+      notebookCoverErrorMessage: '磁盘不可用',
+    })
+  })
+
   it('cycles one camera control through far, front, and near with a transition lock', () => {
     const store = createAppStore(createRepository(), date)
     expect(store.getState()).toMatchObject({

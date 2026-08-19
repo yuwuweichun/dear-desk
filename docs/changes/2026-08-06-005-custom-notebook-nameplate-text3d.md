@@ -4,16 +4,16 @@
 
 | 字段 | 内容 |
 | --- | --- |
-| 状态 | 待确认 |
+| 状态 | 待验收 |
 | 类型 | 功能 / 3D 视觉 / 本地持久化 |
 | 创建时间 | 2026-08-06 17:52 CST |
-| 最后更新 | 2026-08-06 17:52 CST |
-| 当前阶段 | 需求已记录，方案审阅，尚未执行 |
-| 源码基线 | `e378adf feat(notebook): add focus transition` |
+| 最后更新 | 2026-08-19 16:00 CST |
+| 当前阶段 | 已实施，等待用户验收 |
+| 源码基线 | `83b9aa4` |
 | 实现提交 | 尚未创建 |
 | 关联任务 | 用户希望自定义本子封面铭牌内容，并将内容转成封面上的 Text3D |
 
-> 本文是待审阅方案。批准前只允许只读检查和修改本文档，不修改封面、字体资源、数据库、设置界面或渲染源码。
+> 用户于 2026-08-19 明确回复“执行”，本记录中的最终清单获得实施授权。实施范围为入口、字符限制、样式、当前 v3 到 v4 的本地迁移和相关验证。
 
 ## 1. 给阅读者的结论
 
@@ -35,7 +35,7 @@ Codex 将其解释为：封面保留一个有物理材质感的铭牌基座；�
 - `src/scene/NotebookObject.tsx:158` 的 `cover` group 是上封面铰链，内部已有封面主体、内嵌装饰和一块位于 `[1.5, 0.082, 0.15]` 的金色矩形几何体；该几何体会随封面一起开合，但没有文字或独立组件语义。
 - `NotebookObject` 当前只接收转场阶段、完成事件、打开意图和 reduced-motion；没有封面标题值或自定义回调。
 - `src/state/app-store.ts` 只协调当天记录与 `NotebookPhase`，没有本子外观设置、设置加载状态或保存动作。
-- IndexedDB v1 只有 `dailyEntries`。编号 003 没有改变 schema；新增跨刷新铭牌内容需要新的持久化模型和数据库版本。
+- IndexedDB 当前为 v3，保留 `dailyEntries`、贴纸定义/实例/渲染资产和图片 source asset；新增跨刷新铭牌内容需要 v4 数据库版本。
 - 项目依赖包含 `three@0.185.1`，可从 Three.js examples 使用 `FontLoader` 与 `TextGeometry`，但当前没有 `public/` 目录、字体 JSON、字体授权记录或文字几何封装。
 - 当前只有一个 R3F Canvas；普通输入、按钮、焦点和错误反馈仍由 DOM 负责，符合已接受的本地数据与场景投影决策。
 
@@ -78,14 +78,14 @@ interface NotebookCoverSettings {
 }
 ```
 
-- IndexedDB 升级到 v2，新增 `notebookCoverSettings: 'id'`，不改写 `dailyEntries`。
+- IndexedDB 升级到 v4，新增 `notebookCoverSettings: 'id'`，不改写 v3 的既有表和记录。
 - repository 提供 `get()` 与 `save(label)`，领域层负责标准化、长度和字符集校验。
 - Zustand 保存已加载设置、加载/保存状态和错误，不保存 `Font`、`TextGeometry` 或 Mesh。
 - 页面启动时与当天记录并行加载铭牌；读取失败时封面显示默认值或空铭牌，DOM 入口显示可重试错误。
 
 ### 5.3 3D 投影
 
-建议把封面铰链内的金色几何体提取为 `NotebookNameplate`。文字 Mesh 与铭牌同属 `cover` group，因此无需复制开合动画。文字使用深色金属或烤漆材质，放在铭牌表面之上，使用很小的 extrusion depth 与 bevel；根据几何 bounding box 自动缩放并居中。
+建议把封面铰链内的金色几何体提取为独立的铭牌投影逻辑。文字 Mesh 与铭牌同属 `cover` group，因此无需复制开合动画。文字使用深色金属或烤漆材质，放在铭牌表面之上，使用很小的 extrusion depth 与 bevel；根据几何 bounding box 自动缩放并居中。
 
 若批准 Latin / 数字首切片，可随项目打包一份授权明确的轻量 typeface JSON，并使用 Three.js `FontLoader`、`TextGeometry`，不新增运行时依赖。字体解析结果按模块复用；label 改变时释放旧 geometry，避免频繁编辑累积 GPU 资源。
 
@@ -104,17 +104,17 @@ interface NotebookCoverSettings {
 | 预计模块 | 预计责任 |
 | --- | --- |
 | `src/domain/notebook-cover-settings.ts` | 单例设置类型、默认值、字符集与长度校验 |
-| `src/persistence/database.ts` | IndexedDB v2 schema，保留 v1 `dailyEntries` |
+| `src/persistence/database.ts` | IndexedDB v4 schema，保留 v3 既有表和迁移 |
 | `src/persistence/notebook-cover-settings-repository.ts` | 读取与事务保存封面设置 |
 | `src/state/app-store.ts` | 加载和保存可序列化铭牌内容及状态 |
 | `src/app/App.tsx`、新 DOM 设置组件、`src/styles.css` | 编辑入口、对话框、错误与响应式布局 |
-| `src/scene/NotebookObject.tsx`、新 `NotebookNameplate` | 让铭牌跟随封面铰链，创建、居中和释放文字几何 |
+| `src/scene/NotebookObject.tsx`、`src/scene/nameplate-text.ts` | 让铭牌跟随封面铰链，创建、居中和释放文字几何 |
 | 本地字体资源 | 提供授权明确且与批准字符集一致的字形 |
 | 相关测试与文档 | 领域、迁移、repository、store、DOM、Canvas、持久化恢复与当前事实同步 |
 
 ### 6.1 核心数据结构变化
 
-数据库从 v1 升到 v2，仅新增 `notebookCoverSettings` 表。`DailyEntry` 结构、主键和现有记录不变。设置使用固定 `id: 'primary'`，避免单本子阶段提前引入集合、排序或外键。
+数据库从 v3 升到 v4，仅新增 `notebookCoverSettings` 表。`DailyEntry`、贴纸和图片资产结构、主键及既有记录不变。设置使用固定 `id: 'primary'`，避免单本子阶段提前引入集合、排序或外键。
 
 铭牌内容是持久化业务事实；字体解析对象、文字 geometry、材质、自动缩放值和封面世界矩阵是 R3F 运行状态。默认内容、允许字符集和最大长度必须在批准后成为领域常量，DOM 与 repository 共用同一规则。
 
@@ -124,7 +124,7 @@ interface NotebookCoverSettings {
 - 封面设置保存失败不能覆盖已投影的旧值；成功后 store 更新，R3F 重建一次文字 geometry。
 - 字体加载失败时保留金色铭牌基座并隐藏 Text3D，日记与本子转场继续可用。
 - 封面关闭时文字可见，打开后随封面翻到左侧；不改变编号 003 的 phase 或时长。
-- 新数据库版本必须验证从已有 v1 数据直接升级，确保当天记录不丢失。
+- 新数据库版本必须验证从已有 v3 数据升级，确保当天记录、贴纸和图片资产不丢失。
 - 字体资产会增加首屏下载与解析成本；构建目前已有约 979 kB 大包提示，新增资源必须单独记录体积。
 
 ## 7. 风险、边界与回退
@@ -136,13 +136,13 @@ interface NotebookCoverSettings {
 | 长文字溢出 | 用户输入超过铭牌宽度 | 文字穿出封面或不可读 | 长度上限、bounding box 自动缩放与最小字号 |
 | GPU 资源泄漏 | 每次输入都创建 geometry 且不释放 | 长时间编辑后内存增长 | 只在已保存 label 变化时重建并 dispose 旧 geometry |
 | 命中区被文字挡住 | Text3D 成为最近 raycast 对象 | 点击封面不再打开 | 保持统一 hitbox，浏览器实测文字区域点击 |
-| v2 迁移失败 | 已有 v1 日记数据升级 | 设置不可用或影响旧记录 | 迁移测试；回退代码时保留未知表，不删除用户数据 |
+| v4 迁移失败 | 已有 v3 日记、贴纸或图片数据升级 | 设置不可用或影响旧记录 | 迁移测试；回退代码时保留未知表，不删除用户数据 |
 
-回退功能时可以停止读取和渲染 `notebookCoverSettings`，恢复无文字金色铭牌；数据库 v2 表保留而不删除，避免不可逆清理用户内容。
+回退功能时可以停止读取和渲染 `notebookCoverSettings`，恢复无文字金色铭牌；数据库 v4 表保留而不删除，避免不可逆清理用户内容。
 
 ## 8. 验证与验收
 
-- 自动测试：字符集与长度边界、默认值、v1 到 v2 升级、repository 成功/失败、store 状态、DOM 草稿和保存。
+- 自动测试：字符集与长度边界、默认值、v3 到 v4 升级、repository 成功/失败、store 状态、DOM 草稿和保存。
 - 构建与静态检查：运行 `npm run lint`、`npm run test`、`npm run build` 和文档引用检查；记录字体和 JavaScript 体积增量。
 - 浏览器验收：使用 ego-browser 在桌面与 `390 × 844` 移动端编辑、取消、保存并刷新页面，确认铭牌恢复。
 - Canvas 检查：关闭、approaching、opening、editing、closing 各阶段非空；文字跟随上封面，未穿模、未闪烁、未改变命中区。
@@ -153,36 +153,44 @@ interface NotebookCoverSettings {
 
 ### 决策 1：字符集与“Text3D”定义
 
-**建议首切片采用方案 A：1 至 12 个 Latin 字母、数字、空格和基础标点，生成真实挤出 TextGeometry。** 若首版必须支持中文，需要在方案 B“中文但非挤出”与方案 C“中文真挤出但资源更重”之间重新确认，不能把字体体积与授权成本隐去。
+**原方案已被 `DD-20260819-003` 修正：最多 12 个中英文混合字符。** 纯 Latin 继续生成真实挤出 TextGeometry；包含中文的文本使用 Canvas 纹理 3D 字片，以支持常用中文而不引入大型 CJK typeface JSON。
 
 ### 决策 2：是否持久化
 
-**建议持久化并升级 IndexedDB v2。** “用户定义”若刷新后丢失，会违背 Dear Desk 的痕迹工作台定位。代价是需要 schema 迁移和失败恢复测试。
+**已批准持久化并从当前 IndexedDB v3 升级到 v4。** “用户定义”若刷新后丢失，会违背 Dear Desk 的痕迹工作台定位。
 
 ### 决策 3：编辑入口
 
-**建议只在 `desk` 阶段于“打开本子”旁显示“编辑铭牌”按钮，使用 DOM 对话框。** 不把输入控件放入 WebGL，也不在转场或日记编辑期间增加竞争入口。
+**已批准只在 `desk` 阶段于“打开本子”旁显示“编辑铭牌”按钮，使用 DOM 对话框。** 不把输入控件放入 WebGL，也不在转场或日记编辑期间增加竞争入口。
 
 ### 决策 4：空内容
 
 **建议空内容代表空铭牌，不自动写入品牌名。** 对话框可提供示例 placeholder，但持久化值忠实反映用户选择。
 
+### 决策 5：长度限制
+
+**已修正为最多 12 个中英文混合字符，单行显示，首尾空格标准化，允许保存为空。** 控制字符和超长文本在 DOM 中报错。
+
+### 决策 6：Text3D 样式
+
+**已修正为贴合铭牌顶面的暖金属字。** 保留倒角黄铜基座，文字使用高金属度、低粗糙度和暖金色高光；纯 Latin 有轻微 extrusion/bevel，中文混合文本使用带金属材质的薄 3D 字片；按包围盒自动缩放并水平/垂直居中，不使用发光或多行排版。
+
 ## 10. 最终批准方案
 
-尚未批准。批准后记录字符集 / Text3D 方案、持久化、编辑入口、空内容语义和最终执行清单。
+已批准。最终执行清单：桌面 `desk` 阶段入口；12 字符 Latin 字符集限制；空值为空铭牌；深色金属轻微凸起 Text3D；当前 v3 到 v4 迁移；DOM、store、repository、TextGeometry 生命周期和桌面/移动端验证。
 
 ## 11. 实施记录
 
-尚未实施。当前只创建本文档；未修改业务源码、依赖、字体资源、数据库或持久化数据。
+已实施。初版验收后根据用户截图追加朝向、材质和中英文修正；当前等待本次修正验收，未创建提交。
 
 ## 12. 验证结果
 
-已完成只读源码、依赖、资源目录和 Git 基线核对。自动测试、构建、字体体积与浏览器视觉验证需在方案批准后执行。
+初版验证记录仍有效；本次修正的自动化、构建和浏览器结果待补充。
 
 ## 13. 文档同步检查
 
-- 产品文档：当前 MVP 没有封面自定义能力；批准并实施后再补充真实行为。
-- 架构文档：当前事实仍是无文字金色封面装饰；实施后需同步数据库 v2、设置所有权、字体加载和 geometry 生命周期。
+- 产品文档：已同步 `docs/product/mvp.md`，记录入口、12 字符限制、IndexedDB v4 和 Text3D 当前行为。
+- 架构文档：`docs/architecture/system-overview.html` 当前已记录 v3 schema；本次 v4 铭牌表、设置所有权和 geometry 生命周期已在本记录与源码中落实，但 HTML 架构页尚未补写 v4 条目。按项目 HTML 文档规则需要 `bun-html-docs` 技能；当前技能不可用，未直接改写该 HTML，避免绕过既定文档生成流程。
 - 决策文档：若批准 CJK 字体资产或通用 3D 文字策略，再判断是否需要长期字体 / 资源决策；当前不预建。
 - 文档入口：本文批准或实施时再加入 `docs/index.html`，避免把未批准功能写成当前项目状态。
 
@@ -192,3 +200,7 @@ interface NotebookCoverSettings {
 | --- | --- | --- |
 | 2026-08-06 17:52 CST | 用户 | 提出可自定义本子封面铭牌内容，并把内容转为封面 Text3D。 |
 | 2026-08-06 17:52 CST | Codex | 在提交编号 003 后建立待确认记录；完成只读核对，未修改业务实现。 |
+| 2026-08-19 14:30 CST | 用户 | 明确回复“执行”，批准入口、长度限制和 Text3D 样式方案。 |
+| 2026-08-19 14:30 CST | Codex | 完成入口、领域校验、IndexedDB v4、repository、store、TextGeometry 投影、测试和桌面/移动端浏览器验收；状态更新为待验收。 |
+| 2026-08-19 16:00 CST | 用户 | 提供截图指出文字竖立、缺少金属质感，并要求支持中英文。 |
+| 2026-08-19 16:00 CST | Codex | 关联 `DD-20260819-003`，修正文字朝向和材质并扩展中英文渲染路径。 |

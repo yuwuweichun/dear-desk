@@ -6,6 +6,10 @@ import type {
   LocalDate,
 } from '../domain/daily-entry'
 import { sortLocalDates } from '../domain/daily-entry'
+import type {
+  NotebookCoverSettings,
+  NotebookCoverSettingsRepository,
+} from '../domain/notebook-cover-settings'
 import {
   clampJournalStickerPosition,
   clampStickerPosition,
@@ -21,6 +25,7 @@ type LoadStatus = 'idle' | 'loading' | 'ready' | 'error'
 type SaveStatus = 'idle' | 'saving' | 'saved' | 'error'
 type StickerStatus = 'idle' | 'loading' | 'saving' | 'error'
 type JournalLoadStatus = 'idle' | 'loading' | 'ready' | 'error'
+type NotebookCoverStatus = 'idle' | 'loading' | 'saving' | 'ready' | 'error'
 
 export type JournalTurnDirection = 'previous' | 'next'
 export type JournalTurnPhase = 'idle' | 'loading' | 'turning'
@@ -78,10 +83,15 @@ export interface AppState {
   stickerWorkflow: StickerWorkflow
   stickerStatus: StickerStatus
   stickerErrorMessage: string | null
+  notebookCoverSettings: NotebookCoverSettings | null
+  notebookCoverStatus: NotebookCoverStatus
+  notebookCoverErrorMessage: string | null
   pendingSticker: StickerDraft | null
   selectedStickerId: string | null
   loadToday: () => Promise<void>
   loadStickers: () => Promise<void>
+  loadNotebookCoverSettings: () => Promise<void>
+  saveNotebookCoverLabel: (label: string) => Promise<boolean>
   loadJournalPages: () => Promise<void>
   requestJournalTurn: (direction: JournalTurnDirection) => Promise<boolean>
   settleJournalTurn: () => void
@@ -150,6 +160,7 @@ export const createAppStore = (
   repository: DailyEntryRepository,
   selectedDate: LocalDate,
   stickerRepository: StickerRepository = unavailableStickerRepository,
+  notebookCoverRepository?: NotebookCoverSettingsRepository,
 ) =>
   createStore<AppState>()((set, get) => ({
     selectedDate,
@@ -175,8 +186,50 @@ export const createAppStore = (
     stickerWorkflow: 'idle',
     stickerStatus: 'idle',
     stickerErrorMessage: null,
+    notebookCoverSettings: null,
+    notebookCoverStatus: 'idle',
+    notebookCoverErrorMessage: null,
     pendingSticker: null,
     selectedStickerId: null,
+
+    loadNotebookCoverSettings: async () => {
+      if (!notebookCoverRepository) {
+        set({ notebookCoverSettings: null, notebookCoverStatus: 'ready' })
+        return
+      }
+      set({ notebookCoverStatus: 'loading', notebookCoverErrorMessage: null })
+      try {
+        const settings = await notebookCoverRepository.get()
+        set({ notebookCoverSettings: settings, notebookCoverStatus: 'ready' })
+      } catch (error) {
+        set({
+          notebookCoverStatus: 'error',
+          notebookCoverErrorMessage: messageFromError(
+            error,
+            '铭牌设置暂时无法读取。',
+          ),
+        })
+      }
+    },
+
+    saveNotebookCoverLabel: async (label) => {
+      if (!notebookCoverRepository) return false
+      set({ notebookCoverStatus: 'saving', notebookCoverErrorMessage: null })
+      try {
+        const settings = await notebookCoverRepository.save(label)
+        set({ notebookCoverSettings: settings, notebookCoverStatus: 'ready' })
+        return true
+      } catch (error) {
+        set({
+          notebookCoverStatus: 'error',
+          notebookCoverErrorMessage: messageFromError(
+            error,
+            '铭牌没有保存成功，请重试。',
+          ),
+        })
+        return false
+      }
+    },
 
     loadToday: async () => {
       set({ loadStatus: 'loading', errorMessage: null })

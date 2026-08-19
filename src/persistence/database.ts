@@ -1,6 +1,7 @@
 import Dexie, { type EntityTable } from 'dexie'
 
 import type { DailyEntry } from '../domain/daily-entry'
+import type { NotebookCoverSettings } from '../domain/notebook-cover-settings'
 import type {
   StickerDefinition,
   StickerInstance,
@@ -24,6 +25,7 @@ export class DearDeskDatabase extends Dexie {
   stickerInstances!: EntityTable<StickerInstance, 'id'>
   stickerRenderAssets!: EntityTable<StickerRenderAsset, 'id'>
   stickerSourceAssets!: EntityTable<StickerSourceAsset, 'id'>
+  notebookCoverSettings!: EntityTable<NotebookCoverSettings, 'id'>
 
   constructor(name = 'dear-desk') {
     super(name)
@@ -56,6 +58,16 @@ export class DearDeskDatabase extends Dexie {
             if (!instance.surface) instance.surface = 'desk'
           })
       })
+
+    this.version(4).stores({
+      dailyEntries: 'date, updatedAt',
+      stickerDefinitions: 'id, kind, createdAt',
+      stickerInstances:
+        'id, surface, [surface+journalDate], definitionId, updatedAt',
+      stickerRenderAssets: 'id, upstreamCommit',
+      stickerSourceAssets: 'id, createdAt',
+      notebookCoverSettings: 'id, updatedAt',
+    })
   }
 }
 

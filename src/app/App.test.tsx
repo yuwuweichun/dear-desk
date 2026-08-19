@@ -2,6 +2,7 @@ import { act, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import type { DailyEntryRepository, LocalDate } from '../domain/daily-entry'
+import type { NotebookCoverSettingsRepository } from '../domain/notebook-cover-settings'
 import { createAppStore } from '../state/app-store'
 import { AppStoreProvider } from '../state/app-store-context'
 import { App } from './App'
@@ -31,6 +32,13 @@ const createRepository = (): DailyEntryRepository => ({
   getByDate: vi.fn().mockResolvedValue(null),
   listDates: vi.fn().mockResolvedValue([]),
   save: vi.fn(),
+})
+
+const createNameplateRepository = (): NotebookCoverSettingsRepository => ({
+  get: vi.fn().mockResolvedValue(null),
+  save: vi.fn().mockImplementation(async (label) => ({
+    id: 'primary', label, updatedAt: '2026-08-19T06:30:00.000Z',
+  })),
 })
 
 afterEach(() => {
@@ -74,6 +82,28 @@ describe('App notebook animation handoff', () => {
     )
 
     expect(screen.getByTestId('journal-panel')).toBeInTheDocument()
+  })
+})
+
+describe('App nameplate editor', () => {
+  it('opens beside the notebook action and saves a valid label', async () => {
+    const nameplateRepository = createNameplateRepository()
+    const store = createAppStore(createRepository(), date, undefined, nameplateRepository)
+    render(
+      <AppStoreProvider store={store}>
+        <App />
+      </AppStoreProvider>,
+    )
+
+    await vi.waitFor(() => expect(screen.getByRole('button', { name: '编辑铭牌' })).toBeEnabled())
+    fireEvent.click(screen.getByRole('button', { name: '编辑铭牌' }))
+    const input = screen.getByLabelText('铭牌文字')
+    expect(input).toHaveAttribute('maxlength', '12')
+    fireEvent.change(input, { target: { value: 'DEAR DESK' } })
+    fireEvent.click(screen.getByRole('button', { name: '保存铭牌' }))
+
+    await vi.waitFor(() => expect(nameplateRepository.save).toHaveBeenCalledWith('DEAR DESK'))
+    await vi.waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
   })
 })
 

@@ -1,5 +1,5 @@
 import { Time } from 'animal-island-ui'
-import { BookOpen, Camera, CameraOff, Sticker } from 'lucide-react'
+import { BookOpen, Camera, CameraOff, Pencil, Sticker, X } from 'lucide-react'
 import { lazy, Suspense, useEffect, useState } from 'react'
 
 import { JournalPanel } from '../features/journal/JournalPanel'
@@ -14,6 +14,10 @@ import {
 } from '../scene/models/material-library'
 import { useAppStore } from '../state/app-store-context'
 import { Button, IconButton } from '../ui'
+import {
+  MAX_NOTEBOOK_LABEL_LENGTH,
+  normalizeNotebookLabel,
+} from '../domain/notebook-cover-settings'
 
 type ModelReviewKind = 'desk' | 'mat' | 'notebook'
 
@@ -48,6 +52,9 @@ function ProductApp() {
     getScenePalette(resolveScenePaletteVersion(window.location.search, import.meta.env.DEV)),
   ))
   const [showColorEditor, setShowColorEditor] = useState(false)
+  const [showNameplateEditor, setShowNameplateEditor] = useState(false)
+  const [nameplateDraft, setNameplateDraft] = useState('')
+  const [nameplateValidationError, setNameplateValidationError] = useState<string | null>(null)
   const cycleDeskCameraPreset = useAppStore(
     (state) => state.cycleDeskCameraPreset,
   )
@@ -59,6 +66,11 @@ function ProductApp() {
   const freeCameraEnabled = useAppStore((state) => state.freeCameraEnabled)
   const loadToday = useAppStore((state) => state.loadToday)
   const loadStickers = useAppStore((state) => state.loadStickers)
+  const loadNotebookCoverSettings = useAppStore((state) => state.loadNotebookCoverSettings)
+  const notebookCoverSettings = useAppStore((state) => state.notebookCoverSettings)
+  const notebookCoverStatus = useAppStore((state) => state.notebookCoverStatus)
+  const notebookCoverErrorMessage = useAppStore((state) => state.notebookCoverErrorMessage)
+  const saveNotebookCoverLabel = useAppStore((state) => state.saveNotebookCoverLabel)
   const notebookPhase = useAppStore((state) => state.notebookPhase)
   const requestNotebookOpen = useAppStore((state) => state.requestNotebookOpen)
   const openStickerStudio = useAppStore((state) => state.openStickerStudio)
@@ -72,7 +84,8 @@ function ProductApp() {
   useEffect(() => {
     void loadToday()
     void loadStickers()
-  }, [loadStickers, loadToday])
+    void loadNotebookCoverSettings()
+  }, [loadNotebookCoverSettings, loadStickers, loadToday])
 
   useEffect(() => {
     const settleWhenHidden = () => {
@@ -142,6 +155,21 @@ function ProductApp() {
             <span>打开本子</span>
           </Button>
           <Button
+            aria-label="编辑铭牌"
+            className="nameplate-editor-button"
+            disabled={notebookCoverStatus === 'loading' || notebookCoverStatus === 'saving'}
+            icon={<Pencil aria-hidden="true" size={18} strokeWidth={1.9} />}
+            onClick={() => {
+              setShowColorEditor(false)
+              setNameplateDraft(notebookCoverSettings?.label ?? '')
+              setNameplateValidationError(null)
+              setShowNameplateEditor(true)
+            }}
+            variant="secondary"
+          >
+            <span>编辑铭牌</span>
+          </Button>
+          <Button
             className="sticker-workbench-button"
             icon={<Sticker aria-hidden="true" size={19} strokeWidth={1.8} />}
             onClick={() => {
@@ -152,6 +180,77 @@ function ProductApp() {
           >
             <span>贴纸工作台</span>
           </Button>
+        </div>
+      ) : null}
+
+      {showNameplateEditor ? (
+        <div
+          aria-labelledby="nameplate-dialog-title"
+          aria-modal="true"
+          className="nameplate-dialog-backdrop"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setShowNameplateEditor(false)
+          }}
+          role="dialog"
+        >
+          <form
+            className="nameplate-dialog"
+            onSubmit={(event) => {
+              event.preventDefault()
+              try {
+                const normalized = normalizeNotebookLabel(nameplateDraft)
+                void saveNotebookCoverLabel(normalized).then((saved) => {
+                  if (saved) setShowNameplateEditor(false)
+                })
+                setNameplateValidationError(null)
+              } catch (error) {
+                setNameplateValidationError(error instanceof Error ? error.message : '请输入有效铭牌内容。')
+              }
+            }}
+          >
+            <div className="nameplate-dialog__header">
+              <div>
+                <p className="nameplate-dialog__eyebrow">NOTEBOOK COVER</p>
+                <h2 id="nameplate-dialog-title">编辑铭牌</h2>
+              </div>
+              <IconButton
+                aria-label="取消编辑铭牌"
+                label="取消编辑铭牌"
+                onClick={() => setShowNameplateEditor(false)}
+                variant="quiet"
+              >
+                <X aria-hidden="true" size={18} />
+              </IconButton>
+            </div>
+            <label className="nameplate-dialog__label" htmlFor="notebook-nameplate-input">
+              铭牌文字
+              <input
+                autoFocus
+                id="notebook-nameplate-input"
+                maxLength={MAX_NOTEBOOK_LABEL_LENGTH}
+                onChange={(event) => setNameplateDraft(event.target.value)}
+                placeholder="例如 DEAR DESK"
+                value={nameplateDraft}
+              />
+            </label>
+            <div className="nameplate-dialog__meta">
+              <span>最多 {MAX_NOTEBOOK_LABEL_LENGTH} 个中英文字符</span>
+              <output>{nameplateDraft.length}/{MAX_NOTEBOOK_LABEL_LENGTH}</output>
+            </div>
+            {nameplateValidationError || notebookCoverErrorMessage ? (
+              <p className="nameplate-dialog__error" role="alert">
+                {nameplateValidationError ?? notebookCoverErrorMessage}
+              </p>
+            ) : null}
+            <div className="nameplate-dialog__actions">
+              <Button onClick={() => setShowNameplateEditor(false)} variant="quiet">
+                取消
+              </Button>
+              <Button htmlType="submit" loading={notebookCoverStatus === 'saving'} variant="primary">
+                保存铭牌
+              </Button>
+            </div>
+          </form>
         </div>
       ) : null}
 
