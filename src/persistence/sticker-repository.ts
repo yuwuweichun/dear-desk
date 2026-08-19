@@ -56,8 +56,17 @@ export class DexieStickerRepository implements StickerRepository {
     )
     const stickers = await Promise.all(
       instances.map(async (instance) => {
+        if (typeof instance.definitionId !== 'string' || !instance.definitionId) {
+          return null
+        }
         const definition = await this.db.stickerDefinitions.get(instance.definitionId)
         if (!definition) return null
+        if (
+          typeof definition.previewAssetId !== 'string' ||
+          !definition.previewAssetId
+        ) {
+          return null
+        }
         const asset = await this.db.stickerRenderAssets.get(
           definition.previewAssetId,
         )

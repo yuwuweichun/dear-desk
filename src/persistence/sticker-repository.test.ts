@@ -182,4 +182,64 @@ describe('DexieStickerRepository', () => {
     })
     await expect(database.stickerSourceAssets.count()).resolves.toBe(0)
   })
+
+  it('skips instances with a missing definition reference', async () => {
+    database = new DearDeskDatabase(`sticker-invalid-instance-${crypto.randomUUID()}`)
+    await database.table('stickerInstances').bulkAdd([
+      {
+        id: 'instance-invalid',
+        position: { x: 0, z: 0 },
+        rotationY: 0,
+        createdAt: '2026-08-07T01:00:00.000Z',
+        updatedAt: '2026-08-07T01:00:00.000Z',
+        surface: 'desk',
+      },
+      {
+        id: 'instance-valid',
+        definitionId: 'definition-valid',
+        position: { x: 0, z: 0 },
+        rotationY: 0,
+        createdAt: '2026-08-07T01:00:01.000Z',
+        updatedAt: '2026-08-07T01:00:01.000Z',
+        surface: 'desk',
+      },
+    ])
+    await database.stickerDefinitions.add({
+      id: 'definition-valid',
+      kind: 'text',
+      source: textDraft.source,
+      forge: textDraft.forge,
+      previewAssetId: 'preview-valid',
+      createdAt: '2026-08-07T01:00:01.000Z',
+    })
+    await database.stickerRenderAssets.add({
+      id: 'preview-valid',
+      ...textDraft.preview,
+      upstreamCommit: STICKER_FORGE_COMMIT,
+    })
+
+    await expect(new DexieStickerRepository(database).listDesk()).resolves.toHaveLength(1)
+  })
+
+  it('skips definitions with a missing preview asset reference', async () => {
+    database = new DearDeskDatabase(`sticker-invalid-definition-${crypto.randomUUID()}`)
+    await database.table('stickerInstances').add({
+      id: 'instance-invalid',
+      definitionId: 'definition-invalid',
+      position: { x: 0, z: 0 },
+      rotationY: 0,
+      createdAt: '2026-08-07T01:00:00.000Z',
+      updatedAt: '2026-08-07T01:00:00.000Z',
+      surface: 'desk',
+    })
+    await database.table('stickerDefinitions').add({
+      id: 'definition-invalid',
+      kind: 'text',
+      source: textDraft.source,
+      forge: textDraft.forge,
+      createdAt: '2026-08-07T01:00:00.000Z',
+    })
+
+    await expect(new DexieStickerRepository(database).listDesk()).resolves.toEqual([])
+  })
 })

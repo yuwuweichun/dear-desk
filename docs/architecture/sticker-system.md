@@ -77,6 +77,7 @@ Forge 收到浏览器 object URL 形式的公开 `image` source。object URL 在
 - 用户取消自动抠图：终止 worker，不改变当前图片。
 - Forge 未 ready 或 flat 捕获失败：保留制作状态，不进入放置。
 - IndexedDB 创建失败：保留 pending draft 和放置状态，显示可重试错误。
+- 读取贴纸时发现 `stickerInstances.definitionId` 或 `stickerDefinitions.previewAssetId` 缺失：跳过该残缺关联记录，继续返回其他完整贴纸；本次读取不改写或删除原始数据。
 - 移动写入失败：重新读取两个 surface，恢复持久化事实。
 - 删除失败：保留 UI 记录并显示错误，不假装已删除。
 
