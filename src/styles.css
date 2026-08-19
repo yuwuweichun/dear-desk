@@ -447,8 +447,8 @@ textarea:focus-visible {
 .journal-close-button {
   position: absolute;
   z-index: 30;
-  top: 12px;
-  right: 12px;
+  top: -8px;
+  right: -8px;
   color: #725d42;
   background: #fffbe7;
   border-color: #d4c9b4;
@@ -1238,8 +1238,8 @@ textarea:focus-visible {
   }
 
   .journal-close-button {
-    top: 8px;
-    right: 8px;
+    top: -6px;
+    right: -6px;
     width: 40px;
     min-width: 40px;
     height: 40px;
