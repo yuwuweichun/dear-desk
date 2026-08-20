@@ -1,9 +1,14 @@
 export const MAX_ENTRY_LENGTH = 500
+export const MAX_ENTRY_TITLE_LENGTH = 80
+export const DEFAULT_TODAY_ENTRY_TITLE = '今天'
+export const DEFAULT_HISTORICAL_ENTRY_TITLE = '日记'
 
 export type LocalDate = `${number}-${number}-${number}`
 
 export interface DailyEntry {
   date: LocalDate
+  /** Optional at runtime so records written before title support remain readable. */
+  title?: string
   text: string
   createdAt: string
   updatedAt: string
@@ -12,7 +17,7 @@ export interface DailyEntry {
 export interface DailyEntryRepository {
   getByDate(date: LocalDate): Promise<DailyEntry | null>
   listDates(): Promise<LocalDate[]>
-  save(date: LocalDate, text: string): Promise<DailyEntry>
+  save(date: LocalDate, text: string, title?: string): Promise<DailyEntry>
 }
 
 export class DailyEntryValidationError extends Error {
@@ -40,6 +45,28 @@ export const normalizeEntryText = (text: string) => {
 
   return normalized
 }
+
+export const normalizeEntryTitle = (title: string) => {
+  const normalized = title.trim()
+
+  if (!normalized) {
+    throw new DailyEntryValidationError('请先写一个标题。')
+  }
+
+  if (normalized.length > MAX_ENTRY_TITLE_LENGTH) {
+    throw new DailyEntryValidationError(
+      `标题不能超过 ${MAX_ENTRY_TITLE_LENGTH} 个字符。`,
+    )
+  }
+
+  return normalized
+}
+
+export const defaultEntryTitle = (isToday: boolean) =>
+  isToday ? DEFAULT_TODAY_ENTRY_TITLE : DEFAULT_HISTORICAL_ENTRY_TITLE
+
+export const entryTitle = (entry: DailyEntry | null, isToday: boolean) =>
+  entry?.title?.trim() || defaultEntryTitle(isToday)
 
 export const formatLocalDate = (date: LocalDate) => {
   const [year, month, day] = date.split('-').map(Number)

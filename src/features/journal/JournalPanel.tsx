@@ -1,7 +1,13 @@
 import { Check, PenLine, Save, Type, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 
-import { formatLocalDate, MAX_ENTRY_LENGTH, type LocalDate } from '../../domain/daily-entry'
+import {
+  entryTitle,
+  formatLocalDate,
+  MAX_ENTRY_LENGTH,
+  MAX_ENTRY_TITLE_LENGTH,
+  type LocalDate,
+} from '../../domain/daily-entry'
 import {
   JOURNAL_FONT_OPTIONS,
   readJournalFontPreference,
@@ -63,6 +69,7 @@ function JournalBook() {
   const [writingPhase, setWritingPhase] = useState<WritingPhase>('idle')
   const [draftDate, setDraftDate] = useState<LocalDate | null>(null)
   const [draft, setDraft] = useState('')
+  const [draftTitle, setDraftTitle] = useState('')
   const [sessionMessage, setSessionMessage] = useState('')
   const [journalFont, setJournalFont] = useState<JournalFontId>(() =>
     readJournalFontPreference(window.localStorage, availableJournalFontIds))
@@ -127,9 +134,13 @@ function JournalBook() {
 
   const currentEntry = entryFor(rightDate)
   const currentText = currentEntry?.text ?? ''
+  const currentTitle = entryTitle(currentEntry, rightDate === selectedDate)
   const activeDraft = draftDate === rightDate ? draft : currentText
-  const dirty = writingPhase === 'writing' && activeDraft !== currentText
+  const activeTitle = draftDate === rightDate ? draftTitle : currentTitle
+  const dirty = writingPhase === 'writing' &&
+    (activeDraft !== currentText || activeTitle !== currentTitle)
   const overLimit = activeDraft.length > MAX_ENTRY_LENGTH
+  const titleOverLimit = activeTitle.length > MAX_ENTRY_TITLE_LENGTH
   const pageUnavailable = journalLoadStatus !== 'ready' || turning
 
   const guardLeavingWriting = (message: string) => {
@@ -152,12 +163,21 @@ function JournalBook() {
       return
     }
     if (saving || placingSticker) return
-    setWritingPhase('idle')
-    setDraftDate(null)
     setSessionMessage('')
     resetSaveStatus()
     setJournalMode(mode)
-    if (mode === 'reading') setFontMenuOpen(false)
+    if (mode === 'reading') {
+      setWritingPhase('idle')
+      setDraftDate(null)
+      setFontMenuOpen(false)
+      return
+    }
+
+    if (pageUnavailable || placingSticker) return
+    setDraftDate(rightDate)
+    setDraft(currentText)
+    setDraftTitle(currentTitle)
+    setWritingPhase('writing')
   }
 
   const selectJournalFont = (fontId: JournalFontId) => {
@@ -170,6 +190,7 @@ function JournalBook() {
     if (pageUnavailable || placingSticker) return
     setDraftDate(rightDate)
     setDraft(currentText)
+    setDraftTitle(currentTitle)
     setWritingPhase('writing')
     setSessionMessage('')
     resetSaveStatus()
@@ -179,7 +200,7 @@ function JournalBook() {
     if (writingPhase !== 'writing' || draftDate !== rightDate) return
     setWritingPhase('saving')
     setSessionMessage('')
-    const saved = await saveJournalEntry(draftDate, draft)
+    const saved = await saveJournalEntry(draftDate, draft, draftTitle)
     if (saved) {
       setWritingPhase('idle')
       setDraftDate(null)
@@ -245,6 +266,7 @@ function JournalBook() {
             <form
               id="journal-entry-form"
               className="journal-form"
+              autoComplete="off"
               onSubmit={(event) => {
                 event.preventDefault()
                 void saveDraft()
@@ -253,7 +275,26 @@ function JournalBook() {
               <header className="journal-page-head">
                 <div>
                   <p className="journal-date">{formatLocalDate(rightDate)}</p>
-                  <h2>{rightDate === selectedDate ? '今天' : '日记'}</h2>
+                  <label className="sr-only" htmlFor="journal-entry-title">
+                    日记标题
+                  </label>
+                  <input
+                    id="journal-entry-title"
+                    className="journal-title-input"
+                    autoCapitalize="none"
+                    autoComplete="off"
+                    autoCorrect="off"
+                    value={activeTitle}
+                    onChange={(event) => {
+                      setDraftTitle(event.target.value)
+                      if (saveStatus !== 'idle') resetSaveStatus()
+                      if (sessionMessage) setSessionMessage('')
+                    }}
+                    maxLength={MAX_ENTRY_TITLE_LENGTH + 1}
+                    name="journal-title"
+                    spellCheck={false}
+                    disabled={saving || placingSticker}
+                  />
                 </div>
                 <span>{saving ? '正在收笔' : '正在书写'}</span>
               </header>
@@ -282,7 +323,7 @@ function JournalBook() {
               </div>
 
               <div className="journal-meta">
-                <span className={overLimit ? 'character-count over-limit' : 'character-count'}>
+                <span className={overLimit || titleOverLimit ? 'character-count over-limit' : 'character-count'}>
                   {activeDraft.length} / {MAX_ENTRY_LENGTH}
                 </span>
                 <span className="save-message" aria-live="polite">
@@ -340,14 +381,13 @@ function JournalBook() {
           <>
             <Button
               className="journal-writing-button"
-              htmlType={writing ? 'submit' : 'button'}
-              form={writing ? 'journal-entry-form' : undefined}
+              htmlType="button"
               icon={writing ? <Save aria-hidden="true" size={17} /> : <PenLine aria-hidden="true" size={17} />}
-              onClick={writing ? undefined : startWriting}
+              onClick={writing ? () => void saveDraft() : startWriting}
               aria-pressed={writing}
               aria-label={writing ? '保存本页' : '开始书写本页'}
               title={writing ? '保存本页' : '开始书写本页'}
-              disabled={saving || overLimit || (writing && !activeDraft.trim()) || (!writing && (pageUnavailable || placingSticker))}
+              disabled={saving || overLimit || titleOverLimit || (writing && (!activeDraft.trim() || !activeTitle.trim())) || (!writing && (pageUnavailable || placingSticker))}
               loading={saving}
               variant="primary"
             >

@@ -142,10 +142,10 @@
           <li><strong>建立页序</strong><span><code>loadJournalPages()</code> 并行读取 <code>DailyEntryRepository.listDates()</code> 与 <code>StickerRepository.listJournalDates()</code>，合并今天、去重、排序并丢弃未来日期。</span></li>
           <li><strong>按需读取</strong><span>首次读取当前右页和相邻上一日期的正文与贴纸 Blob；页序查询本身只读取日期/instance 字段，不加载全部历史 PNG。</span></li>
           <li><strong>呈现当前日期</strong><span><code>journalCursor</code> 只代表右页日期。左页不显示日期、正文或贴纸，只保留上一页命中；右页统一投影今天或历史正文与贴纸。</span></li>
-          <li><strong>进入书写</strong><span>外置的单个竖向滑动按钮按“阅 / 读 / 编 / 辑”自上而下显示，选中块随 <code>journalMode</code> 上下移动；切到编辑只进入准备态。其下方动作按钮按“图标 / 书 / 写”竖排，被点击后 <code>JournalBook</code> 才以当前右页正文初始化 <code>draftDate</code> 与 <code>draft</code>，切换为 textarea 并聚焦；书写阶段动作变为“图标 / 收 / 笔”。</span></li>
+          <li><strong>进入书写</strong><span>外置的单个竖向滑动按钮按“阅 / 读 / 编 / 辑”自上而下显示，选中块随 <code>journalMode</code> 上下移动；切到编辑会直接以当前右页标题和正文初始化 <code>draftDate</code>、<code>draftTitle</code> 与 <code>draft</code>，切换为标题输入和 textarea 并聚焦；收笔成功后回到 <code>editing + idle</code>，再次点击书写只恢复同一页已保存值；书写阶段动作变为“图标 / 收 / 笔”。</span></li>
           <li><strong>选择字体</strong><span>编辑模式在书写动作下方显示字体入口。<code>JournalBook</code> 从 <code>localStorage</code> 读取稳定字体 ID，并用 <code>data-journal-font</code> 同时控制 textarea 与只读正文；切换字体不改写 <code>DailyEntry</code> 纯文本。生产环境提供纸页宋体、玄冬楷书和随峰体，开发环境额外允许云峰晶晶体。</span></li>
-          <li><strong>按页保存</strong><span>“收笔”调用 <code>saveJournalEntry(rightDate, draft)</code>。repository 仍按显式日期写入；store 更新 <code>journalPageEntries[date]</code>，仅当日期是今天时同步 <code>entry</code> 别名。</span></li>
-          <li><strong>保护草稿</strong><span>正文有改动时，翻页、切回阅读和关闭只显示“请先收笔”，不会提交游标、关闭本子或自动写库；保存失败继续保留 textarea 与草稿。</span></li>
+          <li><strong>按页保存</strong><span>“收笔”调用 <code>saveJournalEntry(rightDate, draft, draftTitle)</code>。repository 仍按显式日期写入标题和正文；store 更新 <code>journalPageEntries[date]</code>，仅当日期是今天时同步 <code>entry</code> 别名。</span></li>
+          <li><strong>保护草稿</strong><span>标题或正文有改动时，翻页、切回阅读和关闭只显示“请先收笔”，不会提交游标、关闭本子或自动写库；标题/正文任一校验或保存失败都继续保留两个草稿。</span></li>
           <li><strong>请求翻页</strong><span>空白左页调用 <code>requestJournalTurn('previous')</code>，右页窄页缘调用 <code>requestJournalTurn('next')</code>。书写中由组件拦截；边界或 store 非 idle 请求返回 <code>false</code>。</span></li>
           <li><strong>预读并提交</strong><span>store 补齐目标右页缺少的正文和贴纸，再把阶段从 <code>loading</code> 切到 <code>turning</code>；<code>PageTurnSheet</code> 动画结束后调用 <code>settleJournalTurn()</code> 原子提交游标。</span></li>
           <li><strong>保持今天</strong><span><code>selectedDate</code> 始终是今天，仍只决定贴纸工作台“放到日记”的目标；历史正文可编辑不会改变该贴纸 placement 语义。</span></li>
@@ -164,10 +164,9 @@
         <div class="code-block">
           <div class="code-head"><span>局部阅读与书写协议</span><button class="copy-button" type="button" data-copy-target="journal-mode-chain">复制</button></div>
           <pre id="journal-mode-chain"><code>reading + idle
-  -> editing + idle
-  -> editing + writing (draftDate = current rightDate)
+  -> editing + writing (draftDate/title/text = current rightDate)
   -> editing + saving
-  -> saveJournalEntry(rightDate, draft)
+  -> saveJournalEntry(rightDate, draft, draftTitle)
   -> editing + idle (success) | editing + writing (failure)</code></pre>
         </div>
       </section>
@@ -198,7 +197,7 @@
           <table>
             <thead><tr><th>状态</th><th>负责人</th><th>生命周期</th><th>明确不进入</th></tr></thead>
             <tbody>
-              <tr><td>正文、日期与时间戳</td><td>IndexedDB / <code>DailyEntryRepository</code></td><td>跨页面重开</td><td>Three.js 对象</td></tr>
+              <tr><td>标题、正文、日期与时间戳</td><td>IndexedDB / <code>DailyEntryRepository</code></td><td>跨页面重开；旧记录缺失标题时按日期回退</td><td>Three.js 对象</td></tr>
               <tr><td>贴纸 source、Forge PNG、surface、位置与旋转</td><td>IndexedDB / <code>StickerRepository</code></td><td>跨页面重开</td><td>Texture、对象 URL</td></tr>
               <tr><td><code>selectedDate</code>、当天正文与贴纸</td><td>Zustand store</td><td>当前页面运行</td><td>未来日期、DOM Event</td></tr>
               <tr><td>页面日期、可见页缓存、游标和翻页阶段</td><td>Zustand store</td><td>打开本子期间；重开回今天</td><td>IndexedDB 阅读位置</td></tr>
@@ -217,7 +216,7 @@
       <section id="persistence" data-search-title="本地持久化">
         <p class="section-index">07 · 数据</p>
         <h2>IndexedDB v4 保存业务内容，localStorage 只保存轻量字体偏好</h2>
-        <p>数据库名为 <code>dear-desk</code>。v3 保留 <code>dailyEntries</code>，新增图片 source 表，并让实例使用 <code>desk | journal</code> 判别联合；日记实例通过 <code>[surface+journalDate]</code> 索引按日期查询。v4 新增单例的 <code>notebookCoverSettings</code> 表保存本子铭牌文字。阅读/书写改造只增加 <code>saveJournalEntry(date, text)</code> 应用 action 和局部界面状态，没有持久化阅读模式、游标或草稿。</p>
+        <p>数据库名为 <code>dear-desk</code>。v3 保留 <code>dailyEntries</code>，新增图片 source 表，并让实例使用 <code>desk | journal</code> 判别联合；日记实例通过 <code>[surface+journalDate]</code> 索引按日期查询。v4 新增单例的 <code>notebookCoverSettings</code> 表保存本子铭牌文字。<code>dailyEntries</code> 现在写入标题与正文；旧版本记录没有标题字段时由日记投影按今天/历史页回退。阅读/书写模式、标题/正文草稿、游标仍不持久化。</p>
         <p>字体选择不是日记内容。<code>journal-font.ts</code> 使用键 <code>dear-desk:journal-font</code> 在 <code>localStorage</code> 保存 <code>paper | jingjing | xuandong | suifeng</code>；读取时同时检查值是否合法、当前构建是否允许，并在存储不可用或值不受支持时回退 <code>paper</code>。因此既有正文无需迁移，生产环境也不会因为开发偏好指向 <code>jingjing</code> 而请求未发布资源。</p>
         <div class="code-block">
           <div class="code-head"><span>IndexedDB v4 schema</span><button class="copy-button" type="button" data-copy-target="database-schema">复制</button></div>
@@ -304,7 +303,7 @@ edit historical text:
   click 编辑 -> 书写 -> textarea for 2026-08-07
   click 收笔 -> saveJournalEntry('2026-08-07', draft)</code></pre>
         </div>
-        <p>顶层编辑模式可以跨翻页保持，但每个日期都必须再次点击“书写”才创建该页草稿。只有“收笔”成功才写 <code>dailyEntries</code>；dirty 草稿会阻止关闭，页面刷新仍不提供草稿恢复。关闭并重新打开后，阅读游标和模式回到今天的阅读态。</p>
+        <p>顶层编辑模式可以跨翻页保持；切到编辑即为当前右页创建标题和正文草稿，收笔后可再次点击“书写”恢复同一页已保存值。只有“收笔”成功才写 <code>dailyEntries</code>；标题或正文 dirty 草稿会阻止关闭，页面刷新仍不提供未保存草稿恢复。关闭并重新打开后，阅读游标和模式回到今天的阅读态。</p>
       </section>
 
       <section id="source-map" data-search-title="源码地图与阅读顺序">

@@ -104,8 +104,8 @@ export interface AppState {
   requestNotebookClose: () => void
   openNotebookWithoutScene: () => void
   settleNotebookTransition: () => void
-  saveEntry: (text: string) => Promise<boolean>
-  saveJournalEntry: (date: LocalDate, text: string) => Promise<boolean>
+  saveEntry: (text: string, title?: string) => Promise<boolean>
+  saveJournalEntry: (date: LocalDate, text: string, title?: string) => Promise<boolean>
   resetSaveStatus: () => void
   openStickerStudio: () => void
   cancelStickerComposer: () => void
@@ -499,12 +499,12 @@ export const createAppStore = (
         return state
       }),
 
-    saveEntry: async (text) => get().saveJournalEntry(get().selectedDate, text),
+    saveEntry: async (text, title) => get().saveJournalEntry(get().selectedDate, text, title),
 
-    saveJournalEntry: async (date, text) => {
+    saveJournalEntry: async (date, text, title) => {
       set({ saveStatus: 'saving', errorMessage: null })
       try {
-        const savedEntry = await repository.save(date, text)
+        const savedEntry = await repository.save(date, text, title)
         set((state) => ({
           ...(date === state.selectedDate ? { entry: savedEntry } : {}),
           journalPageEntries: {

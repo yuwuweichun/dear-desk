@@ -1,5 +1,7 @@
 import {
+  DEFAULT_HISTORICAL_ENTRY_TITLE,
   normalizeEntryText,
+  normalizeEntryTitle,
   type DailyEntry,
   type DailyEntryRepository,
   type LocalDate,
@@ -21,14 +23,20 @@ export class DexieDailyEntryRepository implements DailyEntryRepository {
     return keys.filter((key): key is LocalDate => typeof key === 'string')
   }
 
-  async save(date: LocalDate, text: string): Promise<DailyEntry> {
+  async save(
+    date: LocalDate,
+    text: string,
+    title = DEFAULT_HISTORICAL_ENTRY_TITLE,
+  ): Promise<DailyEntry> {
     const normalizedText = normalizeEntryText(text)
+    const normalizedTitle = normalizeEntryTitle(title)
 
     return this.db.transaction('rw', this.db.dailyEntries, async () => {
       const existing = await this.db.dailyEntries.get(date)
       const timestamp = this.now().toISOString()
       const entry: DailyEntry = {
         date,
+        title: normalizedTitle,
         text: normalizedText,
         createdAt: existing?.createdAt ?? timestamp,
         updatedAt: timestamp,

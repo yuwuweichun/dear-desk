@@ -456,6 +456,27 @@ textarea:focus-visible {
   letter-spacing: 0;
 }
 
+.journal-title-input {
+  width: min(100%, 18ch);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-bottom: 1px solid transparent;
+  border-radius: 0;
+  background: transparent;
+  color: var(--paper-ink);
+  font-family: Georgia, "Songti SC", serif;
+  font-size: 28px;
+  line-height: 1.2;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+.journal-title-input:focus {
+  border-bottom-color: var(--accent-dark);
+  outline: 0;
+}
+
 .journal-close-button {
   position: absolute;
   z-index: 30;
@@ -1290,6 +1311,10 @@ textarea:focus-visible {
   }
 
   .journal-page-head h2 {
+    font-size: 21px;
+  }
+
+  .journal-title-input {
     font-size: 21px;
   }
 

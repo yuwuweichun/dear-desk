@@ -371,7 +371,7 @@ describe('app store', () => {
       store.getState().saveJournalEntry(historicalDate, '改过的历史记录'),
     ).resolves.toBe(true)
 
-    expect(repository.save).toHaveBeenCalledWith(historicalDate, '改过的历史记录')
+    expect(repository.save).toHaveBeenCalledWith(historicalDate, '改过的历史记录', undefined)
     expect(store.getState().entry).toEqual(todayEntry)
     expect(store.getState().journalPageEntries[historicalDate]).toMatchObject({
       date: historicalDate,

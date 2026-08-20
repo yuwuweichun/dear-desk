@@ -1,7 +1,12 @@
 import { ChevronRight } from 'lucide-react'
 import type { ReactNode } from 'react'
 
-import { formatLocalDate, type DailyEntry, type LocalDate } from '../../domain/daily-entry'
+import {
+  entryTitle,
+  formatLocalDate,
+  type DailyEntry,
+  type LocalDate,
+} from '../../domain/daily-entry'
 import type { PlacedSticker } from '../../domain/sticker'
 import type { JournalTurnDirection } from '../../state/app-store'
 import { JournalStickerLayer } from './JournalStickerLayer'
@@ -122,7 +127,7 @@ export function JournalReadingPage({
         <header className="journal-page-head">
           <div>
             <p className="journal-date">{formatLocalDate(date)}</p>
-            <h2>{isToday ? '今天' : '日记'}</h2>
+            <h2>{entryTitle(entry, isToday)}</h2>
           </div>
           <span>{isToday ? '当前日期' : '旧日记录'}</span>
         </header>

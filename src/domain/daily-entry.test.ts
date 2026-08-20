@@ -1,6 +1,9 @@
 import {
+  defaultEntryTitle,
   DailyEntryValidationError,
+  MAX_ENTRY_TITLE_LENGTH,
   MAX_ENTRY_LENGTH,
+  normalizeEntryTitle,
   normalizeEntryText,
   sortLocalDates,
   toLocalDate,
@@ -20,6 +23,16 @@ describe('daily entry domain', () => {
     expect(() => normalizeEntryText('a'.repeat(MAX_ENTRY_LENGTH + 1))).toThrow(
       `内容不能超过 ${MAX_ENTRY_LENGTH} 个字符。`,
     )
+  })
+
+  it('normalizes and validates titles with date-based defaults', () => {
+    expect(normalizeEntryTitle('  今天的光  ')).toBe('今天的光')
+    expect(() => normalizeEntryTitle('   ')).toThrow('请先写一个标题。')
+    expect(() => normalizeEntryTitle('a'.repeat(MAX_ENTRY_TITLE_LENGTH + 1))).toThrow(
+      `标题不能超过 ${MAX_ENTRY_TITLE_LENGTH} 个字符。`,
+    )
+    expect(defaultEntryTitle(true)).toBe('今天')
+    expect(defaultEntryTitle(false)).toBe('日记')
   })
 
   it('sorts and deduplicates local dates for journal pages', () => {

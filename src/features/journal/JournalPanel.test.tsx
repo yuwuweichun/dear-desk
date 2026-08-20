@@ -10,8 +10,13 @@ import { JournalPanel } from './JournalPanel'
 const date = '2026-08-06' as LocalDate
 const previousDate = '2026-08-05' as LocalDate
 
-const dailyEntry = (entryDate: LocalDate, text: string): DailyEntry => ({
+const dailyEntry = (
+  entryDate: LocalDate,
+  text: string,
+  title = entryDate === date ? '今天' : '日记',
+): DailyEntry => ({
   date: entryDate,
+  title,
   text,
   createdAt: `${entryDate}T01:00:00.000Z`,
   updatedAt: `${entryDate}T01:00:00.000Z`,
@@ -23,8 +28,11 @@ const createRepository = (
   getByDate: vi.fn().mockImplementation(async (requestedDate: LocalDate) =>
     entries[requestedDate] ?? null),
   listDates: vi.fn().mockResolvedValue(Object.keys(entries) as LocalDate[]),
-  save: vi.fn().mockImplementation(async (selectedDate: LocalDate, text: string) =>
-    dailyEntry(selectedDate, text.trim())),
+  save: vi.fn().mockImplementation(async (
+    selectedDate: LocalDate,
+    text: string,
+    title?: string,
+  ) => dailyEntry(selectedDate, text.trim(), title)),
 })
 
 const openNotebook = (store: ReturnType<typeof createAppStore>) => {
@@ -49,7 +57,6 @@ const renderJournal = async (repository: DailyEntryRepository) => {
 
 const startWriting = async (user: ReturnType<typeof userEvent.setup>) => {
   await user.click(screen.getByRole('button', { name: '编辑' }))
-  await user.click(screen.getByRole('button', { name: '开始书写本页' }))
   return screen.getByRole('textbox', { name: '本页记录' })
 }
 
@@ -73,7 +80,6 @@ describe('JournalPanel', () => {
     expect(container.querySelector('.journal-page-left')).toHaveTextContent('')
     expect(container.querySelector('.journal-bookmark')).not.toBeInTheDocument()
 
-    await user.click(editingMode)
     await user.click(screen.getByRole('button', { name: /上一页/ }))
     await waitFor(() => {
       expect(container.querySelector('.page-turn-sheet.is-previous')).toBeInTheDocument()
@@ -83,8 +89,11 @@ describe('JournalPanel', () => {
     const rightPage = container.querySelector('.journal-page-right')
     expect(rightPage).not.toBeNull()
     expect(within(rightPage as HTMLElement).getByText('上一页留下的内容')).toBeVisible()
-    expect(screen.getByRole('button', { name: '编辑' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: '阅读' })).toHaveAttribute('aria-pressed', 'true')
 
+    await user.click(editingMode)
+    expect(screen.getByRole('textbox', { name: '本页记录' })).toBeVisible()
+    await user.click(readingMode)
     await user.click(screen.getByRole('button', { name: /下一页/ }))
     await waitFor(() => {
       expect(container.querySelector('.page-turn-sheet.is-next')).toBeInTheDocument()
@@ -101,15 +110,32 @@ describe('JournalPanel', () => {
     await renderJournal(repository)
 
     const textarea = await startWriting(user)
+    const title = screen.getByRole('textbox', { name: '日记标题' })
+    expect(title).toHaveValue('今天')
+    expect(title).toHaveAttribute('autocomplete', 'off')
+    expect(title).toHaveAttribute('autocapitalize', 'none')
+    expect(title).toHaveAttribute('spellcheck', 'false')
+    await user.clear(title)
+    await user.type(title, '第一天')
     await user.type(textarea, '今天把第一句话留在桌上。')
     await user.click(screen.getByRole('button', { name: '保存本页' }))
 
     await waitFor(() => {
-      expect(repository.save).toHaveBeenCalledWith(date, '今天把第一句话留在桌上。')
+      expect(repository.save).toHaveBeenCalledWith(date, '今天把第一句话留在桌上。', '第一天')
     })
     expect(await screen.findByText('今天把第一句话留在桌上。')).toBeVisible()
+    expect(screen.getByRole('heading', { name: '第一天' })).toBeVisible()
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument()
     expect(screen.getByRole('status')).toHaveTextContent('已收笔，内容已存入本地。')
+
+    const writeAgainButton = screen.getByRole('button', { name: '开始书写本页' })
+    expect(writeAgainButton).toHaveAttribute('type', 'button')
+    await user.click(writeAgainButton)
+    expect(screen.getByRole('button', { name: '保存本页' })).toHaveAttribute('type', 'button')
+    expect(screen.getByRole('textbox', { name: '日记标题' })).toHaveValue('第一天')
+    expect(screen.getByRole('textbox', { name: '本页记录' })).toHaveValue(
+      '今天把第一句话留在桌上。',
+    )
   })
 
   it('changes the writing font from the editing toolbar and restores the preference', async () => {
@@ -131,7 +157,6 @@ describe('JournalPanel', () => {
     expect(screen.getByRole('dialog')).toHaveAttribute('data-journal-font', 'suifeng')
     expect(window.localStorage.getItem(JOURNAL_FONT_STORAGE_KEY)).toBe('suifeng')
 
-    await user.click(screen.getByRole('button', { name: '开始书写本页' }))
     expect(screen.getByRole('textbox', { name: '本页记录' })).toHaveValue(
       '字体会同时影响阅读与书写。',
     )
@@ -162,7 +187,7 @@ describe('JournalPanel', () => {
     await user.click(screen.getByRole('button', { name: '保存本页' }))
 
     await waitFor(() => {
-      expect(repository.save).toHaveBeenCalledWith(previousDate, '改过的旧句子')
+      expect(repository.save).toHaveBeenCalledWith(previousDate, '改过的旧句子', '日记')
     })
     expect(await screen.findByText('改过的旧句子')).toBeVisible()
     expect(store.getState().entry).toBeNull()
