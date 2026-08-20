@@ -22,7 +22,7 @@
         <kbd aria-hidden="true">/</kbd>
         <div id="search-results" class="search-results" role="listbox" aria-label="搜索结果" hidden></div>
       </div>
-      <span class="top-meta">CURRENT · 2026-08-19</span>
+      <span class="top-meta">CURRENT · 2026-08-20</span>
       <button class="toc-toggle" type="button" aria-controls="sidebar" aria-expanded="false">目录</button>
     </div>
   </header>
@@ -143,7 +143,7 @@
           <li><strong>按需读取</strong><span>首次读取当前右页和相邻上一日期的正文与贴纸 Blob；页序查询本身只读取日期/instance 字段，不加载全部历史 PNG。</span></li>
           <li><strong>呈现当前日期</strong><span><code>journalCursor</code> 只代表右页日期。左页不显示日期、正文或贴纸，只保留上一页命中；右页统一投影今天或历史正文与贴纸。</span></li>
           <li><strong>进入书写</strong><span>外置的单个竖向滑动按钮按“阅 / 读 / 编 / 辑”自上而下显示，选中块随 <code>journalMode</code> 上下移动；切到编辑只进入准备态。其下方动作按钮按“图标 / 书 / 写”竖排，被点击后 <code>JournalBook</code> 才以当前右页正文初始化 <code>draftDate</code> 与 <code>draft</code>，切换为 textarea 并聚焦；书写阶段动作变为“图标 / 收 / 笔”。</span></li>
-          <li><strong>选择字体</strong><span>编辑模式在书写动作下方显示字体入口。<code>JournalBook</code> 从 <code>localStorage</code> 读取稳定字体 ID，并用 <code>data-journal-font</code> 同时控制 textarea 与只读正文；切换字体不改写 <code>DailyEntry</code> 纯文本。生产环境只允许纸页宋体和玄冬楷书，开发环境额外允许云峰晶晶体。</span></li>
+          <li><strong>选择字体</strong><span>编辑模式在书写动作下方显示字体入口。<code>JournalBook</code> 从 <code>localStorage</code> 读取稳定字体 ID，并用 <code>data-journal-font</code> 同时控制 textarea 与只读正文；切换字体不改写 <code>DailyEntry</code> 纯文本。生产环境提供纸页宋体、玄冬楷书和随峰体，开发环境额外允许云峰晶晶体。</span></li>
           <li><strong>按页保存</strong><span>“收笔”调用 <code>saveJournalEntry(rightDate, draft)</code>。repository 仍按显式日期写入；store 更新 <code>journalPageEntries[date]</code>，仅当日期是今天时同步 <code>entry</code> 别名。</span></li>
           <li><strong>保护草稿</strong><span>正文有改动时，翻页、切回阅读和关闭只显示“请先收笔”，不会提交游标、关闭本子或自动写库；保存失败继续保留 textarea 与草稿。</span></li>
           <li><strong>请求翻页</strong><span>空白左页调用 <code>requestJournalTurn('previous')</code>，右页窄页缘调用 <code>requestJournalTurn('next')</code>。书写中由组件拦截；边界或 store 非 idle 请求返回 <code>false</code>。</span></li>
@@ -218,7 +218,7 @@
         <p class="section-index">07 · 数据</p>
         <h2>IndexedDB v4 保存业务内容，localStorage 只保存轻量字体偏好</h2>
         <p>数据库名为 <code>dear-desk</code>。v3 保留 <code>dailyEntries</code>，新增图片 source 表，并让实例使用 <code>desk | journal</code> 判别联合；日记实例通过 <code>[surface+journalDate]</code> 索引按日期查询。v4 新增单例的 <code>notebookCoverSettings</code> 表保存本子铭牌文字。阅读/书写改造只增加 <code>saveJournalEntry(date, text)</code> 应用 action 和局部界面状态，没有持久化阅读模式、游标或草稿。</p>
-        <p>字体选择不是日记内容。<code>journal-font.ts</code> 使用键 <code>dear-desk:journal-font</code> 在 <code>localStorage</code> 保存 <code>paper | jingjing | xuandong</code>；读取时同时检查值是否合法、当前构建是否允许，并在存储不可用或值不受支持时回退 <code>paper</code>。因此既有正文无需迁移，生产环境也不会因为开发偏好指向 <code>jingjing</code> 而请求未发布资源。</p>
+        <p>字体选择不是日记内容。<code>journal-font.ts</code> 使用键 <code>dear-desk:journal-font</code> 在 <code>localStorage</code> 保存 <code>paper | jingjing | xuandong | suifeng</code>；读取时同时检查值是否合法、当前构建是否允许，并在存储不可用或值不受支持时回退 <code>paper</code>。因此既有正文无需迁移，生产环境也不会因为开发偏好指向 <code>jingjing</code> 而请求未发布资源。</p>
         <div class="code-block">
           <div class="code-head"><span>IndexedDB v4 schema</span><button class="copy-button" type="button" data-copy-target="database-schema">复制</button></div>
           <pre id="database-schema"><code>database.version(4).stores({
@@ -244,7 +244,7 @@
         <p><code>NotebookObject</code> 用透明命中几何发出打开意图，并驱动 <code>createNotebookModel</code> 的中央展示锚点、封面铰链和左右页堆；它不读取正文或 Blob。桌面端与移动端 near 机位已放宽视野，竖起轮廓不会撞到上边界。<code>JournalPanel</code> 在打开进度完成、<code>notebookPhase</code> 进入 <code>editing</code> 后接管，提供空白左页、统一右页、局部模式控件、按日期 textarea 和纸页贴纸；开发和生产使用相同的 3D 隐藏与 DOM 挂载行为。旧 <code>RoundedBox</code> / <code>scene-visuals</code> 已不在当前桌子、桌垫、本子模型路径中。</p>
         <p>renderer 使用 ACES filmic tone mapping、显式曝光、PCF 阴影和 DPR <code>[1, 1.5]</code>；<code>SceneEnvironment</code> 生成并释放 PMREM 环境反射。场景只有一盏投影方向光，另有不投影的低强度补光；雾从主体之外开始，避免吞掉桌体层次。</p>
         <p><code>JournalStickerLayer</code> 的坐标是纸页内 <code>0..1</code> 归一化值。今天页保留 pointer capture、预览位置和 pointer up 提交；历史页即使进入正文书写也只复用 PNG 投影并关闭贴纸 pointer events。桌面 <code>StickerObject</code> 仍创建对象 URL 和 Three.js Texture，并在卸载时释放两者。</p>
-        <p>日记字体通过 <code>.journal-panel</code> 上的 <code>data-journal-font</code> 映射到共享 CSS 变量 <code>--journal-writing-font</code>，因此阅读正文和 textarea 使用同一套字体栈。玄冬楷书来自生产公共资源；云峰晶晶体只在开发模式由 <code>vite.config.ts</code> 的 <code>development-font-assets</code> 中间件从 <code>dev-assets/fonts/</code> 响应，并由组件在开发模式注入对应 <code>@font-face</code>。该中间件只应用于 <code>serve</code>，生产构建不会复制或引用云峰晶晶体。</p>
+        <p>日记字体通过 <code>.journal-panel</code> 上的 <code>data-journal-font</code> 映射到共享 CSS 变量 <code>--journal-writing-font</code>，因此阅读正文和 textarea 使用同一套字体栈。玄冬楷书和随峰体来自 <code>public/fonts/</code> 的生产公共资源，其中随峰体为 cjkFonts 官方 <code>The Peak Font Plus V1.002</code>，许可证与来源哈希记录在同目录；云峰晶晶体只在开发模式由 <code>vite.config.ts</code> 的 <code>development-font-assets</code> 中间件从 <code>dev-assets/fonts/</code> 响应，并由组件在开发模式注入对应 <code>@font-face</code>。该中间件只应用于 <code>serve</code>，生产构建不会复制或引用云峰晶晶体。</p>
         <p><code>src/ui/</code> 是业务交互控件与 <code>animal-island-ui@1.5.1</code> 之间的适配边界：<code>Button</code> 将 loading 映射为原生 disabled，<code>IconButton</code> 固化可访问名称，<code>TextInput</code> 和 <code>SegmentedControl</code> 统一输入与选择语义。第二轮重写删除了让组件回到旧式深色小圆角外观的覆盖，<code>theme.css</code> 现在保留库的胶囊、按压阴影、Nunito/Noto Sans、青绿 active 与暖白 surface，只补 Dear Desk 的业务色彩和领域布局。App、Journal 和 Sticker 的交互控件从该层导入；<code>ProductApp</code> 对无需业务语义适配的纯展示型 <code>Time</code> 直接传入 <code>type="hud"</code>。领域专用 textarea、文件输入、颜色 swatch、range、纸页命中区、Forge mount 与抠图 Canvas 不进入通用组件库。</p>
         <p><code>StickerStudio</code> 的页面骨架仍由业务组件拥有，但 <code>src/styles.css</code> 和 <code>src/sticker-workbench.css</code> 已把旧胡桃木/深苔网格背景、窄纸侧栏和方形控件整体替换为浅薄荷点阵制作空间、暖白预览框、圆角点阵控制面板、青绿来源/材质选择与青绿/珊瑚双目标动作。Forge Canvas、来源更新、抠图 session、capture 和 placement action 没有变化。</p>
         <p><code>ProductApp</code> 不再渲染 <code>app-header</code>、品牌链接或“本地”常驻状态。<code>DeskScene</code> Canvas、<code>StickerStudio</code> 和 scene fallback 都从视口 <code>y=0</code> 开始；左上角只在桌面 idle 阶段挂载 <code>animal-island-ui</code> 的 <code>Time type="hud"</code>，按浏览器本地时间显示英文星期、英文月日与 24 小时时间。旧的所选日记日期以及“今天还是空白 / 今天有一页”等记录状态不再由桌面 HUD 呈现；<code>loadToday()</code> 仍照常执行并服务日记链路。该视觉替换没有改变本地持久化事实，“本地”仍是 IndexedDB 架构边界而不是需要持续显示的运行状态。</p>
@@ -316,6 +316,9 @@ edit historical text:
           <div><code><a href="../../src/state/app-store.ts">src/state/app-store.ts</a></code><span><code>loadJournalPages</code>、<code>requestJournalTurn</code>、<code>saveJournalEntry</code> 与贴纸工作流</span></div>
           <div><code><a href="../../src/features/journal/JournalPanel.tsx">JournalPanel.tsx</a></code><span><code>JournalBook</code> 组合竖排模式切换、书写与字体动作、dirty guard、按日期保存与翻页</span></div>
           <div><code><a href="../../src/domain/journal-font.ts">src/domain/journal-font.ts</a></code><span>字体 ID、开发/生产可用集合的读取边界、<code>localStorage</code> 键与异常回退</span></div>
+          <div><code><a href="../../public/fonts/ThePeakFontPlus-Regular.ttf">public/fonts/ThePeakFontPlus-Regular.ttf</a></code><span>官方 The Peak Font Plus V1.002 生产字体资源</span></div>
+          <div><code><a href="../../public/fonts/ThePeakFontPlus-SOURCE.txt">public/fonts/ThePeakFontPlus-SOURCE.txt</a></code><span>随峰体来源、贡献者、版本、许可证和 SHA-256 记录</span></div>
+          <div><code><a href="../../public/fonts/ThePeakFontPlus-OFL.txt">public/fonts/ThePeakFontPlus-OFL.txt</a></code><span>SIL Open Font License 1.1 原文</span></div>
           <div><code><a href="../../src/features/journal/JournalPage.tsx">JournalPage.tsx</a></code><span>空白左页、统一右页阅读内容与窄页缘导航</span></div>
           <div><code><a href="../../src/features/journal/PageTurnSheet.tsx">PageTurnSheet.tsx</a></code><span>CSS 动画完成后提交游标</span></div>
           <div><code><a href="../../src/features/journal/JournalStickerLayer.tsx">JournalStickerLayer.tsx</a></code><span>今天可交互、历史只投影的 DOM 贴纸层</span></div>
@@ -357,7 +360,7 @@ edit historical text:
               <tr><td>独立贴纸工作台与双 surface</td><td><span class="status status-review">已完成</span></td><td>自动测试、构建与开发者验收；浏览器证据边界见 DD-20260808-002</td></tr>
               <tr><td>双页本子与仿真翻页</td><td><span class="status status-review">已完成</span></td><td>DD-20260809-001 自动测试、lint、build 与开发者验收</td></tr>
               <tr><td>统一阅读与历史正文书写</td><td><span class="status status-review">待验收</span></td><td>43 个全量测试、lint、build 及桌面/移动打开与关闭恢复流程通过</td></tr>
-              <tr><td>日记字体切换与偏好恢复</td><td><span class="status status-review">待验收</span></td><td>生产提供纸页宋体/玄冬楷书，开发额外提供云峰晶晶体；偏好单元测试、组件测试、lint 与 production build 通过，双视口文档交互由本次架构回写验证</td></tr>
+              <tr><td>日记字体切换与偏好恢复</td><td><span class="status status-review">已完成</span></td><td>生产提供纸页宋体/玄冬楷书/随峰体，开发额外提供云峰晶晶体；随峰体资源、偏好单元测试、组件测试、lint、production build 和双视口交互均已通过</td></tr>
               <tr><td>程序化桌子、桌垫与本子</td><td><span class="status status-review">待验收</span></td><td>本子已按 DD-20260817-007 改为书脊贴桌立起、左右半册镜像同速摊开和逆向关闭；全开终点左右页堆同高，不再创建额外连续顶层纸面，闭合圆背附件和独立页缝节点不再露出。自动测试覆盖直立书脊、镜像角位移、封面接缝与终态结构切换。桌子程序化近似的既有 silhouette IoU 仍为 <code>0.6311</code>，因此整体模型视觉继续等待用户验收</td></tr>
               <tr><td>临时场景颜色编辑器</td><td><span class="status status-review">待验收</span></td><td>九项表面独立实时改色、重置、复制和刷新恢复已通过 1440 × 900 与 390 × 844；桌腿/桌框高辨识测试色证明材质分离，保持单 Canvas</td></tr>
               <tr><td>通用 DOM 与贴纸工作台重写</td><td><span class="status status-review">待验收</span></td><td><code>animal-island-ui@1.5.1</code> 经 <code>src/ui/</code> 接入；旧控件样式和旧工作台背景已删除，桌面、日记、文字/图片贴纸制作与抠图关键流程在桌面/移动端通过</td></tr>
@@ -372,7 +375,7 @@ edit historical text:
         </div>
       </section>
 
-      <footer>Dear Desk 当前系统架构 · 基于可运行源码、76 个自动测试与 DD-20260819-002 实施结果 · 2026-08-19</footer>
+  <footer>Dear Desk 当前系统架构 · 基于可运行源码、76 个自动测试与 DD-20260820-003 实施结果 · 2026-08-20</footer>
     </main>
   </div>
 

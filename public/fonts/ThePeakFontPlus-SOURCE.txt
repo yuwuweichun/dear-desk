@@ -1,0 +1,16 @@
+The Peak Font Plus / 随峰体Plus / 隨峰體Plus
+
+Source: https://cjkfonts.io/blog/ThePeakFontPlus
+Download: https://cjkfonts.io/downloadfont?font_id=cjkfonts_004&v=0.02
+Discovery page: https://www.100font.com/thread-961.htm
+Version: V1.002 (official download package; page text may still display V1.001)
+Contributors: 阿坤, Jeffrey Xuan, 宇文满月
+Technical processing: cjkFonts
+License: SIL Open Font License 1.1; see ThePeakFontPlus-OFL.txt
+Package SHA-256: 496b566d165cbd17f6ef8055cf40e4476f47ab31c1e031c755ad7ad9b778a631
+TTF SHA-256: 4a3ec7396adc029ad7fd25b4ddbf719e59f3a4a5ec03d6c95cbf07296e6d9f5b
+TTF size: 15,798,916 bytes
+
+The official package does not include an OFL text file. The unmodified official
+SIL Open Font License 1.1 text is stored beside this file for redistribution
+and auditability.

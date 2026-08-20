@@ -125,10 +125,11 @@ describe('JournalPanel', () => {
     const menu = screen.getByRole('menu', { name: '选择日记字体' })
     expect(within(menu).getByRole('menuitemradio', { name: /云峰晶晶体/ })).toBeVisible()
     expect(within(menu).getByRole('menuitemradio', { name: /玄冬楷书/ })).toBeVisible()
-    await user.click(within(menu).getByRole('menuitemradio', { name: /玄冬楷书/ }))
+    expect(within(menu).getByRole('menuitemradio', { name: /随峰体/ })).toBeVisible()
+    await user.click(within(menu).getByRole('menuitemradio', { name: /随峰体/ }))
 
-    expect(screen.getByRole('dialog')).toHaveAttribute('data-journal-font', 'xuandong')
-    expect(window.localStorage.getItem(JOURNAL_FONT_STORAGE_KEY)).toBe('xuandong')
+    expect(screen.getByRole('dialog')).toHaveAttribute('data-journal-font', 'suifeng')
+    expect(window.localStorage.getItem(JOURNAL_FONT_STORAGE_KEY)).toBe('suifeng')
 
     await user.click(screen.getByRole('button', { name: '开始书写本页' }))
     expect(screen.getByRole('textbox', { name: '本页记录' })).toHaveValue(
@@ -137,7 +138,7 @@ describe('JournalPanel', () => {
 
     first.unmount()
     const second = await renderJournal(repository)
-    expect(screen.getByRole('dialog')).toHaveAttribute('data-journal-font', 'xuandong')
+    expect(screen.getByRole('dialog')).toHaveAttribute('data-journal-font', 'suifeng')
     second.unmount()
   })
 

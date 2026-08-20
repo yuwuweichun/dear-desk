@@ -13,10 +13,10 @@ describe('journal font preference', () => {
       setItem: (key: string, value: string) => values.set(key, value),
     }
 
-    writeJournalFontPreference(storage, 'xuandong')
+    writeJournalFontPreference(storage, 'suifeng')
 
-    expect(values.get(JOURNAL_FONT_STORAGE_KEY)).toBe('xuandong')
-    expect(readJournalFontPreference(storage)).toBe('xuandong')
+    expect(values.get(JOURNAL_FONT_STORAGE_KEY)).toBe('suifeng')
+    expect(readJournalFontPreference(storage)).toBe('suifeng')
   })
 
   it('falls back when the stored font is unavailable in the current build', () => {

@@ -1,6 +1,6 @@
 export const JOURNAL_FONT_STORAGE_KEY = 'dear-desk:journal-font'
 
-export const JOURNAL_FONT_IDS = ['paper', 'jingjing', 'xuandong'] as const
+export const JOURNAL_FONT_IDS = ['paper', 'jingjing', 'xuandong', 'suifeng'] as const
 
 export type JournalFontId = (typeof JOURNAL_FONT_IDS)[number]
 
@@ -16,6 +16,7 @@ export const JOURNAL_FONT_OPTIONS: readonly JournalFontOption[] = [
   { id: 'paper', label: '纸页宋体', sample: '字' },
   { id: 'jingjing', label: '云峰晶晶体', sample: '字' },
   { id: 'xuandong', label: '玄冬楷书', sample: '字' },
+  { id: 'suifeng', label: '随峰体', sample: '字' },
 ]
 
 interface ReadableStorage {

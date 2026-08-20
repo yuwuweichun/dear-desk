@@ -13,6 +13,14 @@
   font-weight: 400;
 }
 
+@font-face {
+  font-family: "The Peak Font Plus";
+  src: url('/fonts/ThePeakFontPlus-Regular.ttf') format('truetype');
+  font-display: swap;
+  font-style: normal;
+  font-weight: 400;
+}
+
 :root {
   color: #f7f1e5;
   background: #c9f0e5;
@@ -408,6 +416,10 @@ textarea:focus-visible {
 
 .journal-panel[data-journal-font="xuandong"] {
   --journal-writing-font: "Xuandong Kaishu", "Songti SC", serif;
+}
+
+.journal-panel[data-journal-font="suifeng"] {
+  --journal-writing-font: "The Peak Font Plus", "Songti SC", serif;
 }
 
 @keyframes journal-reveal {
@@ -879,6 +891,10 @@ textarea:focus-visible {
 
 .journal-font-option[data-font-preview="xuandong"] .journal-font-option__sample {
   font-family: "Xuandong Kaishu", "Songti SC", serif;
+}
+
+.journal-font-option[data-font-preview="suifeng"] .journal-font-option__sample {
+  font-family: "The Peak Font Plus", "Songti SC", serif;
 }
 
 .page-turn-sheet {
