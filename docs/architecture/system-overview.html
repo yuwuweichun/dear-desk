@@ -22,7 +22,7 @@
         <kbd aria-hidden="true">/</kbd>
         <div id="search-results" class="search-results" role="listbox" aria-label="搜索结果" hidden></div>
       </div>
-      <span class="top-meta">CURRENT · 2026-08-20</span>
+      <span class="top-meta">CURRENT · 2026-08-21</span>
       <button class="toc-toggle" type="button" aria-controls="sidebar" aria-expanded="false">目录</button>
     </div>
   </header>
@@ -101,12 +101,12 @@
             │   ├── BlankJournalPage -> previous-page intent
             │   ├── JournalReadingPage -> current right-page text + stickers
             │   ├── one vertical reading/editing slider + writing/font actions
-            │   └── PageTurnSheet -> CSS 3D animation
+            │   └── PageTurnSheet -> isolated StPageFlip DOM snapshots
             └── StickerControls</code></pre>
         </div>
         <div class="note">
-          <strong>CSS 3D 不是第二个 WebGL renderer</strong>
-          <p><code>PageTurnSheet</code> 只使用 DOM 的 perspective、<code>rotateY</code>、正反面和阴影。它没有 Three.js scene、Canvas 或持久化物理状态；reduced-motion 下改为短淡出。</p>
+          <strong>折页几何仍不是第二个 WebGL renderer</strong>
+          <p><code>PageTurnSheet</code> 为当前日期与目标日期各建立左、右两张只读 DOM 快照，再让固定版本 <code>page-flip@2.0.7</code> 在独立容器中计算折线、裁切、正反面和动态阴影。真实 React 页面始终留在下层且不交给库；这里没有 Three.js scene、Canvas 或持久化物理状态，reduced-motion 下只做 120ms 目标跨页淡入。</p>
         </div>
       </section>
 
@@ -147,7 +147,7 @@
           <li><strong>按页保存</strong><span>“收笔”调用 <code>saveJournalEntry(rightDate, draft, draftTitle)</code>。repository 仍按显式日期写入标题和正文；store 更新 <code>journalPageEntries[date]</code>，仅当日期是今天时同步 <code>entry</code> 别名。</span></li>
           <li><strong>保护草稿</strong><span>标题或正文有改动时，翻页、切回阅读和关闭只显示“请先收笔”，不会提交游标、关闭本子或自动写库；标题/正文任一校验或保存失败都继续保留两个草稿。</span></li>
           <li><strong>请求翻页</strong><span>双页下方的上一页/下一页按钮调用 <code>requestJournalTurn('previous' | 'next')</code>。页面本体不再承担整页翻页命中；书写中由组件拦截，边界或 store 非 idle 请求返回 <code>false</code>。</span></li>
-          <li><strong>预读并提交</strong><span>store 补齐目标右页缺少的正文和贴纸，再把阶段从 <code>loading</code> 切到 <code>turning</code>；<code>PageTurnSheet</code> 动画结束后调用 <code>settleJournalTurn()</code> 原子提交游标。</span></li>
+          <li><strong>预读并提交</strong><span>store 补齐目标右页缺少的正文和贴纸，再把阶段从 <code>loading</code> 切到 <code>turning</code>；<code>PageTurnSheet</code> 同时持有当前与目标跨页快照，库完成按钮触发的折页后调用 <code>settleJournalTurn()</code> 原子提交游标，1080ms 兜底计时防止上游完成事件缺失。</span></li>
           <li><strong>保持今天</strong><span><code>selectedDate</code> 始终是今天，仍只决定贴纸工作台“放到日记”的目标；历史正文可编辑不会改变该贴纸 placement 语义。</span></li>
         </ol>
         <div class="code-block">
@@ -156,7 +156,7 @@
   -> requestJournalTurn(direction)
   -> loading: read target right page and previous neighbor if cache misses
   -> turning: render PageTurnSheet and lock new intents
-  -> CSS animationend
+  -> page-flip completes the isolated fold (1080ms safety fallback)
   -> settleJournalTurn()
   -> commit journalCursor
   -> idle</code></pre>
@@ -203,7 +203,7 @@
               <tr><td>页面日期、可见页缓存、游标和翻页阶段</td><td>Zustand store</td><td>打开本子期间；重开回今天</td><td>IndexedDB 阅读位置</td></tr>
               <tr><td><code>journalMode</code>、<code>writingPhase</code>、<code>draftDate</code> 与未保存草稿</td><td><code>JournalBook</code></td><td>本次本子面板；关闭后丢弃</td><td>Zustand、IndexedDB 与自动保存</td></tr>
               <tr><td>日记字体偏好</td><td><code>localStorage</code> / <code>journal-font.ts</code></td><td>当前浏览器；清除站点数据后回到纸页宋体</td><td><code>DailyEntry</code>、IndexedDB 与贴纸文字</td></tr>
-              <tr><td>纸张正反面、角度、阴影</td><td><code>PageTurnSheet</code> + CSS</td><td>一次动画</td><td>store 与数据库</td></tr>
+              <tr><td>当前/目标双页快照、折线、裁切与阴影</td><td><code>PageTurnSheet</code> + <code>page-flip</code> 隔离适配层</td><td>一次动画；卸载时销毁实例、事件、对象 URL 与受管动画帧</td><td>真实 React 页面、store 与数据库</td></tr>
               <tr><td>本子开合、相机、几何体和桌面贴纸纹理</td><td>R3F / Three.js</td><td>DeskScene Canvas</td><td>IndexedDB runtime 对象</td></tr>
               <tr><td>桌子、桌垫、本子的尺寸、部件与构建阶段</td><td><code>model-specs.ts</code> 与重建规格</td><td>源码版本</td><td>Mesh、Material、Texture</td></tr>
               <tr><td><code>sculptRuntime</code>、模型节点、材质和纹理</td><td>模型工厂 / <code>DeskScene</code></td><td>当前 Canvas 挂载</td><td>Zustand、IndexedDB</td></tr>
@@ -243,6 +243,7 @@
           <p><code>NotebookObject</code> 用透明命中几何发出打开意图，并驱动 <code>createNotebookModel</code> 的中央展示锚点、封面铰链和左右页堆；它不读取正文或 Blob。桌面端与移动端 near 机位已放宽视野，竖起轮廓不会撞到上边界。<code>JournalPanel</code> 在打开进度完成、<code>notebookPhase</code> 进入 <code>editing</code> 后接管，提供当前日期贴纸左页、正文右页、独立翻页控制、局部模式控件和按日期 textarea；开发和生产使用相同的 3D 隐藏与 DOM 挂载行为。旧 <code>RoundedBox</code> / <code>scene-visuals</code> 已不在当前桌子、桌垫、本子模型路径中。</p>
         <p>renderer 使用 ACES filmic tone mapping、显式曝光、PCF 阴影和 DPR <code>[1, 1.5]</code>；<code>SceneEnvironment</code> 生成并释放 PMREM 环境反射。场景只有一盏投影方向光，另有不投影的低强度补光；雾从主体之外开始，避免吞掉桌体层次。</p>
         <p><code>JournalStickerLayer</code> 的坐标是纸页内 <code>0..1</code> 归一化值。今天页保留 pointer capture、预览位置和 pointer up 提交；历史页即使进入正文书写也只复用 PNG 投影并关闭贴纸 pointer events。桌面 <code>StickerObject</code> 仍创建对象 URL 和 Three.js Texture，并在卸载时释放两者。</p>
+        <p><code>PageTurnSheet</code> 不克隆或重排 React 管理的真实纸页，而是命令式创建四张只读快照并交给 <code>page-flip</code>。适配层关闭纸角悬停、整页点击与手势，按实际页宽反向补偿上游的像素路径计时，使桌面和移动端都接近 720ms；上游 <code>destroy()</code> 未终止内部递归动画帧，因此 <code>page-flip-runtime.ts</code> 捕获并在卸载时取消这一个循环，同时显式移除全局事件、结束动画、撤销贴纸对象 URL。真实页面只在动画完成后由既有 store 协议切换。</p>
         <p>日记字体通过 <code>.journal-panel</code> 上的 <code>data-journal-font</code> 映射到共享 CSS 变量 <code>--journal-writing-font</code>，因此阅读正文和 textarea 使用同一套字体栈。玄冬楷书和随峰体来自 <code>public/fonts/</code> 的生产公共资源，其中随峰体为 cjkFonts 官方 <code>The Peak Font Plus V1.002</code>，许可证与来源哈希记录在同目录；云峰晶晶体只在开发模式由 <code>vite.config.ts</code> 的 <code>development-font-assets</code> 中间件从 <code>dev-assets/fonts/</code> 响应，并由组件在开发模式注入对应 <code>@font-face</code>。该中间件只应用于 <code>serve</code>，生产构建不会复制或引用云峰晶晶体。</p>
         <p><code>src/ui/</code> 是业务交互控件与 <code>animal-island-ui@1.5.1</code> 之间的适配边界：<code>Button</code> 将 loading 映射为原生 disabled，<code>IconButton</code> 固化可访问名称，<code>TextInput</code> 和 <code>SegmentedControl</code> 统一输入与选择语义。第二轮重写删除了让组件回到旧式深色小圆角外观的覆盖，<code>theme.css</code> 现在保留库的胶囊、按压阴影、Nunito/Noto Sans、青绿 active 与暖白 surface，只补 Dear Desk 的业务色彩和领域布局。App、Journal 和 Sticker 的交互控件从该层导入；<code>ProductApp</code> 对无需业务语义适配的纯展示型 <code>Time</code> 直接传入 <code>type="hud"</code>。领域专用 textarea、文件输入、颜色 swatch、range、纸页命中区、Forge mount 与抠图 Canvas 不进入通用组件库。</p>
         <p><code>StickerStudio</code> 的页面骨架仍由业务组件拥有，但 <code>src/styles.css</code> 和 <code>src/sticker-workbench.css</code> 已把旧胡桃木/深苔网格背景、窄纸侧栏和方形控件整体替换为浅薄荷点阵制作空间、暖白预览框、圆角点阵控制面板、青绿来源/材质选择与青绿/珊瑚双目标动作。Forge Canvas、来源更新、抠图 session、capture 和 placement action 没有变化。</p>
@@ -319,7 +320,8 @@ edit historical text:
           <div><code><a href="../../public/fonts/ThePeakFontPlus-SOURCE.txt">public/fonts/ThePeakFontPlus-SOURCE.txt</a></code><span>随峰体来源、贡献者、版本、许可证和 SHA-256 记录</span></div>
           <div><code><a href="../../public/fonts/ThePeakFontPlus-OFL.txt">public/fonts/ThePeakFontPlus-OFL.txt</a></code><span>SIL Open Font License 1.1 原文</span></div>
           <div><code><a href="../../src/features/journal/JournalPage.tsx">JournalPage.tsx</a></code><span>贴纸左页、正文右页、独立翻页控制与工作台入口</span></div>
-          <div><code><a href="../../src/features/journal/PageTurnSheet.tsx">PageTurnSheet.tsx</a></code><span>CSS 动画完成后提交游标</span></div>
+          <div><code><a href="../../src/features/journal/PageTurnSheet.tsx">PageTurnSheet.tsx</a></code><span>建立四张只读页面快照、驱动核心库并在完成后提交游标</span></div>
+          <div><code><a href="../../src/features/journal/page-flip-runtime.ts">page-flip-runtime.ts</a></code><span>归一化响应式翻页时长，并捕获、停止上游未公开销毁入口的递归动画帧</span></div>
           <div><code><a href="../../src/features/journal/JournalStickerLayer.tsx">JournalStickerLayer.tsx</a></code><span>今天可交互、历史只投影的 DOM 贴纸层</span></div>
           <div><code><a href="../../src/domain/daily-entry.ts">src/domain/daily-entry.ts</a></code><span><code>LocalDate</code>、正文规则、日期去重排序和 repository 接口</span></div>
           <div><code><a href="../../src/domain/sticker.ts">src/domain/sticker.ts</a></code><span>双 surface union、坐标和日期查询接口</span></div>
@@ -350,14 +352,14 @@ edit historical text:
       <section id="verification" data-search-title="验证证据与未覆盖边界">
         <p class="section-index">12 · 验证</p>
         <h2>自动证据、模型规格和双视口 UI 检查均已通过</h2>
-        <p>当前测试覆盖既有日期、保存、翻页、贴纸和迁移行为，也覆盖模型层级、材质与资源释放、九项调色键、HEX 校验、本子竖起/摊开端点、左右镜像角位移、旧顶层纸面与快速页片删除、统一的 3D/DOM 交接、响应式时长、HUD 时钟、字体偏好读写/回退、字体菜单恢复和 UI 适配层的点击与输入透传。ESLint、TypeScript/Vite production build 和文档引用检查均通过；生产构建产物不包含云峰晶晶体或 <code>/dev-fonts/</code> 引用。</p>
+        <p>当前测试覆盖既有日期、保存、翻页、贴纸和迁移行为，也覆盖四张翻页快照的日期与方向排序、响应式翻页时长、上游递归动画帧清理、模型层级、材质与资源释放、九项调色键、HEX 校验、本子竖起/摊开端点、左右镜像角位移、旧顶层纸面与快速页片删除、统一的 3D/DOM 交接、HUD 时钟、字体偏好读写/回退、字体菜单恢复和 UI 适配层的点击与输入透传。ESLint、TypeScript/Vite production build 和文档引用检查均通过；生产构建产物不包含云峰晶晶体或 <code>/dev-fonts/</code> 引用。</p>
         <div class="table-wrap">
           <table>
             <thead><tr><th>能力</th><th>当前状态</th><th>证据边界</th></tr></thead>
             <tbody>
               <tr><td>当天正文与 IndexedDB 恢复</td><td><span class="status status-review">已实现</span></td><td>repository、store、DOM 自动测试</td></tr>
               <tr><td>独立贴纸工作台与双 surface</td><td><span class="status status-review">已完成</span></td><td>自动测试、构建与开发者验收；浏览器证据边界见 DD-20260808-002</td></tr>
-              <tr><td>双页本子与仿真翻页</td><td><span class="status status-review">已完成</span></td><td>DD-20260809-001 自动测试、lint、build 与开发者验收</td></tr>
+              <tr><td>双页本子与仿真翻页</td><td><span class="status status-review">已完成</span></td><td>DD-20260821-002 已把刚性 CSS 半页替换为隔离的 <code>page-flip@2.0.7</code> 四页快照；组件/清理测试、lint、build、桌面/移动双向中间帧、reduced-motion 和连续四轮资源清理均通过，并已由用户验收</td></tr>
               <tr><td>统一阅读与历史正文书写</td><td><span class="status status-review">待验收</span></td><td>43 个全量测试、lint、build 及桌面/移动打开与关闭恢复流程通过</td></tr>
               <tr><td>日记字体切换与偏好恢复</td><td><span class="status status-review">已完成</span></td><td>生产提供纸页宋体/玄冬楷书/随峰体，开发额外提供云峰晶晶体；随峰体资源、偏好单元测试、组件测试、lint、production build 和双视口交互均已通过</td></tr>
               <tr><td>程序化桌子、桌垫与本子</td><td><span class="status status-review">待验收</span></td><td>本子已按 DD-20260817-007 改为书脊贴桌立起、左右半册镜像同速摊开和逆向关闭；全开终点左右页堆同高，不再创建额外连续顶层纸面，闭合圆背附件和独立页缝节点不再露出。自动测试覆盖直立书脊、镜像角位移、封面接缝与终态结构切换。桌子程序化近似的既有 silhouette IoU 仍为 <code>0.6311</code>，因此整体模型视觉继续等待用户验收</td></tr>
@@ -374,7 +376,7 @@ edit historical text:
         </div>
       </section>
 
-  <footer>Dear Desk 当前系统架构 · 基于可运行源码、76 个自动测试与 DD-20260820-003 实施结果 · 2026-08-20</footer>
+  <footer>Dear Desk 当前系统架构 · 基于可运行源码、85 个自动测试与 DD-20260821-002 实施结果 · 2026-08-21</footer>
     </main>
   </div>
 

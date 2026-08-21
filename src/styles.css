@@ -976,100 +976,88 @@ textarea:focus-visible {
   font-family: "The Peak Font Plus", "Songti SC", serif;
 }
 
-.page-turn-sheet {
+.page-turn-overlay {
   position: absolute;
   z-index: 20;
-  top: 0;
-  bottom: 0;
-  width: 50%;
-  transform-style: preserve-3d;
-  will-change: transform, filter;
-  pointer-events: none;
-}
-
-.page-turn-sheet.is-previous {
-  left: 0;
-  transform-origin: right center;
-  animation: journal-turn-previous 720ms cubic-bezier(0.42, 0, 0.2, 1) both;
-}
-
-.page-turn-sheet.is-next {
-  right: 0;
-  transform-origin: left center;
-  animation: journal-turn-next 720ms cubic-bezier(0.42, 0, 0.2, 1) both;
-}
-
-.page-turn-face {
-  position: absolute;
   inset: 0;
-  display: flex;
-  align-items: flex-end;
-  padding: 24px 28px;
-  border: 1px solid rgba(117, 91, 61, 0.18);
-  backface-visibility: hidden;
   overflow: hidden;
-  transform-style: preserve-3d;
-  background:
-    repeating-linear-gradient(0deg, transparent 0 5px, var(--paper-fibers) 5px 6px),
-    linear-gradient(90deg, #e4d4b9, #faf2e1 16%, #f1e6d1 84%, #d4c1a2);
-  color: #8a7b68;
-  font-size: 11px;
-  box-shadow: 0 0 34px rgba(54, 35, 24, 0.34);
+  pointer-events: none;
 }
 
-.page-turn-face::before {
-  content: '';
+.page-turn-book {
   position: absolute;
   inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
   pointer-events: none;
-  background:
-    linear-gradient(90deg, rgba(66, 42, 25, 0.23), transparent 18%, transparent 78%, rgba(255, 255, 255, 0.26)),
-    radial-gradient(ellipse at 50% 48%, transparent 42%, rgba(72, 46, 26, 0.14) 100%);
-  mix-blend-mode: multiply;
-  opacity: 0.72;
 }
 
-.page-turn-face::after {
-  content: '';
+.page-turn-book .stf__wrapper,
+.page-turn-book .stf__block {
   position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 10px;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+}
+
+.page-turn-book .stf__block {
+  overflow: hidden;
+}
+
+.page-turn-snapshot {
+  contain: layout paint;
+  user-select: none;
   pointer-events: none;
-  background: repeating-linear-gradient(90deg, #d1bd9b 0 1px, #fff4d9 1px 3px);
-  box-shadow: 0 0 14px rgba(54, 35, 24, 0.24);
 }
 
-.page-turn-front::after {
-  right: 0;
+.page-turn-snapshot .journal-page-copy {
+  overflow: hidden;
 }
 
-.page-turn-back::after {
-  left: 0;
+.page-turn-snapshot-action {
+  align-self: flex-start;
+  min-height: 40px;
+  margin-top: 14px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 14px;
+  border: 2px solid #d4c9b4;
+  border-radius: 8px;
+  background: #fffbe7;
+  color: #725d42;
+  box-shadow: 0 3px 0 rgba(61, 52, 40, 0.16);
+  font-size: 12px;
+  font-weight: 800;
 }
 
-.page-turn-back {
-  transform: rotateY(180deg);
-  justify-content: flex-end;
-  background:
-    repeating-linear-gradient(0deg, transparent 0 5px, var(--paper-fibers) 5px 6px),
-    linear-gradient(90deg, #d4c1a2, #f1e6d1 16%, #faf2e1 84%, #e4d4b9);
+.page-turn-overlay.is-reduced-motion {
+  animation: journal-turn-reduced 120ms linear both;
 }
 
-@keyframes journal-turn-previous {
-  0% { filter: brightness(1); transform: rotateY(0deg) rotateX(0deg) translateZ(0); }
-  32% { filter: brightness(0.86); transform: rotateY(54deg) rotateX(-2deg) translateZ(7px); }
-  50% { filter: brightness(0.68); transform: rotateY(101deg) rotateX(3deg) translateZ(14px); }
-  72% { filter: brightness(0.9); transform: rotateY(151deg) rotateX(-1deg) translateZ(6px); }
-  100% { filter: brightness(1); transform: rotateY(180deg) rotateX(0deg) translateZ(0); }
+.page-turn-overlay.is-reduced-motion .page-turn-book {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
 }
 
-@keyframes journal-turn-next {
-  0% { filter: brightness(1); transform: rotateY(0deg) rotateX(0deg) translateZ(0); }
-  32% { filter: brightness(0.86); transform: rotateY(-54deg) rotateX(2deg) translateZ(7px); }
-  50% { filter: brightness(0.68); transform: rotateY(-101deg) rotateX(-3deg) translateZ(14px); }
-  72% { filter: brightness(0.9); transform: rotateY(-151deg) rotateX(1deg) translateZ(6px); }
-  100% { filter: brightness(1); transform: rotateY(-180deg) rotateX(0deg) translateZ(0); }
+.page-turn-overlay.is-reduced-motion .page-turn-snapshot {
+  position: relative !important;
+  inset: auto !important;
+  width: auto !important;
+  height: 100% !important;
+  transform: none !important;
+  clip-path: none !important;
+}
+
+.page-turn-overlay.is-next.is-reduced-motion .page-turn-snapshot:nth-child(-n + 2),
+.page-turn-overlay.is-previous.is-reduced-motion .page-turn-snapshot:nth-child(n + 3) {
+  display: none !important;
+}
+
+@keyframes journal-turn-reduced {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .journal-turn-status {
@@ -1568,14 +1556,8 @@ textarea:focus-visible {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .page-turn-sheet.is-previous,
-  .page-turn-sheet.is-next {
-    animation: journal-turn-reduced 120ms linear both;
-  }
-
-  @keyframes journal-turn-reduced {
-    from { opacity: 1; }
-    to { opacity: 0; }
+  .page-turn-overlay {
+    animation-duration: 120ms;
   }
 }
 

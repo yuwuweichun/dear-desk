@@ -127,10 +127,11 @@ describe('JournalPanel', () => {
 
     await user.click(screen.getByRole('button', { name: /上一页/ }))
     await waitFor(() => {
-      expect(container.querySelector('.page-turn-sheet.is-previous')).toBeInTheDocument()
+      expect(container.querySelector('.page-turn-overlay.is-previous')).toBeInTheDocument()
     })
-    const previousTurnSheet = container.querySelector('.page-turn-sheet.is-previous')
-    expect(previousTurnSheet?.textContent?.trim()).toBe('')
+    const previousTurnSheet = container.querySelector('.page-turn-overlay.is-previous')
+    expect(previousTurnSheet).toHaveAttribute('data-page-turn-engine', 'page-flip')
+    expect(previousTurnSheet).toHaveTextContent('上一页留下的内容')
     act(() => store.getState().settleJournalTurn())
 
     const rightPage = container.querySelector('.journal-page-right')
@@ -143,10 +144,10 @@ describe('JournalPanel', () => {
     await user.click(readingMode)
     await user.click(screen.getByRole('button', { name: /下一页/ }))
     await waitFor(() => {
-      expect(container.querySelector('.page-turn-sheet.is-next')).toBeInTheDocument()
+      expect(container.querySelector('.page-turn-overlay.is-next')).toBeInTheDocument()
     })
-    const nextTurnSheet = container.querySelector('.page-turn-sheet.is-next')
-    expect(nextTurnSheet?.textContent?.trim()).toBe('')
+    const nextTurnSheet = container.querySelector('.page-turn-overlay.is-next')
+    expect(nextTurnSheet).toHaveAttribute('data-page-turn-engine', 'page-flip')
     act(() => store.getState().settleJournalTurn())
 
     expect(screen.getByRole('heading', { name: '今天' })).toBeVisible()
@@ -240,7 +241,7 @@ describe('JournalPanel', () => {
 
     await user.click(screen.getByRole('button', { name: /上一页/ }))
     await waitFor(() => {
-      expect(container.querySelector('.page-turn-sheet.is-previous')).toBeInTheDocument()
+      expect(container.querySelector('.page-turn-overlay.is-previous')).toBeInTheDocument()
     })
     act(() => store.getState().settleJournalTurn())
 

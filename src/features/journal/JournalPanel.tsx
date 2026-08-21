@@ -359,8 +359,20 @@ function JournalBook() {
 
         {journalTurnPhase === 'turning' && journalTurnDirection && pendingDate ? (
           <PageTurnSheet
+            current={{
+              date: rightDate,
+              entry: currentEntry,
+              isToday: rightDate === selectedDate,
+              stickers: stickersFor(rightDate),
+            }}
             direction={journalTurnDirection}
             onComplete={settleJournalTurn}
+            target={{
+              date: pendingDate,
+              entry: entryFor(pendingDate),
+              isToday: pendingDate === selectedDate,
+              stickers: stickersFor(pendingDate),
+            }}
           />
         ) : null}
         </div>
