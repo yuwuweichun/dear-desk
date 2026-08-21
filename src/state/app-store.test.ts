@@ -296,6 +296,20 @@ describe('app store', () => {
     expect(store.getState()).toMatchObject({ notebookPhase: 'desk', stickerWorkflow: 'idle' })
   })
 
+  it('closes the journal before opening the sticker workbench', () => {
+    const store = createAppStore(createRepository(), date, createStickerRepository())
+    store.getState().requestNotebookOpen()
+    store.getState().advanceNotebookPhase('approaching')
+    store.getState().advanceNotebookPhase('opening')
+    store.getState().openStickerStudioFromJournal()
+
+    expect(store.getState()).toMatchObject({
+      notebookPhase: 'desk',
+      stickerWorkflow: 'composing',
+      pendingSticker: null,
+    })
+  })
+
   it('places the same prepared draft on the desk or current journal', async () => {
     const stickers = createStickerRepository()
     const store = createAppStore(createRepository(), date, stickers)

@@ -3,12 +3,52 @@ import userEvent from '@testing-library/user-event'
 
 import type { DailyEntry, DailyEntryRepository, LocalDate } from '../../domain/daily-entry'
 import { JOURNAL_FONT_STORAGE_KEY } from '../../domain/journal-font'
+import type { PlacedSticker } from '../../domain/sticker'
 import { createAppStore } from '../../state/app-store'
 import { AppStoreProvider } from '../../state/app-store-context'
 import { JournalPanel } from './JournalPanel'
 
 const date = '2026-08-06' as LocalDate
 const previousDate = '2026-08-05' as LocalDate
+
+const journalSticker: PlacedSticker = {
+  definition: {
+    id: 'definition-journal',
+    kind: 'text',
+    source: {
+      text: '今天很好',
+      color: '#19191d',
+      fontFamily: 'Arial',
+      fontWeight: 900,
+    },
+    forge: {
+      material: 'original',
+      materialIntensity: 0.86,
+      outlineColor: '#ffffff',
+      outlineWidth: 14,
+    },
+    previewAssetId: 'asset-journal',
+    createdAt: '2026-08-07T01:00:00.000Z',
+  },
+  asset: {
+    id: 'asset-journal',
+    blob: new Blob(['png'], { type: 'image/png' }),
+    height: 80,
+    mimeType: 'image/png',
+    upstreamCommit: '068caa49eef69745564a5debbc01bab3fcd31042',
+    width: 120,
+  },
+  instance: {
+    id: 'instance-journal',
+    definitionId: 'definition-journal',
+    journalDate: date,
+    position: { x: 0.4, y: 0.3 },
+    rotationY: 0,
+    surface: 'journal',
+    createdAt: '2026-08-07T01:00:00.000Z',
+    updatedAt: '2026-08-07T01:00:00.000Z',
+  },
+}
 
 const dailyEntry = (
   entryDate: LocalDate,
@@ -65,7 +105,7 @@ describe('JournalPanel', () => {
     window.localStorage.clear()
   })
 
-  it('opens in reading mode with a blank left page and keeps the mode across turns', async () => {
+  it('opens with a sticker left page and keeps the mode across turns', async () => {
     const repository = createRepository({
       [previousDate]: dailyEntry(previousDate, '上一页留下的内容'),
     })
@@ -77,13 +117,20 @@ describe('JournalPanel', () => {
     expect(readingMode).toHaveAttribute('aria-pressed', 'true')
     expect(editingMode).toHaveAttribute('aria-pressed', 'false')
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument()
-    expect(container.querySelector('.journal-page-left')).toHaveTextContent('')
+    expect(container.querySelector('.journal-page-left')).toHaveTextContent('前往贴纸工作台')
+    expect(screen.getByRole('button', { name: '前往贴纸工作台' })).toBeVisible()
     expect(container.querySelector('.journal-bookmark')).not.toBeInTheDocument()
+    const navigation = container.querySelector('.journal-page-navigation-controls')
+    expect(navigation).not.toHaveTextContent('8月')
+    expect(navigation?.querySelector('.journal-turn-button.is-previous svg')).toHaveClass('lucide-undo-2')
+    expect(navigation?.querySelector('.journal-turn-button.is-next svg')).toHaveClass('lucide-redo-2')
 
     await user.click(screen.getByRole('button', { name: /上一页/ }))
     await waitFor(() => {
       expect(container.querySelector('.page-turn-sheet.is-previous')).toBeInTheDocument()
     })
+    const previousTurnSheet = container.querySelector('.page-turn-sheet.is-previous')
+    expect(previousTurnSheet?.textContent?.trim()).toBe('')
     act(() => store.getState().settleJournalTurn())
 
     const rightPage = container.querySelector('.journal-page-right')
@@ -98,10 +145,27 @@ describe('JournalPanel', () => {
     await waitFor(() => {
       expect(container.querySelector('.page-turn-sheet.is-next')).toBeInTheDocument()
     })
+    const nextTurnSheet = container.querySelector('.page-turn-sheet.is-next')
+    expect(nextTurnSheet?.textContent?.trim()).toBe('')
     act(() => store.getState().settleJournalTurn())
 
     expect(screen.getByRole('heading', { name: '今天' })).toBeVisible()
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument()
+  })
+
+  it('shows current-date stickers on the left page and opens the sticker workbench', async () => {
+    const user = userEvent.setup()
+    const { container, store } = await renderJournal(createRepository())
+    act(() => store.setState({ journalPageStickers: { [date]: [journalSticker] } }))
+
+    expect(await screen.findByRole('button', { name: '选择贴纸 今天很好' })).toBeVisible()
+    expect(container.querySelector('.journal-page-left')).toHaveTextContent('1 张')
+
+    await user.click(screen.getByRole('button', { name: '前往贴纸工作台' }))
+    expect(store.getState()).toMatchObject({
+      notebookPhase: 'desk',
+      stickerWorkflow: 'composing',
+    })
   })
 
   it('writes and saves today through the editing and writing controls', async () => {

@@ -108,6 +108,7 @@ export interface AppState {
   saveJournalEntry: (date: LocalDate, text: string, title?: string) => Promise<boolean>
   resetSaveStatus: () => void
   openStickerStudio: () => void
+  openStickerStudioFromJournal: () => void
   cancelStickerComposer: () => void
   prepareStickerPlacement: (
     draft: StickerDraft,
@@ -534,6 +535,21 @@ export const createAppStore = (
               stickerErrorMessage: null,
               stickerWorkflow: 'composing',
               selectedStickerId: null,
+            }
+          : state,
+      ),
+
+    openStickerStudioFromJournal: () =>
+      set((state) =>
+        state.notebookPhase === 'editing' && state.stickerWorkflow === 'idle'
+          ? {
+              notebookPhase: 'desk',
+              freeCameraEnabled: false,
+              deskCameraTransitioning: false,
+              pendingSticker: null,
+              selectedStickerId: null,
+              stickerErrorMessage: null,
+              stickerWorkflow: 'composing',
             }
           : state,
       ),

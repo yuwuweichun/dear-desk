@@ -19,11 +19,11 @@ import type { JournalTurnDirection } from '../../state/app-store'
 import { useAppStore } from '../../state/app-store-context'
 import { Button, IconButton, SegmentedControl } from '../../ui'
 import {
-  BlankJournalPage,
   JournalPageFrame,
+  JournalNavigationControls,
   JournalReadingPage,
+  JournalStickerPage,
 } from './JournalPage'
-import { JournalStickerLayer } from './JournalStickerLayer'
 import { PageTurnSheet } from './PageTurnSheet'
 
 type JournalMode = 'reading' | 'editing'
@@ -60,6 +60,9 @@ function JournalBook() {
   const stickerErrorMessage = useAppStore((state) => state.stickerErrorMessage)
   const stickerWorkflow = useAppStore((state) => state.stickerWorkflow)
   const requestNotebookClose = useAppStore((state) => state.requestNotebookClose)
+  const openStickerStudioFromJournal = useAppStore(
+    (state) => state.openStickerStudioFromJournal,
+  )
   const saveJournalEntry = useAppStore((state) => state.saveJournalEntry)
   const resetSaveStatus = useAppStore((state) => state.resetSaveStatus)
   const loadJournalPages = useAppStore((state) => state.loadJournalPages)
@@ -130,7 +133,7 @@ function JournalBook() {
   const entryFor = (date: LocalDate) =>
     date === selectedDate ? entry ?? journalPageEntries[date] ?? null : journalPageEntries[date] ?? null
   const stickersFor = (date: LocalDate): PlacedSticker[] =>
-    date === selectedDate ? journalStickers : journalPageStickers[date] ?? []
+    journalPageStickers[date] ?? (date === selectedDate ? journalStickers : [])
 
   const currentEntry = entryFor(rightDate)
   const currentText = currentEntry?.text ?? ''
@@ -219,6 +222,16 @@ function JournalBook() {
     requestNotebookClose()
   }
 
+  const openStickerWorkbench = () => {
+    if (dirty) {
+      setSessionMessage('请先收笔，再前往贴纸工作台。')
+      return
+    }
+    if (turning || saving || placingSticker) return
+    setSessionMessage('')
+    openStickerStudioFromJournal()
+  }
+
   const pendingDate = journalPendingCursor === null
     ? null
     : journalPageDates[journalPendingCursor] ?? null
@@ -237,7 +250,7 @@ function JournalBook() {
     >
       <h1 id="journal-title" className="sr-only">双页日记本</h1>
       <p id="journal-navigation-help" className="sr-only">
-        左页留白并用于返回上一页，当前日期的内容只显示在右页。
+        左页展示当前日期贴纸，右页显示正文；使用本子下方的按钮翻页。
       </p>
       <IconButton
         className="icon-button journal-close-button"
@@ -252,11 +265,13 @@ function JournalBook() {
 
       <div className="journal-book-stage">
         <div className="journal-book" aria-busy={journalLoadStatus === 'loading'}>
-        <BlankJournalPage
-          blocked={writing}
+        <JournalStickerPage
+          blocked={saving || placingSticker}
+          date={rightDate}
           disabled={pageUnavailable}
-          onNavigate={navigate}
-          previousDate={previousDate}
+          interactive={rightDate === selectedDate}
+          onOpenWorkbench={openStickerWorkbench}
+          stickers={stickersFor(rightDate)}
         />
 
         <div className="journal-spine" aria-hidden="true" />
@@ -316,10 +331,6 @@ function JournalBook() {
                   placeholder={loadStatus === 'loading' ? '正在打开...' : '写下一句话'}
                   disabled={saving || placingSticker}
                 />
-                <JournalStickerLayer
-                  stickers={stickersFor(rightDate)}
-                  interactive={rightDate === selectedDate}
-                />
               </div>
 
               <div className="journal-meta">
@@ -341,27 +352,29 @@ function JournalBook() {
         ) : (
           <JournalReadingPage
             date={rightDate}
-            disabled={pageUnavailable}
             entry={currentEntry}
-            interactiveStickers={rightDate === selectedDate}
             isToday={rightDate === selectedDate}
-            nextDate={nextDate}
-            onNavigate={navigate}
-            stickers={stickersFor(rightDate)}
           />
         )}
 
         {journalTurnPhase === 'turning' && journalTurnDirection && pendingDate ? (
           <PageTurnSheet
             direction={journalTurnDirection}
-            fromDate={rightDate}
-            toDate={pendingDate}
             onComplete={settleJournalTurn}
           />
         ) : null}
         </div>
 
       </div>
+
+      <JournalNavigationControls
+        blocked={writing}
+        currentDate={rightDate}
+        disabled={pageUnavailable}
+        nextDate={nextDate}
+        onNavigate={navigate}
+        previousDate={previousDate}
+      />
 
       <div className="journal-mode-controls" aria-label="日记模式与书写动作">
         <SegmentedControl

@@ -140,13 +140,13 @@
           <li><strong>加载今天</strong><span><code>App</code> 调用 <code>loadToday()</code> 和 <code>loadStickers()</code>，保持桌面摘要、当天编辑和贴纸目标兼容。</span></li>
           <li><strong>打开本子</strong><span>3D 命中区或 DOM 按钮把 <code>NotebookPhase</code> 推进到 <code>editing</code>；此时统一挂载 <code>JournalPanel</code> 并以 <code>reading + idle</code> 开始，同时隐藏 3D 本子。</span></li>
           <li><strong>建立页序</strong><span><code>loadJournalPages()</code> 并行读取 <code>DailyEntryRepository.listDates()</code> 与 <code>StickerRepository.listJournalDates()</code>，合并今天、去重、排序并丢弃未来日期。</span></li>
-          <li><strong>按需读取</strong><span>首次读取当前右页和相邻上一日期的正文与贴纸 Blob；页序查询本身只读取日期/instance 字段，不加载全部历史 PNG。</span></li>
-          <li><strong>呈现当前日期</strong><span><code>journalCursor</code> 只代表右页日期。左页不显示日期、正文或贴纸，只保留上一页命中；右页统一投影今天或历史正文与贴纸。</span></li>
+          <li><strong>按需读取</strong><span>首次读取当前右页日期的正文与贴纸 Blob；页序查询本身只读取日期/instance 字段，不加载全部历史 PNG。</span></li>
+          <li><strong>呈现当前日期</strong><span><code>journalCursor</code> 只代表右页日期。左页展示同一日期的贴纸并提供“前往贴纸工作台”入口；右页统一投影今天或历史正文。</span></li>
           <li><strong>进入书写</strong><span>外置的单个竖向滑动按钮按“阅 / 读 / 编 / 辑”自上而下显示，选中块随 <code>journalMode</code> 上下移动；切到编辑会直接以当前右页标题和正文初始化 <code>draftDate</code>、<code>draftTitle</code> 与 <code>draft</code>，切换为标题输入和 textarea 并聚焦；收笔成功后回到 <code>editing + idle</code>，再次点击书写只恢复同一页已保存值；书写阶段动作变为“图标 / 收 / 笔”。</span></li>
           <li><strong>选择字体</strong><span>编辑模式在书写动作下方显示字体入口。<code>JournalBook</code> 从 <code>localStorage</code> 读取稳定字体 ID，并用 <code>data-journal-font</code> 同时控制 textarea 与只读正文；切换字体不改写 <code>DailyEntry</code> 纯文本。生产环境提供纸页宋体、玄冬楷书和随峰体，开发环境额外允许云峰晶晶体。</span></li>
           <li><strong>按页保存</strong><span>“收笔”调用 <code>saveJournalEntry(rightDate, draft, draftTitle)</code>。repository 仍按显式日期写入标题和正文；store 更新 <code>journalPageEntries[date]</code>，仅当日期是今天时同步 <code>entry</code> 别名。</span></li>
           <li><strong>保护草稿</strong><span>标题或正文有改动时，翻页、切回阅读和关闭只显示“请先收笔”，不会提交游标、关闭本子或自动写库；标题/正文任一校验或保存失败都继续保留两个草稿。</span></li>
-          <li><strong>请求翻页</strong><span>空白左页调用 <code>requestJournalTurn('previous')</code>，右页窄页缘调用 <code>requestJournalTurn('next')</code>。书写中由组件拦截；边界或 store 非 idle 请求返回 <code>false</code>。</span></li>
+          <li><strong>请求翻页</strong><span>双页下方的上一页/下一页按钮调用 <code>requestJournalTurn('previous' | 'next')</code>。页面本体不再承担整页翻页命中；书写中由组件拦截，边界或 store 非 idle 请求返回 <code>false</code>。</span></li>
           <li><strong>预读并提交</strong><span>store 补齐目标右页缺少的正文和贴纸，再把阶段从 <code>loading</code> 切到 <code>turning</code>；<code>PageTurnSheet</code> 动画结束后调用 <code>settleJournalTurn()</code> 原子提交游标。</span></li>
           <li><strong>保持今天</strong><span><code>selectedDate</code> 始终是今天，仍只决定贴纸工作台“放到日记”的目标；历史正文可编辑不会改变该贴纸 placement 语义。</span></li>
         </ol>
@@ -187,7 +187,7 @@
   -> desk: StickerObject (R3F)
   -> journal: JournalStickerLayer (DOM, selectedDate = today)</code></pre>
         </div>
-        <p>日记历史贴纸只投影，不允许选择或拖动；历史正文则通过统一的“编辑 → 书写 → 收笔”流程修改。今天页继续支持贴纸放置、移动、<code>15°</code> 旋转和删除。右页下一页命中缩到页缘，避免覆盖正文选择和 textarea。</p>
+        <p>日记历史贴纸只投影，不允许选择或拖动；历史正文则通过统一的“编辑 → 书写 → 收笔”流程修改。当前日期左页支持贴纸放置、移动、<code>15°</code> 旋转和删除；工作台入口会先退出本子并让 Sticker Forge 接管唯一制作 Canvas。上一页/下一页按钮独立于纸面，避免覆盖正文选择和 textarea。</p>
       </section>
 
       <section id="ownership" data-search-title="状态所有权">
@@ -240,7 +240,7 @@
       <section id="rendering" data-search-title="DOM、R3F 与翻页渲染边界">
         <p class="section-index">08 · 渲染</p>
         <h2>R3F 给出空间本子，DOM 适配层保持表单语义</h2>
-        <p><code>NotebookObject</code> 用透明命中几何发出打开意图，并驱动 <code>createNotebookModel</code> 的中央展示锚点、封面铰链和左右页堆；它不读取正文或 Blob。桌面端与移动端 near 机位已放宽视野，竖起轮廓不会撞到上边界。<code>JournalPanel</code> 在打开进度完成、<code>notebookPhase</code> 进入 <code>editing</code> 后接管，提供空白左页、统一右页、局部模式控件、按日期 textarea 和纸页贴纸；开发和生产使用相同的 3D 隐藏与 DOM 挂载行为。旧 <code>RoundedBox</code> / <code>scene-visuals</code> 已不在当前桌子、桌垫、本子模型路径中。</p>
+          <p><code>NotebookObject</code> 用透明命中几何发出打开意图，并驱动 <code>createNotebookModel</code> 的中央展示锚点、封面铰链和左右页堆；它不读取正文或 Blob。桌面端与移动端 near 机位已放宽视野，竖起轮廓不会撞到上边界。<code>JournalPanel</code> 在打开进度完成、<code>notebookPhase</code> 进入 <code>editing</code> 后接管，提供当前日期贴纸左页、正文右页、独立翻页控制、局部模式控件和按日期 textarea；开发和生产使用相同的 3D 隐藏与 DOM 挂载行为。旧 <code>RoundedBox</code> / <code>scene-visuals</code> 已不在当前桌子、桌垫、本子模型路径中。</p>
         <p>renderer 使用 ACES filmic tone mapping、显式曝光、PCF 阴影和 DPR <code>[1, 1.5]</code>；<code>SceneEnvironment</code> 生成并释放 PMREM 环境反射。场景只有一盏投影方向光，另有不投影的低强度补光；雾从主体之外开始，避免吞掉桌体层次。</p>
         <p><code>JournalStickerLayer</code> 的坐标是纸页内 <code>0..1</code> 归一化值。今天页保留 pointer capture、预览位置和 pointer up 提交；历史页即使进入正文书写也只复用 PNG 投影并关闭贴纸 pointer events。桌面 <code>StickerObject</code> 仍创建对象 URL 和 Three.js Texture，并在卸载时释放两者。</p>
         <p>日记字体通过 <code>.journal-panel</code> 上的 <code>data-journal-font</code> 映射到共享 CSS 变量 <code>--journal-writing-font</code>，因此阅读正文和 textarea 使用同一套字体栈。玄冬楷书和随峰体来自 <code>public/fonts/</code> 的生产公共资源，其中随峰体为 cjkFonts 官方 <code>The Peak Font Plus V1.002</code>，许可证与来源哈希记录在同目录；云峰晶晶体只在开发模式由 <code>vite.config.ts</code> 的 <code>development-font-assets</code> 中间件从 <code>dev-assets/fonts/</code> 响应，并由组件在开发模式注入对应 <code>@font-face</code>。该中间件只应用于 <code>serve</code>，生产构建不会复制或引用云峰晶晶体。</p>
@@ -318,7 +318,7 @@ edit historical text:
           <div><code><a href="../../public/fonts/ThePeakFontPlus-Regular.ttf">public/fonts/ThePeakFontPlus-Regular.ttf</a></code><span>官方 The Peak Font Plus V1.002 生产字体资源</span></div>
           <div><code><a href="../../public/fonts/ThePeakFontPlus-SOURCE.txt">public/fonts/ThePeakFontPlus-SOURCE.txt</a></code><span>随峰体来源、贡献者、版本、许可证和 SHA-256 记录</span></div>
           <div><code><a href="../../public/fonts/ThePeakFontPlus-OFL.txt">public/fonts/ThePeakFontPlus-OFL.txt</a></code><span>SIL Open Font License 1.1 原文</span></div>
-          <div><code><a href="../../src/features/journal/JournalPage.tsx">JournalPage.tsx</a></code><span>空白左页、统一右页阅读内容与窄页缘导航</span></div>
+          <div><code><a href="../../src/features/journal/JournalPage.tsx">JournalPage.tsx</a></code><span>贴纸左页、正文右页、独立翻页控制与工作台入口</span></div>
           <div><code><a href="../../src/features/journal/PageTurnSheet.tsx">PageTurnSheet.tsx</a></code><span>CSS 动画完成后提交游标</span></div>
           <div><code><a href="../../src/features/journal/JournalStickerLayer.tsx">JournalStickerLayer.tsx</a></code><span>今天可交互、历史只投影的 DOM 贴纸层</span></div>
           <div><code><a href="../../src/domain/daily-entry.ts">src/domain/daily-entry.ts</a></code><span><code>LocalDate</code>、正文规则、日期去重排序和 repository 接口</span></div>

@@ -5,13 +5,13 @@
 | 字段 | 内容 |
 | --- | --- |
 | 状态 | 当前源码事实 |
-| 最后更新 | 2026-08-08 |
-| 对应任务 | `DD-20260808-002` |
+| 最后更新 | 2026-08-20 |
+| 对应任务 | `DD-20260808-002`, `DD-20260820-005` |
 | 数据版本 | IndexedDB v3 |
 
 ## 1. 用户调用链
 
-贴纸系统与日记是两个并列入口。桌面稳定状态同时显示“打开本子”和“贴纸工作台”；日记编辑器不再读取正文草稿来制作贴纸。
+贴纸系统与日记是两个并列入口。桌面稳定状态同时显示“打开本子”和“贴纸工作台”；打开本子后，左页固定展示当前右页日期的贴纸并提供“前往贴纸工作台”入口；日记编辑器不再读取正文草稿来制作贴纸。
 
 ```text
 贴纸工作台
@@ -36,6 +36,8 @@
 - `src/features/journal/JournalStickerLayer.tsx` 是纸页上的 DOM 贴纸投影；`src/scene/StickerObject.tsx` 是桌面上的 R3F 投影。
 - `src/state/app-store.ts` 拥有 `idle | composing | placingDesk | placingJournal` 工作流、两个 surface 的可见集合和选择状态。
 - `src/persistence/sticker-repository.ts` 是贴纸持久化唯一写入口。
+
+`openStickerStudioFromJournal()` 会先把 `notebookPhase` 从 `editing` 收回 `desk`，再切换 `stickerWorkflow: composing`；日记 DOM 与桌面 R3F 随之卸载，Sticker Forge 接管制作 Canvas。取消制作后回到桌面空闲态。
 
 因此任意时刻仍只有一个活跃 WebGL Canvas：桌面由 R3F 拥有，制作时由 Sticker Forge 拥有；图片规范化、手动修整和自动抠图只使用 Canvas 2D、worker 与 WASM。
 
@@ -68,7 +70,7 @@ Forge 收到浏览器 object URL 形式的公开 `image` source。object URL 在
 - 桌面位置使用 `{ x, z }` 世界坐标，并限制在桌垫边界。
 - 日记位置使用 `{ x, y }` 的 `0..1` 归一化纸页坐标，使响应式尺寸变化后仍能恢复相对位置。
 - 两个 surface 共用选择、`15°` 旋转、删除命令；移动使用各自的 pointer 投影和坐标 clamp。
-- 日记正常编辑时贴纸层本身不拦截 textarea，只有贴纸对象接收 pointer；`placingJournal` 时纸页层接管点击，正文输入暂时禁用。
+- 日记正常编辑时左页贴纸层接收贴纸对象 pointer，右页只承载正文 textarea；`placingJournal` 时左页贴纸层接管点击，正文输入暂时禁用。贴纸仍使用当前 `selectedDate` 写入日记，历史日期只读。
 
 ## 6. 失败路径
 

@@ -510,6 +510,7 @@ textarea:focus-visible {
   position: relative;
   min-height: 0;
   flex: 1;
+  perspective: 1800px;
 }
 
 .journal-page {
@@ -615,6 +616,56 @@ textarea:focus-visible {
   padding: 26px 30px 22px;
 }
 
+.journal-sticker-page-body {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 26px 30px 22px;
+}
+
+.journal-sticker-paper {
+  position: relative;
+  min-height: 0;
+  flex: 1;
+  overflow: hidden;
+  border: 1px dashed rgba(114, 93, 66, 0.28);
+  border-radius: 12px;
+  background:
+    radial-gradient(circle at 20% 18%, rgba(255, 255, 255, 0.74), transparent 30%),
+    linear-gradient(135deg, rgba(248, 240, 214, 0.74), rgba(255, 253, 242, 0.2));
+}
+
+.journal-sticker-paper .journal-sticker-layer {
+  position: absolute;
+  inset: 0;
+}
+
+.journal-sticker-empty {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  padding: 24px;
+  color: #9b907e;
+  font-family: var(--journal-writing-font);
+  font-size: 16px;
+  text-align: center;
+  pointer-events: none;
+}
+
+.journal-sticker-workbench-button {
+  align-self: flex-start;
+  margin-top: 14px;
+  min-height: 40px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
 .is-blank-page {
   cursor: default;
 }
@@ -683,43 +734,50 @@ textarea:focus-visible {
   justify-content: flex-end;
 }
 
-.journal-page-navigation {
-  position: absolute;
-  z-index: 8;
-  top: 0;
-  bottom: 0;
-  height: 100%;
+.journal-page-navigation-controls {
+  position: relative;
+  z-index: 31;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  width: min(160px, 100%);
+  margin: 12px auto 0;
+}
+
+.journal-turn-button {
+  width: 48px;
+  min-width: 48px;
+  height: 44px;
+  min-height: 44px;
   padding: 0;
-  border: 0;
-  background: transparent;
+  border: 2px solid #d4c9b4;
+  border-radius: 50%;
+  background: #fffbe7;
+  color: #725d42;
+  box-shadow: 0 4px 0 rgba(61, 52, 40, 0.18);
   cursor: pointer;
 }
 
-.journal-page-navigation.is-previous {
-  left: 0;
-  width: 100%;
+.journal-turn-button.dd-icon-button {
+  display: grid;
+  place-items: center;
 }
 
-.journal-page-navigation.is-next {
-  right: 0;
-  width: 52px;
+.journal-turn-button:hover:not(:disabled) {
+  border-color: #83d7c5;
+  background: #e8faf5;
 }
 
-.journal-page-navigation:hover:not(:disabled) {
-  background: rgba(12, 192, 181, 0.06);
-}
-
-.journal-page-navigation:focus-visible {
+.journal-turn-button:focus-visible {
   outline: 3px solid var(--animal-primary-color);
-  outline-offset: -7px;
+  outline-offset: 3px;
 }
 
-.journal-page-navigation:disabled {
-  cursor: wait;
-}
-
-.journal-page-navigation[aria-disabled='true'] {
+.journal-turn-button:disabled {
+  opacity: 0.42;
   cursor: not-allowed;
+  box-shadow: 0 2px 0 rgba(61, 52, 40, 0.12);
 }
 
 .journal-inside-cover-mark {
@@ -925,6 +983,7 @@ textarea:focus-visible {
   bottom: 0;
   width: 50%;
   transform-style: preserve-3d;
+  will-change: transform, filter;
   pointer-events: none;
 }
 
@@ -948,12 +1007,45 @@ textarea:focus-visible {
   padding: 24px 28px;
   border: 1px solid rgba(117, 91, 61, 0.18);
   backface-visibility: hidden;
+  overflow: hidden;
+  transform-style: preserve-3d;
   background:
     repeating-linear-gradient(0deg, transparent 0 5px, var(--paper-fibers) 5px 6px),
     linear-gradient(90deg, #e4d4b9, #faf2e1 16%, #f1e6d1 84%, #d4c1a2);
   color: #8a7b68;
   font-size: 11px;
   box-shadow: 0 0 34px rgba(54, 35, 24, 0.34);
+}
+
+.page-turn-face::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(66, 42, 25, 0.23), transparent 18%, transparent 78%, rgba(255, 255, 255, 0.26)),
+    radial-gradient(ellipse at 50% 48%, transparent 42%, rgba(72, 46, 26, 0.14) 100%);
+  mix-blend-mode: multiply;
+  opacity: 0.72;
+}
+
+.page-turn-face::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 10px;
+  pointer-events: none;
+  background: repeating-linear-gradient(90deg, #d1bd9b 0 1px, #fff4d9 1px 3px);
+  box-shadow: 0 0 14px rgba(54, 35, 24, 0.24);
+}
+
+.page-turn-front::after {
+  right: 0;
+}
+
+.page-turn-back::after {
+  left: 0;
 }
 
 .page-turn-back {
@@ -965,17 +1057,19 @@ textarea:focus-visible {
 }
 
 @keyframes journal-turn-previous {
-  0% { transform: rotateY(0deg) skewY(0deg); }
-  46% { transform: rotateY(88deg) skewY(-1.4deg); }
-  54% { transform: rotateY(98deg) skewY(1.2deg); }
-  100% { transform: rotateY(180deg) skewY(0deg); }
+  0% { filter: brightness(1); transform: rotateY(0deg) rotateX(0deg) translateZ(0); }
+  32% { filter: brightness(0.86); transform: rotateY(54deg) rotateX(-2deg) translateZ(7px); }
+  50% { filter: brightness(0.68); transform: rotateY(101deg) rotateX(3deg) translateZ(14px); }
+  72% { filter: brightness(0.9); transform: rotateY(151deg) rotateX(-1deg) translateZ(6px); }
+  100% { filter: brightness(1); transform: rotateY(180deg) rotateX(0deg) translateZ(0); }
 }
 
 @keyframes journal-turn-next {
-  0% { transform: rotateY(0deg) skewY(0deg); }
-  46% { transform: rotateY(-88deg) skewY(1.4deg); }
-  54% { transform: rotateY(-98deg) skewY(-1.2deg); }
-  100% { transform: rotateY(-180deg) skewY(0deg); }
+  0% { filter: brightness(1); transform: rotateY(0deg) rotateX(0deg) translateZ(0); }
+  32% { filter: brightness(0.86); transform: rotateY(-54deg) rotateX(2deg) translateZ(7px); }
+  50% { filter: brightness(0.68); transform: rotateY(-101deg) rotateX(-3deg) translateZ(14px); }
+  72% { filter: brightness(0.9); transform: rotateY(-151deg) rotateX(1deg) translateZ(6px); }
+  100% { filter: brightness(1); transform: rotateY(-180deg) rotateX(0deg) translateZ(0); }
 }
 
 .journal-turn-status {
@@ -1288,6 +1382,7 @@ textarea:focus-visible {
   }
 
   .journal-page-body,
+  .journal-sticker-page-body,
   .journal-form {
     padding: 16px 12px 14px;
   }
@@ -1325,6 +1420,15 @@ textarea:focus-visible {
 
   .journal-page-copy {
     padding: 14px 0;
+  }
+
+  .journal-sticker-paper {
+    border-radius: 9px;
+  }
+
+  .journal-sticker-workbench-button {
+    width: 100%;
+    justify-content: center;
   }
 
   .journal-page-copy > p,
@@ -1384,6 +1488,18 @@ textarea:focus-visible {
   .journal-font-menu {
     right: calc(100% + 8px);
     width: min(216px, calc(100vw - 92px));
+  }
+
+  .journal-page-navigation-controls {
+    gap: 12px;
+    margin-top: 8px;
+  }
+
+  .journal-turn-button {
+    width: 42px;
+    min-width: 42px;
+    height: 40px;
+    min-height: 40px;
   }
 
   .sticker-studio {
