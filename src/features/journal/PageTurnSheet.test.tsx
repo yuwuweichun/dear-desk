@@ -75,6 +75,11 @@ describe('PageTurnSheet', () => {
         'left',
         'right',
       ])
+      const workbenchActions = [
+        ...container.querySelectorAll<HTMLElement>('.page-turn-snapshot-action'),
+      ]
+      expect(workbenchActions).toHaveLength(2)
+      expect(workbenchActions.every((action) => action.textContent === '贴纸工作台')).toBe(true)
     },
   )
 })

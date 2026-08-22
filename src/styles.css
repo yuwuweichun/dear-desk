@@ -750,6 +750,11 @@ textarea:focus-visible {
   font-weight: 800;
 }
 
+.journal-sticker-workbench-button,
+.page-turn-snapshot-action {
+  border-radius: 50px;
+}
+
 .is-blank-page {
   cursor: default;
 }
@@ -1023,7 +1028,6 @@ textarea:focus-visible {
   align-items: center;
   padding: 0 14px;
   border: 2px solid #d4c9b4;
-  border-radius: 8px;
   background: #fffbe7;
   color: #725d42;
   box-shadow: 0 3px 0 rgba(61, 52, 40, 0.16);
