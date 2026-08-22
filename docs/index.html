@@ -22,7 +22,7 @@
         <kbd aria-hidden="true">/</kbd>
         <div id="search-results" class="search-results" role="listbox" aria-label="搜索结果" hidden></div>
       </div>
-      <span class="top-meta">2026-08-23 · 字体与铭牌改动已提交</span>
+      <span class="top-meta">2026-08-23 · 日记页眉字体已完成</span>
       <button class="toc-toggle" type="button" aria-controls="sidebar" aria-expanded="false">目录</button>
     </div>
   </header>
@@ -48,7 +48,7 @@
         <p class="lead">这里汇总当前产品范围、系统架构、每项任务的方案与实施结果。代码改动必须先有可审阅方案，完成后再把真实结果回写到同一份记录。</p>
         <div class="callout">
           <strong>当前结论</strong>
-          <p>DD-20260823-001 已把字体入口移到首页右上工具栈，同一内容字体现在驱动日记正文与黄铜铭牌，按钮、菜单、标题、HUD 等 UI 字体保持不变。铭牌同步改为动态色调、凹凸和粗糙度三贴图，不再依赖固定方向的彩色阴影；输入框也已恢复原始大小写显示。源码、89 项测试、构建和文档检查通过，相关改动已完成验收收口并提交。</p>
+          <p>DD-20260823-006 已把纸页日期、“贴纸”标题、阅读/书写态日记标题和翻页快照纳入全局内容字体，并从实时页与快照删除“尚未留下”“当前日期”“旧日记录”；贴纸数量与书写状态继续保留。源码、90 项测试、lint、production build、桌面/移动实时页、翻页中间态和字体偏好恢复均已通过，用户已通过提交指令预先验收。</p>
         </div>
       </header>
 
@@ -67,6 +67,7 @@
               <tr><td>双页日记与仿真翻页</td><td><span class="status status-review">已完成</span></td><td>DD-20260821-002 已保留日期加载和重入锁，把刚性 CSS 半页替换为隔离的 <code>page-flip@2.0.7</code> 四页快照；仅按钮触发，支持 reduced-motion，不增加 Canvas，并已通过用户验收。</td></tr>
               <tr><td>本子封面铭牌</td><td><span class="status status-review">已完成</span></td><td>DD-20260806-005 与 DD-20260819-003 已完成自定义铭牌、中英文支持、贴面朝向和金属材质，并通过用户验收。</td></tr>
               <tr><td>铭牌凹刻与全局内容字体</td><td><span class="status status-review">已完成</span></td><td>DD-20260819-004 与 DD-20260823-001 已实现并通过用户验收：方案 A 三贴图凹刻、四种动态字体、右上全局入口和日记/铭牌同步；暗酒红不再作为产品颜色决策。</td></tr>
+              <tr><td>日记页眉字体与状态精简</td><td><span class="status status-review">已完成</span></td><td>DD-20260823-006 已让日期、左右页标题、标题输入和翻页快照跟随内容字体，并删除三类重复页眉说明；自动检查和双视口交互已通过用户验收。</td></tr>
               <tr><td>OFL 内容字体事实</td><td><span class="status status-review">已完成</span></td><td>生产内容字体为纸页宋体回退、玄冬楷书、随峰体和志莽行书；云峰晶晶体已删除，全局 UI 依赖为 CC BY-NC-4.0 且不受内容字体影响。</td></tr>
               <tr><td>暖色主光对比实验</td><td><span class="status status-neutral">已取消</span></td><td>DD-20260819-008 已取消；生产主光保持现有强度，不进行关闭实验。</td></tr>
               <tr><td>历史 Minecraft 像素场景</td><td><span class="status status-neutral">已取消</span></td><td>编号 006 从未批准或实施，用户已于 2026-08-09 明确弃用，不再作为实现依据。</td></tr>
@@ -74,7 +75,7 @@
               <tr><td>概念模型与通用 UI 重构</td><td><span class="status status-review">已完成</span></td><td>DD-20260810-002 已完成三个模型工厂、通用界面与贴纸工作台重构，并已完成验收。</td></tr>
               <tr><td>开放场景颜色编辑</td><td><span class="status status-review">已完成</span></td><td>DD-20260813-005 已实现九项实时调色、桌腿/桌框材质分离、重置和复制 JSON，并已完成验收。</td></tr>
               <tr><td>日记阅读与书写模式</td><td><span class="status status-review">已完成</span></td><td>DD-20260809-004 已实现双页阅读/书写模式、历史编辑与 dirty 离开保护，并已完成验收。</td></tr>
-              <tr><td>当前分支</td><td><code>main</code></td><td>本轮状态收尾源码基线为 <code>d3d4594</code>；文档状态回写尚未创建提交。</td></tr>
+              <tr><td>当前分支</td><td><code>main</code></td><td>DD-20260823-006 的源码、文档、验证和验收状态由同一次提交收口。</td></tr>
             </tbody>
           </table>
         </div>
@@ -128,6 +129,7 @@
               <tr><td><a href="./changes/2026-08-21-003-font-license-and-task-closeout.md">OFL 字体与任务状态收尾</a></td><td>查看历史字体事实、许可证边界、验收通过任务和取消/替代记录。</td><td>已替代</td></tr>
               <tr><td><a href="./changes/2026-08-21-004-remove-dev-font-add-zhi-mang-xing.md">志莽行书字体替换</a></td><td>查看云峰晶晶体移除、志莽行书 OFL 资源、旧偏好回退和离线加载验证。</td><td>已完成</td></tr>
               <tr><td><a href="./changes/2026-08-23-001-global-content-font-setting.md">全局内容字体与铭牌联动</a></td><td>查看右上入口取舍、应用级字体所有权、日记/UI 隔离、动态铭牌三贴图和双视口验证。</td><td>已完成</td></tr>
+              <tr><td><a href="./changes/2026-08-23-006-extend-journal-content-font.md">日记页眉字体与状态精简</a></td><td>查看日期、贴纸页标题、日记标题和翻页快照的字体扩展，以及三类辅助文字删除范围。</td><td>已完成</td></tr>
               <tr><td><a href="./changes/2026-08-23-002-fix-nameplate-input-casing.md">铭牌输入大小写修复</a></td><td>查看强制大写展示根因、原值保存链路和小写输入回归测试。</td><td>已完成</td></tr>
               <tr><td><a href="./changes/2026-08-23-003-audit-and-commit-workspace-changes.md">工作区审计与提交</a></td><td>查看本次差异范围、验证结果、状态收口和提交边界。</td><td>已完成</td></tr>
               <tr><td><a href="./decisions/2026-08-06-001-documentation-as-review-interface.md">文档审核界面决策</a></td><td>理解为什么采用先审批、后实施、再回写。</td><td>已接受</td></tr>
@@ -199,7 +201,7 @@
       </section>
 
       <footer>
-        Dear Desk 项目文档 · 当前内容依据仓库实际文件整理 · 更新于 2026-08-21
+        Dear Desk 项目文档 · 当前内容依据仓库实际文件整理 · 更新于 2026-08-23
       </footer>
     </main>
   </div>

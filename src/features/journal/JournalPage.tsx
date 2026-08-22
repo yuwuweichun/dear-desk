@@ -60,7 +60,7 @@ export function JournalStickerPage({
             <p className="journal-date">{formatLocalDate(date)}</p>
             <h2>贴纸</h2>
           </div>
-          <span>{stickers.length > 0 ? `${stickers.length} 张` : '尚未留下'}</span>
+          {stickers.length > 0 ? <span>{stickers.length} 张</span> : null}
         </header>
         <div className="journal-sticker-paper">
           <JournalStickerLayer stickers={stickers} interactive={interactive} />
@@ -101,7 +101,6 @@ export function JournalReadingPage({
             <p className="journal-date">{formatLocalDate(date)}</p>
             <h2>{entryTitle(entry, isToday)}</h2>
           </div>
-          <span>{isToday ? '当前日期' : '旧日记录'}</span>
         </header>
         <div className="journal-page-copy">
           {entry?.text ? (

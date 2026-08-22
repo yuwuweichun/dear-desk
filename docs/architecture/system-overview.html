@@ -143,7 +143,7 @@
           <li><strong>按需读取</strong><span>首次读取当前右页日期的正文与贴纸 Blob；页序查询本身只读取日期/instance 字段，不加载全部历史 PNG。</span></li>
           <li><strong>呈现当前日期</strong><span><code>journalCursor</code> 只代表右页日期。左页展示同一日期的贴纸并提供“前往贴纸工作台”入口；右页统一投影今天或历史正文。</span></li>
           <li><strong>进入书写</strong><span>外置的单个竖向滑动按钮按“阅 / 读 / 编 / 辑”自上而下显示，选中块随 <code>journalMode</code> 上下移动；切到编辑会直接以当前右页标题和正文初始化 <code>draftDate</code>、<code>draftTitle</code> 与 <code>draft</code>，切换为标题输入和 textarea 并聚焦；收笔成功后回到 <code>editing + idle</code>，再次点击书写只恢复同一页已保存值；书写阶段动作变为“图标 / 收 / 笔”。</span></li>
-          <li><strong>选择内容字体</strong><span>首页右上工具栈在调色板与自由视角之间显示字体入口。<code>ProductApp</code> 从 <code>localStorage</code> 读取稳定字体 ID，并把同一运行值传给日记和铭牌；日记以 <code>data-journal-font</code> 控制 textarea 与只读正文，铭牌按字体重新生成凹凸和粗糙度贴图。按钮、菜单标签、标题、HUD、日期和状态提示等 UI 继续使用 Nunito/Noto Sans SC。</span></li>
+          <li><strong>选择内容字体</strong><span>首页右上工具栈在调色板与自由视角之间显示字体入口。<code>ProductApp</code> 从 <code>localStorage</code> 读取稳定字体 ID，并把同一运行值传给日记和铭牌；日记以 <code>data-journal-font</code> 控制日期、左右页标题、标题输入、textarea、只读正文及翻页快照，铭牌按字体重新生成凹凸和粗糙度贴图。按钮、菜单标签、HUD、翻页导航和纸页操作状态继续使用 Nunito/Noto Sans SC。</span></li>
           <li><strong>按页保存</strong><span>“收笔”调用 <code>saveJournalEntry(rightDate, draft, draftTitle)</code>。repository 仍按显式日期写入标题和正文；store 更新 <code>journalPageEntries[date]</code>，仅当日期是今天时同步 <code>entry</code> 别名。</span></li>
           <li><strong>保护草稿</strong><span>标题或正文有改动时，翻页、切回阅读和关闭只显示“请先收笔”，不会提交游标、关闭本子或自动写库；标题/正文任一校验或保存失败都继续保留两个草稿。</span></li>
           <li><strong>请求翻页</strong><span>双页下方的上一页/下一页按钮调用 <code>requestJournalTurn('previous' | 'next')</code>。页面本体不再承担整页翻页命中；书写中由组件拦截，边界或 store 非 idle 请求返回 <code>false</code>。</span></li>
@@ -244,7 +244,7 @@
         <p>renderer 使用 ACES filmic tone mapping、显式曝光、PCF 阴影和 DPR <code>[1, 1.5]</code>；<code>SceneEnvironment</code> 生成并释放 PMREM 环境反射。场景只有一盏投影方向光，另有不投影的低强度补光；雾从主体之外开始，避免吞掉桌体层次。</p>
         <p><code>JournalStickerLayer</code> 的坐标是纸页内 <code>0..1</code> 归一化值。今天页保留 pointer capture、预览位置和 pointer up 提交；历史页即使进入正文书写也只复用 PNG 投影并关闭贴纸 pointer events。桌面 <code>StickerObject</code> 仍创建对象 URL 和 Three.js Texture，并在卸载时释放两者。</p>
         <p><code>PageTurnSheet</code> 不克隆或重排 React 管理的真实纸页，而是命令式创建四张只读快照并交给 <code>page-flip</code>。适配层关闭纸角悬停、整页点击与手势，按实际页宽反向补偿上游的像素路径计时，使桌面和移动端都接近 720ms；上游 <code>destroy()</code> 未终止内部递归动画帧，因此 <code>page-flip-runtime.ts</code> 捕获并在卸载时取消这一个循环，同时显式移除全局事件、结束动画、撤销贴纸对象 URL。真实页面只在动画完成后由既有 store 协议切换。</p>
-        <p>全局内容字体通过 <code>.journal-panel</code> 上的 <code>data-journal-font</code> 映射到共享 CSS 变量 <code>--journal-writing-font</code>，因此阅读正文和 textarea 使用同一套字体栈；日记面板不再渲染自己的字体按钮。场景链路把同一字体 ID 传给 <code>DeskScene → NotebookObject → createNameplateText()</code>。铭牌为当前字形生成轻微色调、凹凸和粗糙度三张 CanvasTexture，使用与牌体一致的黄铜色、金属度、环境反射和清漆参数；字体切换前等待 <code>document.fonts.load()</code>，完成后替换表面并释放旧纹理、材质与 geometry。玄冬楷书、随峰体和志莽行书来自 <code>public/fonts/</code> 的生产公共资源；随峰体为 cjkFonts 官方 <code>The Peak Font Plus V1.002</code>，志莽行书为 Google Fonts 的 <code>Zhi Mang Xing</code>，各自许可证与来源哈希记录在同目录。云峰晶晶体及其开发中间件已删除。</p>
+        <p>全局内容字体通过 <code>.journal-panel</code> 上的 <code>data-journal-font</code> 映射到共享 CSS 变量 <code>--journal-writing-font</code>。实时纸页的日期、左页“贴纸”标题、阅读态标题、书写态标题输入、正文与 textarea 都消费该变量；命令式创建的四张翻页快照仍挂在同一日记根节点下，因此继承相同字体而不复制状态。空贴纸页不创建“尚未留下”节点，正文页和快照不再创建“当前日期”或“旧日记录”节点；贴纸数量与书写操作状态仍保留 UI 字体。日记面板不再渲染自己的字体按钮。场景链路把同一字体 ID 传给 <code>DeskScene → NotebookObject → createNameplateText()</code>。铭牌为当前字形生成轻微色调、凹凸和粗糙度三张 CanvasTexture，使用与牌体一致的黄铜色、金属度、环境反射和清漆参数；字体切换前等待 <code>document.fonts.load()</code>，完成后替换表面并释放旧纹理、材质与 geometry。玄冬楷书、随峰体和志莽行书来自 <code>public/fonts/</code> 的生产公共资源；随峰体为 cjkFonts 官方 <code>The Peak Font Plus V1.002</code>，志莽行书为 Google Fonts 的 <code>Zhi Mang Xing</code>，各自许可证与来源哈希记录在同目录。云峰晶晶体及其开发中间件已删除。</p>
         <p><code>src/ui/</code> 是业务交互控件与 <code>animal-island-ui@1.5.1</code> 之间的适配边界：<code>Button</code> 将 loading 映射为原生 disabled，<code>IconButton</code> 固化可访问名称，<code>TextInput</code> 和 <code>SegmentedControl</code> 统一输入与选择语义。第二轮重写删除了让组件回到旧式深色小圆角外观的覆盖，<code>theme.css</code> 现在保留库的胶囊、按压阴影、Nunito/Noto Sans、青绿 active 与暖白 surface，只补 Dear Desk 的业务色彩和领域布局。App、Journal 和 Sticker 的交互控件从该层导入；<code>ProductApp</code> 对无需业务语义适配的纯展示型 <code>Time</code> 直接传入 <code>type="hud"</code>。领域专用 textarea、文件输入、颜色 swatch、range、纸页命中区、Forge mount 与抠图 Canvas 不进入通用组件库。</p>
         <p><code>StickerStudio</code> 的页面骨架仍由业务组件拥有，但 <code>src/styles.css</code> 和 <code>src/sticker-workbench.css</code> 已把旧胡桃木/深苔网格背景、窄纸侧栏和方形控件整体替换为浅薄荷点阵制作空间、暖白预览框、圆角点阵控制面板、青绿来源/材质选择与青绿/珊瑚双目标动作。Forge Canvas、来源更新、抠图 session、capture 和 placement action 没有变化。</p>
         <p><code>ProductApp</code> 不再渲染 <code>app-header</code>、品牌链接或“本地”常驻状态。<code>DeskScene</code> Canvas、<code>StickerStudio</code> 和 scene fallback 都从视口 <code>y=0</code> 开始；左上角只在桌面 idle 阶段挂载 <code>animal-island-ui</code> 的 <code>Time type="hud"</code>，按浏览器本地时间显示英文星期、英文月日与 24 小时时间。旧的所选日记日期以及“今天还是空白 / 今天有一页”等记录状态不再由桌面 HUD 呈现；<code>loadToday()</code> 仍照常执行并服务日记链路。该视觉替换没有改变本地持久化事实，“本地”仍是 IndexedDB 架构边界而不是需要持续显示的运行状态。</p>
@@ -321,8 +321,8 @@ edit historical text:
           <div><code><a href="../../public/fonts/ThePeakFontPlus-Regular.ttf">public/fonts/ThePeakFontPlus-Regular.ttf</a></code><span>官方 The Peak Font Plus V1.002 生产字体资源</span></div>
           <div><code><a href="../../public/fonts/ThePeakFontPlus-SOURCE.txt">public/fonts/ThePeakFontPlus-SOURCE.txt</a></code><span>随峰体来源、贡献者、版本、许可证和 SHA-256 记录</span></div>
           <div><code><a href="../../public/fonts/ThePeakFontPlus-OFL.txt">public/fonts/ThePeakFontPlus-OFL.txt</a></code><span>SIL Open Font License 1.1 原文</span></div>
-          <div><code><a href="../../src/features/journal/JournalPage.tsx">JournalPage.tsx</a></code><span>贴纸左页、正文右页、独立翻页控制与工作台入口</span></div>
-          <div><code><a href="../../src/features/journal/PageTurnSheet.tsx">PageTurnSheet.tsx</a></code><span>建立四张只读页面快照、驱动核心库并在完成后提交游标</span></div>
+          <div><code><a href="../../src/features/journal/JournalPage.tsx">JournalPage.tsx</a></code><span>贴纸左页、正文右页、共享内容字体页眉、精简状态与工作台入口</span></div>
+          <div><code><a href="../../src/features/journal/PageTurnSheet.tsx">PageTurnSheet.tsx</a></code><span>建立继承内容字体的四张只读页面快照、驱动核心库并在完成后提交游标</span></div>
           <div><code><a href="../../src/features/journal/page-flip-runtime.ts">page-flip-runtime.ts</a></code><span>归一化响应式翻页时长，并捕获、停止上游未公开销毁入口的递归动画帧</span></div>
           <div><code><a href="../../src/features/journal/JournalStickerLayer.tsx">JournalStickerLayer.tsx</a></code><span>今天可交互、历史只投影的 DOM 贴纸层</span></div>
           <div><code><a href="../../src/domain/daily-entry.ts">src/domain/daily-entry.ts</a></code><span><code>LocalDate</code>、正文规则、日期去重排序和 repository 接口</span></div>
@@ -353,7 +353,7 @@ edit historical text:
       <section id="verification" data-search-title="验证证据与未覆盖边界">
         <p class="section-index">12 · 验证</p>
         <h2>自动证据、模型规格和双视口 UI 检查均已通过</h2>
-        <p>当前 89 项测试覆盖既有日期、保存、翻页、贴纸和迁移行为，也覆盖四张翻页快照的日期与方向排序、响应式翻页时长、上游递归动画帧清理、模型层级、材质与资源释放、九项调色键、HEX 校验、本子竖起/摊开端点、左右镜像角位移、旧顶层纸面与快速页片删除、统一的 3D/DOM 交接、HUD 时钟、全局内容字体偏好读写/回退、右上工具顺序、日记/铭牌同步、铭牌输入大小写、三张铭牌贴图和 GPU 资源释放。ESLint、TypeScript/Vite production build 和文档引用检查均通过；生产构建产物不包含云峰晶晶体或 <code>/dev-fonts/</code> 引用，并包含志莽行书 OFL 资源。</p>
+        <p>当前 90 项测试覆盖既有日期、保存、翻页、贴纸和迁移行为，也覆盖四张翻页快照的日期与方向排序、空页眉辅助文字删除、非空贴纸数量保留、响应式翻页时长、上游递归动画帧清理、模型层级、材质与资源释放、九项调色键、HEX 校验、本子竖起/摊开端点、左右镜像角位移、旧顶层纸面与快速页片删除、统一的 3D/DOM 交接、HUD 时钟、全局内容字体偏好读写/回退、右上工具顺序、日记/铭牌同步、铭牌输入大小写、三张铭牌贴图和 GPU 资源释放。ESLint、TypeScript/Vite production build 和文档引用检查均通过；生产构建产物不包含云峰晶晶体或 <code>/dev-fonts/</code> 引用，并包含志莽行书 OFL 资源。</p>
         <div class="table-wrap">
           <table>
             <thead><tr><th>能力</th><th>当前状态</th><th>证据边界</th></tr></thead>
@@ -363,6 +363,7 @@ edit historical text:
               <tr><td>双页本子与仿真翻页</td><td><span class="status status-review">已完成</span></td><td>DD-20260821-002 已把刚性 CSS 半页替换为隔离的 <code>page-flip@2.0.7</code> 四页快照；组件/清理测试、lint、build、桌面/移动双向中间帧、reduced-motion 和连续四轮资源清理均通过，并已由用户验收</td></tr>
               <tr><td>统一阅读与历史正文书写</td><td><span class="status status-review">待验收</span></td><td>43 个全量测试、lint、build 及桌面/移动打开与关闭恢复流程通过</td></tr>
               <tr><td>全局内容字体与铭牌凹刻</td><td><span class="status status-review">已完成</span></td><td>首页提供纸页宋体/玄冬楷书/随峰体/志莽行书，同一状态驱动日记正文与铭牌；UI 字体隔离、偏好恢复、三贴图资源释放、lint、production build 和 1440 × 900 / 390 × 844 交互检查均已通过，并已由用户验收</td></tr>
+              <tr><td>日记页眉字体与状态精简</td><td><span class="status status-review">已完成</span></td><td>DD-20260823-006 已让实时页、标题输入和四张翻页快照的日期/页标题继承内容字体，并删除“尚未留下”“当前日期”“旧日记录”；90 项测试、lint、build、桌面/移动实时与翻页中间态、偏好刷新恢复均通过，并已由用户验收</td></tr>
               <tr><td>程序化桌子、桌垫与本子</td><td><span class="status status-review">待验收</span></td><td>本子已按 DD-20260817-007 改为书脊贴桌立起、左右半册镜像同速摊开和逆向关闭；全开终点左右页堆同高，不再创建额外连续顶层纸面，闭合圆背附件和独立页缝节点不再露出。自动测试覆盖直立书脊、镜像角位移、封面接缝与终态结构切换。桌子程序化近似的既有 silhouette IoU 仍为 <code>0.6311</code>，因此整体模型视觉继续等待用户验收</td></tr>
               <tr><td>临时场景颜色编辑器</td><td><span class="status status-review">待验收</span></td><td>九项表面独立实时改色、重置、复制和刷新恢复已通过 1440 × 900 与 390 × 844；桌腿/桌框高辨识测试色证明材质分离，保持单 Canvas</td></tr>
               <tr><td>通用 DOM 与贴纸工作台重写</td><td><span class="status status-review">待验收</span></td><td><code>animal-island-ui@1.5.1</code> 经 <code>src/ui/</code> 接入；旧控件样式和旧工作台背景已删除，桌面、日记、文字/图片贴纸制作与抠图关键流程在桌面/移动端通过</td></tr>
@@ -377,7 +378,7 @@ edit historical text:
         </div>
       </section>
 
-  <footer>Dear Desk 当前系统架构 · 基于可运行源码、88 个自动测试与 DD-20260823-001 实施结果 · 2026-08-23</footer>
+  <footer>Dear Desk 当前系统架构 · 基于可运行源码、90 个自动测试与 DD-20260823-006 实施结果 · 2026-08-23</footer>
     </main>
   </div>
 

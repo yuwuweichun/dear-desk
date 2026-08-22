@@ -6,6 +6,7 @@
   const tocToggle = document.querySelector('.toc-toggle');
   const sidebar = document.querySelector('.sidebar');
   const termPopover = document.querySelector('#term-popover');
+  let pinnedTerm = null;
   let activeSearchIndex = -1;
   let currentResults = [];
 
@@ -165,21 +166,33 @@
 
   document.querySelectorAll('.term').forEach((term) => {
     term.addEventListener('mouseenter', () => showTerm(term));
-    term.addEventListener('mouseleave', hideTerm);
+    term.addEventListener('mouseleave', () => {
+      if (pinnedTerm !== term) hideTerm();
+    });
     term.addEventListener('focus', () => {
       showTerm(term);
       window.requestAnimationFrame(() => showTerm(term));
     });
-    term.addEventListener('blur', hideTerm);
+    term.addEventListener('blur', () => {
+      if (pinnedTerm !== term) hideTerm();
+    });
     term.addEventListener('click', (event) => {
       event.stopPropagation();
-      if (termPopover.hidden) showTerm(term);
-      else hideTerm();
+      if (pinnedTerm === term) {
+        pinnedTerm = null;
+        hideTerm();
+      } else {
+        pinnedTerm = term;
+        showTerm(term);
+      }
     });
   });
 
   document.addEventListener('click', (event) => {
-    if (!event.target.closest('.term')) hideTerm();
+    if (!event.target.closest('.term')) {
+      pinnedTerm = null;
+      hideTerm();
+    }
   });
 
   document.querySelectorAll('.copy-button').forEach((button) => {

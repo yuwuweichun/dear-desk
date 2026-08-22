@@ -52,7 +52,7 @@ const appendText = (
 const createSnapshotHeader = (
   snapshot: JournalTurnSnapshot,
   title: string,
-  status: string,
+  status?: string,
 ) => {
   const header = document.createElement('header')
   header.className = 'journal-page-head'
@@ -60,7 +60,7 @@ const createSnapshotHeader = (
   appendText(heading, 'p', 'journal-date', formatLocalDate(snapshot.date))
   appendText(heading, 'h2', '', title)
   header.append(heading)
-  appendText(header, 'span', '', status)
+  if (status) appendText(header, 'span', '', status)
   return header
 }
 
@@ -78,7 +78,7 @@ const createStickerPage = (
   body.append(createSnapshotHeader(
     snapshot,
     '贴纸',
-    snapshot.stickers.length > 0 ? `${snapshot.stickers.length} 张` : '尚未留下',
+    snapshot.stickers.length > 0 ? `${snapshot.stickers.length} 张` : undefined,
   ))
 
   const paper = document.createElement('div')
@@ -132,7 +132,6 @@ const createReadingPage = (snapshot: JournalTurnSnapshot) => {
   body.append(createSnapshotHeader(
     snapshot,
     entryTitle(snapshot.entry, snapshot.isToday),
-    snapshot.isToday ? '当前日期' : '旧日记录',
   ))
   const copy = document.createElement('div')
   copy.className = 'journal-page-copy'
