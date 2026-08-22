@@ -124,6 +124,11 @@ describe('App nameplate editor', () => {
     await vi.waitFor(() => expect(screen.getByRole('button', { name: '编辑铭牌' })).toBeEnabled())
     fireEvent.click(screen.getByRole('button', { name: '编辑铭牌' }))
     const input = screen.getByLabelText('铭牌文字')
+    expect(input).toHaveAttribute('autocomplete', 'off')
+    expect(input).toHaveAttribute('autocapitalize', 'none')
+    expect(input).toHaveAttribute('autocorrect', 'off')
+    expect(input).toHaveAttribute('name', 'notebook-nameplate')
+    expect(input).toHaveAttribute('spellcheck', 'false')
     fireEvent.change(input, { target: { value: 'dear desk' } })
 
     expect(input).toHaveValue('dear desk')

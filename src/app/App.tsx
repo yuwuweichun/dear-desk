@@ -240,9 +240,14 @@ function ProductApp() {
                 autoFocus
                 id="notebook-nameplate-input"
                 maxLength={MAX_NOTEBOOK_LABEL_LENGTH}
+                autoCapitalize="none"
+                autoComplete="off"
+                autoCorrect="off"
                 onChange={(event) => setNameplateDraft(event.target.value)}
                 placeholder="例如 DEAR DESK"
                 value={nameplateDraft}
+                name="notebook-nameplate"
+                spellCheck={false}
               />
             </label>
             <div className="nameplate-dialog__meta">
