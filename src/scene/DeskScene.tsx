@@ -4,6 +4,7 @@ import type { ReconcilerRoot } from '@react-three/fiber'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 
+import type { ContentFontId } from '../domain/journal-font'
 import type { PlacedSticker, StickerPosition } from '../domain/sticker'
 import { useAppStore } from '../state/app-store-context'
 import type {
@@ -354,6 +355,7 @@ interface DeskContentsProps {
     instanceId: string,
     position: StickerPosition,
   ) => Promise<boolean>
+  contentFont: ContentFontId
   deskCameraPreset: DeskCameraPreset
   deskCameraTransitioning: boolean
   freeCameraEnabled: boolean
@@ -374,6 +376,7 @@ interface DeskContentsProps {
 function DeskContents({
   advanceNotebookPhase,
   commitStickerPosition,
+  contentFont,
   deskCameraPreset,
   deskCameraTransitioning,
   freeCameraEnabled,
@@ -498,6 +501,7 @@ function DeskContents({
         />
       ))}
       <NotebookObject
+        contentFont={contentFont}
         deskCameraPreset={deskCameraPreset}
         materials={materials}
         notebookPhase={notebookPhase}
@@ -512,10 +516,11 @@ function DeskContents({
 
 interface DeskSceneProps {
   colors: SceneColorConfig
+  contentFont: ContentFontId
   fallback: ReactNode
 }
 
-export function DeskScene({ colors, fallback }: DeskSceneProps) {
+export function DeskScene({ colors, contentFont, fallback }: DeskSceneProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const rootRef = useRef<ReconcilerRoot<HTMLCanvasElement> | null>(null)
@@ -549,6 +554,7 @@ export function DeskScene({ colors, fallback }: DeskSceneProps) {
   const latestSceneProps = useRef<DeskContentsProps>({
     advanceNotebookPhase,
     commitStickerPosition,
+    contentFont,
     deskCameraPreset,
     deskCameraTransitioning,
     freeCameraEnabled,
@@ -684,6 +690,7 @@ export function DeskScene({ colors, fallback }: DeskSceneProps) {
     latestSceneProps.current = {
       advanceNotebookPhase,
       commitStickerPosition,
+      contentFont,
       deskCameraPreset,
       deskCameraTransitioning,
       freeCameraEnabled,
@@ -706,6 +713,7 @@ export function DeskScene({ colors, fallback }: DeskSceneProps) {
   }, [
     advanceNotebookPhase,
     commitStickerPosition,
+    contentFont,
     deskCameraPreset,
     deskCameraTransitioning,
     freeCameraEnabled,

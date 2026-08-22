@@ -1,0 +1,15 @@
+Zhi Mang Xing / 志莽行书
+
+Source: https://github.com/google/fonts/tree/main/ofl/zhimangxing
+Google Fonts specimen: https://fonts.google.com/specimen/Zhi+Mang+Xing
+Upstream source: https://github.com/m4rc1e/zhimangxing
+Designer: Wei Zhimang
+License: SIL Open Font License 1.1; see ZhiMangXing-OFL.txt
+Google Fonts metadata: METADATA.pb
+Coverage: simplified Chinese and Latin (Google Fonts subsets)
+TTF SHA-256: 644e0cae9b40f0b10ab729a01bd32032e3973bac22be3dccae01bf6ae7fde969
+OFL SHA-256: d33c2c71eabc6755aa5601d1cecc57633eeb356d16c3d1106e23e1371213cb1e
+
+The font is bundled locally for offline web delivery. The upstream copyright
+notice and the complete OFL text are redistributed alongside the TTF.
+The OFL copy only normalizes one upstream trailing space; its wording is unchanged.

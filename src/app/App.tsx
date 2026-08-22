@@ -2,7 +2,13 @@ import { Time } from 'animal-island-ui'
 import { BookOpen, Camera, CameraOff, Pencil, Sticker, X } from 'lucide-react'
 import { lazy, Suspense, useEffect, useState } from 'react'
 
+import {
+  readContentFontPreference,
+  writeContentFontPreference,
+  type ContentFontId,
+} from '../domain/journal-font'
 import { JournalPanel } from '../features/journal/JournalPanel'
+import { ContentFontControl } from '../features/settings/ContentFontControl'
 import { StickerControls } from '../features/stickers/StickerControls'
 import { StickerStudio } from '../features/stickers/StickerStudio'
 import { DeskScene } from '../scene/DeskScene'
@@ -55,6 +61,8 @@ function ProductApp() {
   const [showNameplateEditor, setShowNameplateEditor] = useState(false)
   const [nameplateDraft, setNameplateDraft] = useState('')
   const [nameplateValidationError, setNameplateValidationError] = useState<string | null>(null)
+  const [contentFont, setContentFont] = useState<ContentFontId>(() =>
+    readContentFontPreference(window.localStorage))
   const cycleDeskCameraPreset = useAppStore(
     (state) => state.cycleDeskCameraPreset,
   )
@@ -124,7 +132,11 @@ function ProductApp() {
         <StickerStudio />
       ) : (
         <div className="scene-shell">
-          <DeskScene colors={sceneColors} fallback={<SceneFallback />} />
+          <DeskScene
+            colors={sceneColors}
+            contentFont={contentFont}
+            fallback={<SceneFallback />}
+          />
         </div>
       )}
 
@@ -270,6 +282,13 @@ function ProductApp() {
                 setShowColorEditor(true)
               }}
             />
+            <ContentFontControl
+              font={contentFont}
+              onChange={(font) => {
+                setContentFont(font)
+                writeContentFontPreference(window.localStorage, font)
+              }}
+            />
             <IconButton
               aria-pressed={freeCameraEnabled}
               className="free-camera-button"
@@ -289,7 +308,7 @@ function ProductApp() {
         )
       ) : null}
 
-      {notebookPhase === 'editing' ? <JournalPanel /> : null}
+      {notebookPhase === 'editing' ? <JournalPanel contentFont={contentFont} /> : null}
       {stickerWorkflow !== 'composing' ? <StickerControls /> : null}
     </main>
   )

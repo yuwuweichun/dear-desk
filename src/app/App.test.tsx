@@ -1,14 +1,17 @@
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import type { DailyEntryRepository, LocalDate } from '../domain/daily-entry'
+import { CONTENT_FONT_STORAGE_KEY } from '../domain/journal-font'
 import type { NotebookCoverSettingsRepository } from '../domain/notebook-cover-settings'
 import { createAppStore } from '../state/app-store'
 import { AppStoreProvider } from '../state/app-store-context'
 import { App } from './App'
 
 vi.mock('../features/journal/JournalPanel', () => ({
-  JournalPanel: () => <div data-testid="journal-panel" />,
+  JournalPanel: ({ contentFont }: { contentFont: string }) => (
+    <div data-content-font={contentFont} data-testid="journal-panel" />
+  ),
 }))
 vi.mock('../features/stickers/StickerControls', () => ({
   StickerControls: () => null,
@@ -17,7 +20,9 @@ vi.mock('../features/stickers/StickerStudio', () => ({
   StickerStudio: () => null,
 }))
 vi.mock('../scene/DeskScene', () => ({
-  DeskScene: () => <div data-testid="desk-scene" />,
+  DeskScene: ({ contentFont }: { contentFont: string }) => (
+    <div data-content-font={contentFont} data-testid="desk-scene" />
+  ),
 }))
 vi.mock('../scene/SceneColorEditor', () => ({
   SceneColorEditor: () => null,
@@ -43,6 +48,7 @@ const createNameplateRepository = (): NotebookCoverSettingsRepository => ({
 
 afterEach(() => {
   vi.useRealTimers()
+  window.localStorage.clear()
 })
 
 describe('App time HUD', () => {
@@ -105,6 +111,26 @@ describe('App nameplate editor', () => {
     await vi.waitFor(() => expect(nameplateRepository.save).toHaveBeenCalledWith('DEAR DESK'))
     await vi.waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
   })
+
+  it('preserves lowercase text in the input and saved label', async () => {
+    const nameplateRepository = createNameplateRepository()
+    const store = createAppStore(createRepository(), date, undefined, nameplateRepository)
+    render(
+      <AppStoreProvider store={store}>
+        <App />
+      </AppStoreProvider>,
+    )
+
+    await vi.waitFor(() => expect(screen.getByRole('button', { name: '编辑铭牌' })).toBeEnabled())
+    fireEvent.click(screen.getByRole('button', { name: '编辑铭牌' }))
+    const input = screen.getByLabelText('铭牌文字')
+    fireEvent.change(input, { target: { value: 'dear desk' } })
+
+    expect(input).toHaveValue('dear desk')
+
+    fireEvent.click(screen.getByRole('button', { name: '保存铭牌' }))
+    await vi.waitFor(() => expect(nameplateRepository.save).toHaveBeenCalledWith('dear desk'))
+  })
 })
 
 describe('App camera controls', () => {
@@ -154,5 +180,57 @@ describe('App camera controls', () => {
       'false',
     )
     expect(disabledFreeCameraButton.querySelector('.lucide-camera-off')).toBeInTheDocument()
+  })
+})
+
+describe('App global content font', () => {
+  it('places the control in the upper-right stack and synchronizes scene and journal', async () => {
+    const store = createAppStore(createRepository(), date)
+    const { container } = render(
+      <AppStoreProvider store={store}>
+        <App />
+      </AppStoreProvider>,
+    )
+
+    const paletteButton = screen.getByRole('button', { name: '打开场景颜色编辑器' })
+    const fontButton = screen.getByRole('button', {
+      name: '更换内容字体，当前纸页宋体',
+    })
+    const cameraButton = screen.getByRole('button', { name: '开启自由视角' })
+    const toolStack = paletteButton.closest('.scene-tool-stack')
+    expect(toolStack).toContainElement(fontButton)
+    expect(toolStack).toContainElement(cameraButton)
+    expect(Array.from(toolStack?.children ?? [])).toEqual([
+      paletteButton,
+      fontButton.closest('.content-font-control'),
+      cameraButton,
+    ])
+
+    fireEvent.click(fontButton)
+    const menu = screen.getByRole('menu', { name: '选择内容字体' })
+    fireEvent.click(within(menu).getByRole('menuitemradio', { name: /志莽行书/ }))
+
+    expect(window.localStorage.getItem(CONTENT_FONT_STORAGE_KEY)).toBe('zhimang')
+    expect(screen.getByTestId('desk-scene')).toHaveAttribute('data-content-font', 'zhimang')
+    expect(container.querySelector('.app-shell')).not.toHaveAttribute('data-journal-font')
+
+    act(() => store.setState({ notebookPhase: 'editing' }))
+    expect(screen.getByTestId('journal-panel')).toHaveAttribute('data-content-font', 'zhimang')
+  })
+
+  it('restores the existing preference from the legacy storage key', () => {
+    window.localStorage.setItem(CONTENT_FONT_STORAGE_KEY, 'suifeng')
+    const store = createAppStore(createRepository(), date)
+
+    render(
+      <AppStoreProvider store={store}>
+        <App />
+      </AppStoreProvider>,
+    )
+
+    expect(screen.getByRole('button', {
+      name: '更换内容字体，当前随峰体',
+    })).toBeInTheDocument()
+    expect(screen.getByTestId('desk-scene')).toHaveAttribute('data-content-font', 'suifeng')
   })
 })

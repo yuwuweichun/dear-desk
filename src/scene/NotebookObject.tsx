@@ -4,13 +4,18 @@ import * as THREE from 'three'
 import type { Group } from 'three'
 import { MathUtils } from 'three'
 
+import type { ContentFontId } from '../domain/journal-font'
 import type { DeskCameraPreset, NotebookPhase } from '../state/app-store'
 import {
   createNotebookModel,
   type NotebookModelNodes,
 } from './models/create-notebook-model'
 import type { ModelMaterialLibrary } from './models/material-library'
-import { createNameplateText } from './nameplate-text'
+import {
+  createNameplateText,
+  disposeNameplateText,
+  loadNameplateFont,
+} from './nameplate-text'
 import { NOTEBOOK_MODEL_SPEC } from './models/model-specs'
 import { getSculptRuntime } from './models/model-types'
 import {
@@ -21,6 +26,7 @@ import {
 
 interface NotebookObjectProps {
   deskCameraPreset: DeskCameraPreset
+  contentFont: ContentFontId
   materials: ModelMaterialLibrary
   notebookPhase: NotebookPhase
   onAdvance: (from: NotebookPhase) => void
@@ -35,6 +41,7 @@ const MOBILE_NOTEBOOK_Z = NOTEBOOK_MODEL_SPEC.rootPosition[2] - 3.3
 
 export function NotebookObject({
   deskCameraPreset,
+  contentFont,
   materials,
   notebookPhase,
   onAdvance,
@@ -89,24 +96,25 @@ export function NotebookObject({
     const previous = nameplate.getObjectByName('custom-nameplate-engraving')
     if (previous) {
       nameplate.remove(previous)
-      const mesh = previous as THREE.Mesh
-      mesh.geometry.dispose()
-      if (Array.isArray(mesh.material)) mesh.material.forEach((material) => material.dispose())
-      else {
-        ;(mesh.material as THREE.MeshPhysicalMaterial).map?.dispose()
-        mesh.material.dispose()
-      }
+      disposeNameplateText(previous as THREE.Mesh)
     }
-    const next = createNameplateText(label)
-    if (next) nameplate.add(next)
+    let disposed = false
+    let next: THREE.Mesh | null = null
+    const renderEngraving = async () => {
+      if (!label) return
+      await loadNameplateFont(contentFont, label)
+      if (disposed) return
+      next = createNameplateText(label, contentFont)
+      if (next) nameplate.add(next)
+    }
+    void renderEngraving()
     return () => {
+      disposed = true
       if (!next) return
       nameplate.remove(next)
-      next.geometry.dispose()
-      ;(next.material as THREE.MeshPhysicalMaterial).map?.dispose()
-      next.material.dispose()
+      disposeNameplateText(next)
     }
-  }, [label, runtime])
+  }, [contentFont, label, runtime])
 
   const setOpenProgress = useCallback((
     progress: number,

@@ -1,11 +1,12 @@
 import {
-  DEFAULT_JOURNAL_FONT_ID,
-  JOURNAL_FONT_STORAGE_KEY,
-  readJournalFontPreference,
-  writeJournalFontPreference,
+  CONTENT_FONT_FAMILIES,
+  CONTENT_FONT_STORAGE_KEY,
+  DEFAULT_CONTENT_FONT_ID,
+  readContentFontPreference,
+  writeContentFontPreference,
 } from './journal-font'
 
-describe('journal font preference', () => {
+describe('global content font preference', () => {
   it('reads and writes a supported font', () => {
     const values = new Map<string, string>()
     const storage = {
@@ -13,16 +14,17 @@ describe('journal font preference', () => {
       setItem: (key: string, value: string) => values.set(key, value),
     }
 
-    writeJournalFontPreference(storage, 'suifeng')
+    writeContentFontPreference(storage, 'zhimang')
 
-    expect(values.get(JOURNAL_FONT_STORAGE_KEY)).toBe('suifeng')
-    expect(readJournalFontPreference(storage)).toBe('suifeng')
+    expect(values.get(CONTENT_FONT_STORAGE_KEY)).toBe('zhimang')
+    expect(readContentFontPreference(storage)).toBe('zhimang')
+    expect(CONTENT_FONT_FAMILIES.zhimang).toContain('Zhi Mang Xing')
   })
 
   it('falls back when the stored font is unavailable in the current build', () => {
     const storage = { getItem: () => 'jingjing' }
 
-    expect(readJournalFontPreference(storage, ['paper'])).toBe(DEFAULT_JOURNAL_FONT_ID)
+    expect(readContentFontPreference(storage, ['paper'])).toBe(DEFAULT_CONTENT_FONT_ID)
   })
 
   it('falls back when storage access fails', () => {
@@ -32,6 +34,6 @@ describe('journal font preference', () => {
       },
     }
 
-    expect(readJournalFontPreference(storage)).toBe(DEFAULT_JOURNAL_FONT_ID)
+    expect(readContentFontPreference(storage)).toBe(DEFAULT_CONTENT_FONT_ID)
   })
 })

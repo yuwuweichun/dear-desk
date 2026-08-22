@@ -179,6 +179,15 @@ export interface ModelMaterialLibrary {
   dispose: () => void
 }
 
+export const BRASS_MATERIAL_PARAMETERS = {
+  clearcoat: 0.12,
+  clearcoatRoughness: 0.2,
+  color: '#8f6a41',
+  envMapIntensity: 0.82,
+  metalness: 0.92,
+  roughness: 0.34,
+} as const
+
 export const applySceneColors = (
   materials: ModelMaterialLibrary,
   colors: SceneColorConfig,
@@ -531,14 +540,7 @@ export function createModelMaterialLibrary(
   paperBlock.aoMapIntensity = 0.04
   paperBlock.roughness = 0.99
 
-  const brass = new THREE.MeshPhysicalMaterial({
-    clearcoat: 0.12,
-    clearcoatRoughness: 0.2,
-    color: '#8f6a41',
-    envMapIntensity: 0.82,
-    metalness: 0.92,
-    roughness: 0.34,
-  })
+  const brass = new THREE.MeshPhysicalMaterial(BRASS_MATERIAL_PARAMETERS)
   brass.name = 'aged-brass-crown'
   const brassDark = brass.clone()
   brassDark.name = 'aged-brass-neck'

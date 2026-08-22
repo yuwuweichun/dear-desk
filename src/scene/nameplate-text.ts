@@ -1,76 +1,177 @@
 import * as THREE from 'three'
 
+import {
+  CONTENT_FONT_FAMILIES,
+  DEFAULT_CONTENT_FONT_ID,
+  type ContentFontId,
+} from '../domain/journal-font'
+import { BRASS_MATERIAL_PARAMETERS } from './models/material-library'
+
 const TEXTURE_WIDTH = 2048
 const TEXTURE_HEIGHT = 512
+const FONT_SIZE = 250
+const MAX_TEXT_WIDTH = 1740
 const PLAQUE_TOP_Y = 0.018
+const NAMEPLATE_SURFACE_WIDTH = 1.08
+const NAMEPLATE_SURFACE_DEPTH = 0.22
+const GROOVE_DEPTH = 0.005
 
-export const NAMEPLATE_COLOR_PALETTE = {
-  black: { highlight: 'rgba(220, 220, 220, 0.42)', main: '#161616', shadow: 'rgba(0, 0, 0, 0.86)' },
-  copper: { highlight: 'rgba(244, 193, 130, 0.48)', main: '#57321f', shadow: 'rgba(35, 16, 7, 0.84)' },
-  espresso: { highlight: 'rgba(255, 226, 157, 0.48)', main: '#4a2d15', shadow: 'rgba(24, 13, 5, 0.82)' },
-  oxblood: { highlight: 'rgba(229, 157, 148, 0.46)', main: '#5a2424', shadow: 'rgba(35, 8, 10, 0.84)' },
-  bronze: { highlight: 'rgba(180, 211, 194, 0.42)', main: '#304238', shadow: 'rgba(8, 22, 19, 0.84)' },
-} as const
-
-export type NameplateColor = keyof typeof NAMEPLATE_COLOR_PALETTE
-
-const getNameplateColor = (): NameplateColor => {
-  if (typeof window === 'undefined') return 'espresso'
-  const value = new URLSearchParams(window.location.search).get('nameplate-color')
-  return value && value in NAMEPLATE_COLOR_PALETTE ? value as NameplateColor : 'espresso'
-}
-
-const drawEngravedLabel = (label: string) => {
-  if (typeof document === 'undefined') return null
+const createCanvasLayer = () => {
   const canvas = document.createElement('canvas')
   canvas.width = TEXTURE_WIDTH
   canvas.height = TEXTURE_HEIGHT
-  const context = canvas.getContext('2d')
-  if (!context) return null
+  return { canvas, context: canvas.getContext('2d') }
+}
 
-  context.clearRect(0, 0, TEXTURE_WIDTH, TEXTURE_HEIGHT)
+const configureText = (
+  context: CanvasRenderingContext2D,
+  contentFont: ContentFontId,
+) => {
   context.textAlign = 'center'
   context.textBaseline = 'middle'
-  context.font = '700 250px "Xuandong Kaishu", "Noto Sans SC", serif'
-  const metrics = context.measureText(label)
-  const scale = Math.min(1, 1740 / Math.max(metrics.width, 1))
-  const colors = NAMEPLATE_COLOR_PALETTE[getNameplateColor()]
+  context.font = `400 ${FONT_SIZE}px ${CONTENT_FONT_FAMILIES[contentFont]}`
+}
 
+const drawBrushedBase = (
+  context: CanvasRenderingContext2D,
+  base: string,
+  alternate: string,
+) => {
+  context.fillStyle = base
+  context.fillRect(0, 0, TEXTURE_WIDTH, TEXTURE_HEIGHT)
+  context.fillStyle = alternate
+  for (let y = 3; y < TEXTURE_HEIGHT; y += 8) {
+    context.fillRect(0, y, TEXTURE_WIDTH, 1)
+  }
+}
+
+const drawScaledLabel = (
+  context: CanvasRenderingContext2D,
+  label: string,
+  scale: number,
+  draw: () => void,
+) => {
   context.save()
   context.translate(TEXTURE_WIDTH / 2, TEXTURE_HEIGHT / 2)
   context.scale(scale, scale)
-  // Dark recessed core, then a restrained upper-left edge highlight to mimic an engraved bevel.
-  context.shadowColor = colors.shadow
-  context.shadowBlur = 7
-  context.shadowOffsetX = 2
-  context.shadowOffsetY = 3
-  context.fillStyle = colors.main
-  context.fillText(label, 0, 0)
-  context.shadowColor = 'transparent'
-  context.fillStyle = colors.highlight
-  context.fillText(label, -2, -2)
-  context.fillStyle = colors.main
-  context.fillText(label, 1, 1)
+  draw()
   context.restore()
+}
 
+const createTexture = (
+  canvas: HTMLCanvasElement,
+  name: string,
+  colorSpace: THREE.ColorSpace = THREE.NoColorSpace,
+) => {
   const texture = new THREE.CanvasTexture(canvas)
-  texture.colorSpace = THREE.SRGBColorSpace
+  texture.name = name
+  texture.colorSpace = colorSpace
   texture.anisotropy = 8
-  const material = new THREE.MeshPhysicalMaterial({
-    alphaTest: 0.06,
-    clearcoat: 0.18,
-    color: '#b18a45',
-    map: texture,
-    metalness: 0.84,
-    roughness: 0.28,
-    transparent: true,
+  return texture
+}
+
+const drawEngravedLabel = (label: string, contentFont: ContentFontId) => {
+  if (typeof document === 'undefined') return null
+  const colorLayer = createCanvasLayer()
+  const bumpLayer = createCanvasLayer()
+  const roughnessLayer = createCanvasLayer()
+  if (!colorLayer.context || !bumpLayer.context || !roughnessLayer.context) return null
+
+  const contexts = [colorLayer.context, bumpLayer.context, roughnessLayer.context]
+  contexts.forEach((context) => configureText(context, contentFont))
+  const metrics = colorLayer.context.measureText(label)
+  const scale = Math.min(1, MAX_TEXT_WIDTH / Math.max(metrics.width, 1))
+
+  drawBrushedBase(colorLayer.context, '#ffffff', '#fdfcf9')
+  drawScaledLabel(colorLayer.context, label, scale, () => {
+    colorLayer.context!.strokeStyle = '#f2e7d7'
+    colorLayer.context!.lineWidth = 7
+    colorLayer.context!.strokeText(label, 0, 0)
+    colorLayer.context!.fillStyle = '#d8c5ae'
+    colorLayer.context!.fillText(label, 0, 0)
   })
-  const mesh = new THREE.Mesh(new THREE.PlaneGeometry(1.08, 0.22), material)
+
+  drawBrushedBase(bumpLayer.context, '#d8d8d8', '#d6d6d6')
+  drawScaledLabel(bumpLayer.context, label, scale, () => {
+    bumpLayer.context!.shadowColor = '#666666'
+    bumpLayer.context!.shadowBlur = 7
+    bumpLayer.context!.shadowOffsetX = 0
+    bumpLayer.context!.shadowOffsetY = 0
+    bumpLayer.context!.fillStyle = '#4c4c4c'
+    bumpLayer.context!.fillText(label, 0, 0)
+    bumpLayer.context!.shadowColor = 'transparent'
+  })
+
+  drawBrushedBase(roughnessLayer.context, '#575757', '#595959')
+  drawScaledLabel(roughnessLayer.context, label, scale, () => {
+    roughnessLayer.context!.strokeStyle = '#414141'
+    roughnessLayer.context!.lineWidth = 8
+    roughnessLayer.context!.strokeText(label, 0, 0)
+    roughnessLayer.context!.fillStyle = '#909090'
+    roughnessLayer.context!.fillText(label, 0, 0)
+  })
+
+  const colorTexture = createTexture(
+    colorLayer.canvas,
+    'nameplate-engraving-color',
+    THREE.SRGBColorSpace,
+  )
+  const bumpTexture = createTexture(bumpLayer.canvas, 'nameplate-engraving-bump')
+  const roughnessTexture = createTexture(
+    roughnessLayer.canvas,
+    'nameplate-engraving-roughness',
+  )
+  const material = new THREE.MeshPhysicalMaterial({
+    ...BRASS_MATERIAL_PARAMETERS,
+    bumpMap: bumpTexture,
+    bumpScale: GROOVE_DEPTH,
+    map: colorTexture,
+    roughness: 1,
+    roughnessMap: roughnessTexture,
+  })
+  material.name = 'dynamic-engraved-brass-surface'
+  const mesh = new THREE.Mesh(
+    new THREE.PlaneGeometry(NAMEPLATE_SURFACE_WIDTH, NAMEPLATE_SURFACE_DEPTH),
+    material,
+  )
   mesh.name = 'custom-nameplate-engraving'
   mesh.position.set(0, PLAQUE_TOP_Y, 0)
   mesh.rotation.x = -Math.PI / 2
+  mesh.userData = {
+    contentFont,
+    engravingTechnique: 'bump-roughness',
+    grooveDepth: GROOVE_DEPTH,
+  }
   return mesh
 }
 
-export const createNameplateText = (label: string) =>
-  label ? drawEngravedLabel(label) : null
+export const loadNameplateFont = async (
+  contentFont: ContentFontId,
+  label: string,
+) => {
+  if (typeof document === 'undefined' || !document.fonts) return
+  await document.fonts.load(
+    `400 ${FONT_SIZE}px ${CONTENT_FONT_FAMILIES[contentFont]}`,
+    label,
+  )
+}
+
+export const createNameplateText = (
+  label: string,
+  contentFont: ContentFontId = DEFAULT_CONTENT_FONT_ID,
+) => label ? drawEngravedLabel(label, contentFont) : null
+
+export const disposeNameplateText = (mesh: THREE.Mesh) => {
+  mesh.geometry.dispose()
+  const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material]
+  materials.forEach((candidate) => {
+    const material = candidate as THREE.MeshPhysicalMaterial
+    const textures = new Set([
+      material.map,
+      material.bumpMap,
+      material.roughnessMap,
+    ])
+    textures.forEach((texture) => texture?.dispose())
+    material.dispose()
+  })
+}

@@ -1,4 +1,4 @@
-import { Check, PenLine, Save, Type, X } from 'lucide-react'
+import { PenLine, Save, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 
 import {
@@ -8,12 +8,7 @@ import {
   MAX_ENTRY_TITLE_LENGTH,
   type LocalDate,
 } from '../../domain/daily-entry'
-import {
-  JOURNAL_FONT_OPTIONS,
-  readJournalFontPreference,
-  writeJournalFontPreference,
-  type JournalFontId,
-} from '../../domain/journal-font'
+import type { ContentFontId } from '../../domain/journal-font'
 import type { PlacedSticker } from '../../domain/sticker'
 import type { JournalTurnDirection } from '../../state/app-store'
 import { useAppStore } from '../../state/app-store-context'
@@ -29,19 +24,19 @@ import { PageTurnSheet } from './PageTurnSheet'
 type JournalMode = 'reading' | 'editing'
 type WritingPhase = 'idle' | 'writing' | 'saving'
 
-const availableJournalFonts = JOURNAL_FONT_OPTIONS.filter((option) =>
-  import.meta.env.DEV || option.id !== 'jingjing')
-const availableJournalFontIds = availableJournalFonts.map((option) => option.id)
+interface JournalPanelProps {
+  contentFont: ContentFontId
+}
 
-export function JournalPanel() {
+export function JournalPanel({ contentFont }: JournalPanelProps) {
   const notebookPhase = useAppStore((state) => state.notebookPhase)
 
   if (notebookPhase !== 'editing') return null
 
-  return <JournalBook />
+  return <JournalBook contentFont={contentFont} />
 }
 
-function JournalBook() {
+function JournalBook({ contentFont }: JournalPanelProps) {
   const selectedDate = useAppStore((state) => state.selectedDate)
   const entry = useAppStore((state) => state.entry)
   const journalStickers = useAppStore((state) => state.journalStickers)
@@ -74,11 +69,7 @@ function JournalBook() {
   const [draft, setDraft] = useState('')
   const [draftTitle, setDraftTitle] = useState('')
   const [sessionMessage, setSessionMessage] = useState('')
-  const [journalFont, setJournalFont] = useState<JournalFontId>(() =>
-    readJournalFontPreference(window.localStorage, availableJournalFontIds))
-  const [fontMenuOpen, setFontMenuOpen] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
-  const fontControlRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     void loadJournalPages()
@@ -87,36 +78,6 @@ function JournalBook() {
   useEffect(() => {
     if (writingPhase === 'writing') textareaRef.current?.focus()
   }, [writingPhase])
-
-  useEffect(() => {
-    if (!import.meta.env.DEV) return
-
-    const style = document.createElement('style')
-    style.dataset.dearDeskDevelopmentFont = 'jingjing'
-    style.textContent = '@font-face{font-family:"Dear Desk JingJing";src:url("/dev-fonts/YunFengJingJingTi-Regular.ttf") format("truetype");font-display:swap;font-style:normal;font-weight:400;}'
-    document.head.append(style)
-    return () => style.remove()
-  }, [])
-
-  useEffect(() => {
-    if (!fontMenuOpen) return
-
-    const closeOnOutsidePointer = (event: PointerEvent) => {
-      if (!fontControlRef.current?.contains(event.target as Node)) {
-        setFontMenuOpen(false)
-      }
-    }
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setFontMenuOpen(false)
-    }
-
-    document.addEventListener('pointerdown', closeOnOutsidePointer)
-    document.addEventListener('keydown', closeOnEscape)
-    return () => {
-      document.removeEventListener('pointerdown', closeOnOutsidePointer)
-      document.removeEventListener('keydown', closeOnEscape)
-    }
-  }, [fontMenuOpen])
 
   const rightDate = journalPageDates[journalCursor] ?? selectedDate
   const previousDate = journalCursor > 0
@@ -172,7 +133,6 @@ function JournalBook() {
     if (mode === 'reading') {
       setWritingPhase('idle')
       setDraftDate(null)
-      setFontMenuOpen(false)
       return
     }
 
@@ -181,12 +141,6 @@ function JournalBook() {
     setDraft(currentText)
     setDraftTitle(currentTitle)
     setWritingPhase('writing')
-  }
-
-  const selectJournalFont = (fontId: JournalFontId) => {
-    setJournalFont(fontId)
-    writeJournalFontPreference(window.localStorage, fontId)
-    setFontMenuOpen(false)
   }
 
   const startWriting = () => {
@@ -246,7 +200,7 @@ function JournalBook() {
       data-writing-phase={writingPhase}
       data-turn-phase={journalTurnPhase}
       data-turn-direction={journalTurnDirection ?? 'none'}
-      data-journal-font={journalFont}
+      data-journal-font={contentFont}
     >
       <h1 id="journal-title" className="sr-only">双页日记本</h1>
       <p id="journal-navigation-help" className="sr-only">
@@ -403,8 +357,7 @@ function JournalBook() {
           value={journalMode}
         />
         {journalMode === 'editing' ? (
-          <>
-            <Button
+          <Button
               className="journal-writing-button"
               htmlType="button"
               icon={writing ? <Save aria-hidden="true" size={17} /> : <PenLine aria-hidden="true" size={17} />}
@@ -418,40 +371,6 @@ function JournalBook() {
             >
               <span>{saving ? '收笔中' : writing ? '收笔' : '书写'}</span>
             </Button>
-            <div className="journal-font-control" ref={fontControlRef}>
-              <IconButton
-                className="journal-font-button"
-                label={`更换字体，当前${availableJournalFonts.find((option) => option.id === journalFont)?.label ?? '纸页宋体'}`}
-                aria-expanded={fontMenuOpen}
-                aria-haspopup="menu"
-                onClick={() => setFontMenuOpen((open) => !open)}
-                variant="secondary"
-              >
-                <Type aria-hidden="true" size={21} strokeWidth={2} />
-              </IconButton>
-              {fontMenuOpen ? (
-                <div className="journal-font-menu" role="menu" aria-label="选择日记字体">
-                  {availableJournalFonts.map((option) => (
-                    <button
-                      className="journal-font-option"
-                      data-font-preview={option.id}
-                      key={option.id}
-                      onClick={() => selectJournalFont(option.id)}
-                      role="menuitemradio"
-                      aria-checked={journalFont === option.id}
-                      type="button"
-                    >
-                      <span className="journal-font-option__sample" aria-hidden="true">
-                        {option.sample}
-                      </span>
-                      <span>{option.label}</span>
-                      {journalFont === option.id ? <Check aria-hidden="true" size={16} /> : null}
-                    </button>
-                  ))}
-                </div>
-              ) : null}
-            </div>
-          </>
         ) : null}
       </div>
 

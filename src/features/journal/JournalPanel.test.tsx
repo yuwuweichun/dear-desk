@@ -2,7 +2,7 @@ import { act, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
 import type { DailyEntry, DailyEntryRepository, LocalDate } from '../../domain/daily-entry'
-import { JOURNAL_FONT_STORAGE_KEY } from '../../domain/journal-font'
+import type { ContentFontId } from '../../domain/journal-font'
 import type { PlacedSticker } from '../../domain/sticker'
 import { createAppStore } from '../../state/app-store'
 import { AppStoreProvider } from '../../state/app-store-context'
@@ -81,12 +81,15 @@ const openNotebook = (store: ReturnType<typeof createAppStore>) => {
   store.getState().advanceNotebookPhase('opening')
 }
 
-const renderJournal = async (repository: DailyEntryRepository) => {
+const renderJournal = async (
+  repository: DailyEntryRepository,
+  contentFont: ContentFontId = 'paper',
+) => {
   const store = createAppStore(repository, date)
   openNotebook(store)
   const result = render(
     <AppStoreProvider store={store}>
-      <JournalPanel />
+      <JournalPanel contentFont={contentFont} />
     </AppStoreProvider>,
   )
   await waitFor(() => {
@@ -203,33 +206,13 @@ describe('JournalPanel', () => {
     )
   })
 
-  it('changes the writing font from the editing toolbar and restores the preference', async () => {
+  it('uses the global content font without rendering a journal-owned font control', async () => {
     const repository = createRepository({
       [date]: dailyEntry(date, '字体会同时影响阅读与书写。'),
     })
-    const user = userEvent.setup()
-    const first = await renderJournal(repository)
-
-    await user.click(screen.getByRole('button', { name: '编辑' }))
-    await user.click(screen.getByRole('button', { name: /更换字体，当前纸页宋体/ }))
-
-    const menu = screen.getByRole('menu', { name: '选择日记字体' })
-    expect(within(menu).getByRole('menuitemradio', { name: /云峰晶晶体/ })).toBeVisible()
-    expect(within(menu).getByRole('menuitemradio', { name: /玄冬楷书/ })).toBeVisible()
-    expect(within(menu).getByRole('menuitemradio', { name: /随峰体/ })).toBeVisible()
-    await user.click(within(menu).getByRole('menuitemradio', { name: /随峰体/ }))
-
-    expect(screen.getByRole('dialog')).toHaveAttribute('data-journal-font', 'suifeng')
-    expect(window.localStorage.getItem(JOURNAL_FONT_STORAGE_KEY)).toBe('suifeng')
-
-    expect(screen.getByRole('textbox', { name: '本页记录' })).toHaveValue(
-      '字体会同时影响阅读与书写。',
-    )
-
-    first.unmount()
-    const second = await renderJournal(repository)
-    expect(screen.getByRole('dialog')).toHaveAttribute('data-journal-font', 'suifeng')
-    second.unmount()
+    await renderJournal(repository, 'zhimang')
+    expect(screen.getByRole('dialog')).toHaveAttribute('data-journal-font', 'zhimang')
+    expect(screen.queryByRole('button', { name: /更换字体/ })).not.toBeInTheDocument()
   })
 
   it('edits and saves a historical page without replacing todays entry alias', async () => {

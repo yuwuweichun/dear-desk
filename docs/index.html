@@ -22,7 +22,7 @@
         <kbd aria-hidden="true">/</kbd>
         <div id="search-results" class="search-results" role="listbox" aria-label="搜索结果" hidden></div>
       </div>
-      <span class="top-meta">2026-08-21 · 仿真翻页已完成</span>
+      <span class="top-meta">2026-08-23 · 字体与铭牌改动已提交</span>
       <button class="toc-toggle" type="button" aria-controls="sidebar" aria-expanded="false">目录</button>
     </div>
   </header>
@@ -48,7 +48,7 @@
         <p class="lead">这里汇总当前产品范围、系统架构、每项任务的方案与实施结果。代码改动必须先有可审阅方案，完成后再把真实结果回写到同一份记录。</p>
         <div class="callout">
           <strong>当前结论</strong>
-          <p>DD-20260821-002 已把日记中僵硬的 CSS 半页替换为隔离的 <code>page-flip@2.0.7</code> 四页快照。现有按钮、日期预读、翻页锁和动画后游标结算保持不变；新渲染层提供移动折线、弯曲页角和动态阴影，不接管真实表单或业务状态，也没有增加 Canvas，现已通过用户验收。</p>
+          <p>DD-20260823-001 已把字体入口移到首页右上工具栈，同一内容字体现在驱动日记正文与黄铜铭牌，按钮、菜单、标题、HUD 等 UI 字体保持不变。铭牌同步改为动态色调、凹凸和粗糙度三贴图，不再依赖固定方向的彩色阴影；输入框也已恢复原始大小写显示。源码、89 项测试、构建和文档检查通过，相关改动已完成验收收口并提交。</p>
         </div>
       </header>
 
@@ -65,13 +65,16 @@
               <tr><td>本子聚焦转场</td><td><span class="status status-review">已完成</span></td><td>编号 003 已实现镜头走近、转正、开本、纸页 DOM 衔接与反向返回，并通过用户验收。</td></tr>
               <tr><td>独立贴纸工作台</td><td><span class="status status-review">已完成</span></td><td>DD-20260808-002 已实现文字/图片、本地自动与手动抠图、桌面/日记双目标、v3 持久化，并已由开发者验收。</td></tr>
               <tr><td>双页日记与仿真翻页</td><td><span class="status status-review">已完成</span></td><td>DD-20260821-002 已保留日期加载和重入锁，把刚性 CSS 半页替换为隔离的 <code>page-flip@2.0.7</code> 四页快照；仅按钮触发，支持 reduced-motion，不增加 Canvas，并已通过用户验收。</td></tr>
-              <tr><td>本子封面铭牌</td><td><span class="status status-pending">待确认</span></td><td>编号 005 建议支持自定义铭牌内容与 Text3D；字符范围、默认内容与字体资源待确认。</td></tr>
+              <tr><td>本子封面铭牌</td><td><span class="status status-review">已完成</span></td><td>DD-20260806-005 与 DD-20260819-003 已完成自定义铭牌、中英文支持、贴面朝向和金属材质，并通过用户验收。</td></tr>
+              <tr><td>铭牌凹刻与全局内容字体</td><td><span class="status status-review">已完成</span></td><td>DD-20260819-004 与 DD-20260823-001 已实现并通过用户验收：方案 A 三贴图凹刻、四种动态字体、右上全局入口和日记/铭牌同步；暗酒红不再作为产品颜色决策。</td></tr>
+              <tr><td>OFL 内容字体事实</td><td><span class="status status-review">已完成</span></td><td>生产内容字体为纸页宋体回退、玄冬楷书、随峰体和志莽行书；云峰晶晶体已删除，全局 UI 依赖为 CC BY-NC-4.0 且不受内容字体影响。</td></tr>
+              <tr><td>暖色主光对比实验</td><td><span class="status status-neutral">已取消</span></td><td>DD-20260819-008 已取消；生产主光保持现有强度，不进行关闭实验。</td></tr>
               <tr><td>历史 Minecraft 像素场景</td><td><span class="status status-neutral">已取消</span></td><td>编号 006 从未批准或实施，用户已于 2026-08-09 明确弃用，不再作为实现依据。</td></tr>
               <tr><td>历史统一空间视觉</td><td><span class="status status-neutral">已替代</span></td><td>DD-20260809-002 的历史实现与反馈保留，未完成的模型视觉验收由 DD-20260810-002 接管。</td></tr>
-              <tr><td>概念模型与通用 UI 重构</td><td><span class="status status-review">待验收</span></td><td>DD-20260810-002 已完成三个模型工厂，并在非商业许可边界内删除旧控件外观、重写通用界面和贴纸工作台；领域数据与 Canvas 保持独立。</td></tr>
-              <tr><td>开放场景颜色编辑</td><td><span class="status status-review">待验收</span></td><td>DD-20260813-005 已实现九项实时调色、桌腿/桌框材质分离、重置和复制 JSON；刷新恢复 V2，不进入持久化。</td></tr>
-              <tr><td>日记阅读与书写模式</td><td><span class="status status-review">待验收</span></td><td>DD-20260809-004 已实现左页留白、右页统一日期、“阅 / 读 / 编 / 辑”竖排单按钮上下滑动、“图标 / 书 / 写”竖排动作、按右页日期保存和 dirty 离开保护。</td></tr>
-              <tr><td>当前分支</td><td><code>main</code></td><td>本轮任务源码基线为 <code>faac23c</code>；实现仍在工作区，尚未创建提交。</td></tr>
+              <tr><td>概念模型与通用 UI 重构</td><td><span class="status status-review">已完成</span></td><td>DD-20260810-002 已完成三个模型工厂、通用界面与贴纸工作台重构，并已完成验收。</td></tr>
+              <tr><td>开放场景颜色编辑</td><td><span class="status status-review">已完成</span></td><td>DD-20260813-005 已实现九项实时调色、桌腿/桌框材质分离、重置和复制 JSON，并已完成验收。</td></tr>
+              <tr><td>日记阅读与书写模式</td><td><span class="status status-review">已完成</span></td><td>DD-20260809-004 已实现双页阅读/书写模式、历史编辑与 dirty 离开保护，并已完成验收。</td></tr>
+              <tr><td>当前分支</td><td><code>main</code></td><td>本轮状态收尾源码基线为 <code>d3d4594</code>；文档状态回写尚未创建提交。</td></tr>
             </tbody>
           </table>
         </div>
@@ -116,12 +119,17 @@
               <tr><td><a href="./changes/2026-08-06-003-notebook-focus-transition.md">本子聚焦转场</a></td><td>查看镜头走近、转正、开本、二维 UI 衔接与验证证据。</td><td>已完成</td></tr>
               <tr><td><a href="./changes/2026-08-06-004-basic-sticker-system.md">历史自研贴纸方案</a></td><td>保留 004 被 Sticker Forge 集成方案替代的审阅轨迹，不再作为实施依据。</td><td>已替代</td></tr>
               <tr><td><a href="./changes/2026-08-06-007-sticker-forge-integration.md">Sticker Forge 文字贴纸</a></td><td>查看固定上游版本、单 Canvas 切换、持久化实现和验收证据。</td><td>已完成</td></tr>
-              <tr><td><a href="./changes/2026-08-06-005-custom-notebook-nameplate-text3d.md">本子封面铭牌</a></td><td>审核可编辑铭牌、Text3D、字体资源与本地持久化方案。</td><td>待确认</td></tr>
+              <tr><td><a href="./changes/2026-08-06-005-custom-notebook-nameplate-text3d.md">本子封面铭牌</a></td><td>查看可编辑铭牌、Text3D、中英文材质和本地持久化验收记录。</td><td>已完成</td></tr>
               <tr><td><a href="./changes/2026-08-06-006-crafting-table-desk-texture.md">历史 Minecraft 像素场景方案</a></td><td>保留已弃用的工作台、火把灯、像素书和公开资源调研轨迹，不再作为实现依据。</td><td>已取消</td></tr>
               <tr><td><a href="./changes/2026-08-09-002-unified-desk-visual-direction.md">暖木纸本工坊视觉方向</a></td><td>保留早期桌面减法、内页打磨和用户反馈，由后续模型重建任务接管验收。</td><td>已替代</td></tr>
-              <tr><td><a href="./changes/2026-08-10-002-refine-concept-model-visuals.md">概念模型与通用 UI 重构</a></td><td>查看程序化模型、UI 适配层、非商业许可证边界、双视口与验证记录。</td><td>待验收</td></tr>
-              <tr><td><a href="./changes/2026-08-13-005-live-scene-color-editor.md">开放场景颜色编辑面板</a></td><td>验收九项实时试色、独立桌腿材质、复制/重置、移动底部抽屉和非持久化边界。</td><td>待验收</td></tr>
-              <tr><td><a href="./changes/2026-08-09-004-journal-reading-writing-modes.md">日记阅读与书写模式</a></td><td>验收左页留白、右页单日期、历史可编辑、本子外两级模式控件和未保存保护。</td><td>待验收</td></tr>
+              <tr><td><a href="./changes/2026-08-10-002-refine-concept-model-visuals.md">概念模型与通用 UI 重构</a></td><td>查看程序化模型、UI 适配层、非商业许可证边界、双视口与验证记录。</td><td>已完成</td></tr>
+              <tr><td><a href="./changes/2026-08-13-005-live-scene-color-editor.md">开放场景颜色编辑面板</a></td><td>查看九项实时试色、独立桌腿材质、复制/重置、移动底部抽屉和非持久化边界。</td><td>已完成</td></tr>
+              <tr><td><a href="./changes/2026-08-09-004-journal-reading-writing-modes.md">日记阅读与书写模式</a></td><td>查看左页留白、右页单日期、历史可编辑、本子外两级模式控件和未保存保护。</td><td>已完成</td></tr>
+              <tr><td><a href="./changes/2026-08-21-003-font-license-and-task-closeout.md">OFL 字体与任务状态收尾</a></td><td>查看历史字体事实、许可证边界、验收通过任务和取消/替代记录。</td><td>已替代</td></tr>
+              <tr><td><a href="./changes/2026-08-21-004-remove-dev-font-add-zhi-mang-xing.md">志莽行书字体替换</a></td><td>查看云峰晶晶体移除、志莽行书 OFL 资源、旧偏好回退和离线加载验证。</td><td>已完成</td></tr>
+              <tr><td><a href="./changes/2026-08-23-001-global-content-font-setting.md">全局内容字体与铭牌联动</a></td><td>查看右上入口取舍、应用级字体所有权、日记/UI 隔离、动态铭牌三贴图和双视口验证。</td><td>已完成</td></tr>
+              <tr><td><a href="./changes/2026-08-23-002-fix-nameplate-input-casing.md">铭牌输入大小写修复</a></td><td>查看强制大写展示根因、原值保存链路和小写输入回归测试。</td><td>已完成</td></tr>
+              <tr><td><a href="./changes/2026-08-23-003-audit-and-commit-workspace-changes.md">工作区审计与提交</a></td><td>查看本次差异范围、验证结果、状态收口和提交边界。</td><td>已完成</td></tr>
               <tr><td><a href="./decisions/2026-08-06-001-documentation-as-review-interface.md">文档审核界面决策</a></td><td>理解为什么采用先审批、后实施、再回写。</td><td>已接受</td></tr>
               <tr><td><a href="./decisions/2026-08-06-002-local-first-data-and-scene-projection.md">本地数据与场景投影决策</a></td><td>理解 IndexedDB、Zustand、DOM 和 Three.js 的长期所有权边界。</td><td>已接受</td></tr>
               <tr><td><a href="./decisions/2026-08-07-001-sticker-forge-canvas-ownership.md">Sticker Forge 与 Canvas 所有权决策</a></td><td>理解固定上游产物、透明 PNG 快照和单活跃 WebGL Canvas 边界。</td><td>已接受</td></tr>

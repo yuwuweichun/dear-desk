@@ -1,23 +1,31 @@
-export const JOURNAL_FONT_STORAGE_KEY = 'dear-desk:journal-font'
+// Keep the legacy key so existing journal font preferences become global content preferences.
+export const CONTENT_FONT_STORAGE_KEY = 'dear-desk:journal-font'
 
-export const JOURNAL_FONT_IDS = ['paper', 'jingjing', 'xuandong', 'suifeng'] as const
+export const CONTENT_FONT_IDS = ['paper', 'xuandong', 'suifeng', 'zhimang'] as const
 
-export type JournalFontId = (typeof JOURNAL_FONT_IDS)[number]
+export type ContentFontId = (typeof CONTENT_FONT_IDS)[number]
 
-export interface JournalFontOption {
-  id: JournalFontId
+export interface ContentFontOption {
+  id: ContentFontId
   label: string
   sample: string
 }
 
-export const DEFAULT_JOURNAL_FONT_ID: JournalFontId = 'paper'
+export const DEFAULT_CONTENT_FONT_ID: ContentFontId = 'paper'
 
-export const JOURNAL_FONT_OPTIONS: readonly JournalFontOption[] = [
+export const CONTENT_FONT_OPTIONS: readonly ContentFontOption[] = [
   { id: 'paper', label: '纸页宋体', sample: '字' },
-  { id: 'jingjing', label: '云峰晶晶体', sample: '字' },
   { id: 'xuandong', label: '玄冬楷书', sample: '字' },
   { id: 'suifeng', label: '随峰体', sample: '字' },
+  { id: 'zhimang', label: '志莽行书', sample: '字' },
 ]
+
+export const CONTENT_FONT_FAMILIES: Readonly<Record<ContentFontId, string>> = {
+  paper: 'Georgia, "Songti SC", serif',
+  xuandong: '"Xuandong Kaishu", "Songti SC", serif',
+  suifeng: '"The Peak Font Plus", "Songti SC", serif',
+  zhimang: '"Zhi Mang Xing", "Songti SC", serif',
+}
 
 interface ReadableStorage {
   getItem(key: string): string | null
@@ -27,29 +35,29 @@ interface WritableStorage {
   setItem(key: string, value: string): void
 }
 
-export const isJournalFontId = (value: unknown): value is JournalFontId =>
-  typeof value === 'string' && JOURNAL_FONT_IDS.includes(value as JournalFontId)
+export const isContentFontId = (value: unknown): value is ContentFontId =>
+  typeof value === 'string' && CONTENT_FONT_IDS.includes(value as ContentFontId)
 
-export const readJournalFontPreference = (
+export const readContentFontPreference = (
   storage: ReadableStorage,
-  allowed: readonly JournalFontId[] = JOURNAL_FONT_IDS,
-): JournalFontId => {
+  allowed: readonly ContentFontId[] = CONTENT_FONT_IDS,
+): ContentFontId => {
   try {
-    const value = storage.getItem(JOURNAL_FONT_STORAGE_KEY)
-    return isJournalFontId(value) && allowed.includes(value)
+    const value = storage.getItem(CONTENT_FONT_STORAGE_KEY)
+    return isContentFontId(value) && allowed.includes(value)
       ? value
-      : DEFAULT_JOURNAL_FONT_ID
+      : DEFAULT_CONTENT_FONT_ID
   } catch {
-    return DEFAULT_JOURNAL_FONT_ID
+    return DEFAULT_CONTENT_FONT_ID
   }
 }
 
-export const writeJournalFontPreference = (
+export const writeContentFontPreference = (
   storage: WritableStorage,
-  fontId: JournalFontId,
+  fontId: ContentFontId,
 ) => {
   try {
-    storage.setItem(JOURNAL_FONT_STORAGE_KEY, fontId)
+    storage.setItem(CONTENT_FONT_STORAGE_KEY, fontId)
   } catch {
     // Storage can be unavailable in private or restricted browser contexts.
   }
