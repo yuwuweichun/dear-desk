@@ -94,6 +94,9 @@ describe('DexieStickerRepository', () => {
     expect(desk.asset.upstreamCommit).toBe(STICKER_FORGE_COMMIT)
     await expect(repository.listDesk()).resolves.toHaveLength(1)
     await expect(repository.listJournal(date)).resolves.toHaveLength(1)
+    await expect(repository.listJournalDateCounts()).resolves.toEqual([
+      { count: 1, date },
+    ])
     await expect(repository.listJournalDates()).resolves.toEqual([date])
     await expect(repository.listJournal('2026-08-08' as LocalDate)).resolves.toEqual([])
     await expect(database.stickerSourceAssets.count()).resolves.toBe(1)

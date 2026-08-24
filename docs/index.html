@@ -22,7 +22,7 @@
         <kbd aria-hidden="true">/</kbd>
         <div id="search-results" class="search-results" role="listbox" aria-label="搜索结果" hidden></div>
       </div>
-      <span class="top-meta">2026-08-23 · 日记页眉字体已完成</span>
+      <span class="top-meta">2026-08-24 · 旧痕迹入口已完成</span>
       <button class="toc-toggle" type="button" aria-controls="sidebar" aria-expanded="false">目录</button>
     </div>
   </header>
@@ -48,7 +48,7 @@
         <p class="lead">这里汇总当前产品范围、系统架构、每项任务的方案与实施结果。代码改动必须先有可审阅方案，完成后再把真实结果回写到同一份记录。</p>
         <div class="callout">
           <strong>当前结论</strong>
-          <p>DD-20260823-006 已把纸页日期、“贴纸”标题、阅读/书写态日记标题和翻页快照纳入全局内容字体，并从实时页与快照删除“尚未留下”“当前日期”“旧日记录”；贴纸数量与书写状态继续保留。源码、90 项测试、lint、production build、桌面/移动实时页、翻页中间态和字体偏好恢复均已通过，用户已通过提交指令预先验收。</p>
+          <p>DD-20260824-002 与 004 已把中央宽抽屉开放为敞口“旧痕迹”入口：抽屉和 DOM 按钮共享状态机，历史索引按月汇总正文与日记贴纸，选择日期后本子直接定位该日；左右抽屉不分配功能。清理已取消实验后的 96 项测试、lint、production build、桌面/移动、WebGL 降级、reduced-motion 和本地 HTML 文档交互均已通过，相关实现已由用户验收。</p>
         </div>
       </header>
 
@@ -68,6 +68,9 @@
               <tr><td>本子封面铭牌</td><td><span class="status status-review">已完成</span></td><td>DD-20260806-005 与 DD-20260819-003 已完成自定义铭牌、中英文支持、贴面朝向和金属材质，并通过用户验收。</td></tr>
               <tr><td>铭牌凹刻与全局内容字体</td><td><span class="status status-review">已完成</span></td><td>DD-20260819-004 与 DD-20260823-001 已实现并通过用户验收：方案 A 三贴图凹刻、四种动态字体、右上全局入口和日记/铭牌同步；暗酒红不再作为产品颜色决策。</td></tr>
               <tr><td>日记页眉字体与状态精简</td><td><span class="status status-review">已完成</span></td><td>DD-20260823-006 已让日期、左右页标题、标题输入和翻页快照跟随内容字体，并删除三类重复页眉说明；自动检查和双视口交互已通过用户验收。</td></tr>
+              <tr><td>旧痕迹中央抽屉入口</td><td><span class="status status-review">已完成</span></td><td>DD-20260824-002 与 004 已实现中央敞口抽屉开合、DOM 等价入口、轻量历史摘要、贴纸-only 日期和指定日期打开本子；全量检查与双视口浏览器验收通过，并已由用户验收。</td></tr>
+              <tr><td>Gaussian 记忆房间实验</td><td><span class="status status-neutral">已取消</span></td><td>DD-20260823-007 与 008 保留为历史试验记录；DD-20260824-003 已删除运行时代码、Spark 依赖、测试、脚本和 SPZ 资产。</td></tr>
+              <tr><td>已取消实验清理</td><td><span class="status status-review">已完成</span></td><td>DD-20260824-003 已按用户直接授权清理 Gaussian 记忆房间残留、同步当前事实文档，并已由用户验收。</td></tr>
               <tr><td>OFL 内容字体事实</td><td><span class="status status-review">已完成</span></td><td>生产内容字体为纸页宋体回退、玄冬楷书、随峰体和志莽行书；云峰晶晶体已删除，全局 UI 依赖为 CC BY-NC-4.0 且不受内容字体影响。</td></tr>
               <tr><td>暖色主光对比实验</td><td><span class="status status-neutral">已取消</span></td><td>DD-20260819-008 已取消；生产主光保持现有强度，不进行关闭实验。</td></tr>
               <tr><td>历史 Minecraft 像素场景</td><td><span class="status status-neutral">已取消</span></td><td>编号 006 从未批准或实施，用户已于 2026-08-09 明确弃用，不再作为实现依据。</td></tr>
@@ -75,7 +78,7 @@
               <tr><td>概念模型与通用 UI 重构</td><td><span class="status status-review">已完成</span></td><td>DD-20260810-002 已完成三个模型工厂、通用界面与贴纸工作台重构，并已完成验收。</td></tr>
               <tr><td>开放场景颜色编辑</td><td><span class="status status-review">已完成</span></td><td>DD-20260813-005 已实现九项实时调色、桌腿/桌框材质分离、重置和复制 JSON，并已完成验收。</td></tr>
               <tr><td>日记阅读与书写模式</td><td><span class="status status-review">已完成</span></td><td>DD-20260809-004 已实现双页阅读/书写模式、历史编辑与 dirty 离开保护，并已完成验收。</td></tr>
-              <tr><td>当前分支</td><td><code>main</code></td><td>DD-20260823-006 的源码、文档、验证和验收状态由同一次提交收口。</td></tr>
+              <tr><td>当前分支</td><td><code>main</code></td><td>DD-20260824-002、003、004 及两份已取消历史记录由本次提交纳入 Git 历史；音频方案记录仍作为并行工作保留在工作区。</td></tr>
             </tbody>
           </table>
         </div>
@@ -130,6 +133,11 @@
               <tr><td><a href="./changes/2026-08-21-004-remove-dev-font-add-zhi-mang-xing.md">志莽行书字体替换</a></td><td>查看云峰晶晶体移除、志莽行书 OFL 资源、旧偏好回退和离线加载验证。</td><td>已完成</td></tr>
               <tr><td><a href="./changes/2026-08-23-001-global-content-font-setting.md">全局内容字体与铭牌联动</a></td><td>查看右上入口取舍、应用级字体所有权、日记/UI 隔离、动态铭牌三贴图和双视口验证。</td><td>已完成</td></tr>
               <tr><td><a href="./changes/2026-08-23-006-extend-journal-content-font.md">日记页眉字体与状态精简</a></td><td>查看日期、贴纸页标题、日记标题和翻页快照的字体扩展，以及三类辅助文字删除范围。</td><td>已完成</td></tr>
+              <tr><td><a href="./changes/2026-08-24-002-old-traces-center-drawer-entry.md">旧痕迹中央抽屉入口</a></td><td>查看中央实体抽屉开合、轻量历史摘要、DOM 等价入口、指定日期打开本子和双视口验证。</td><td>已完成</td></tr>
+              <tr><td><a href="./changes/2026-08-24-004-open-top-drawer-model.md">抽屉模型改为敞口盒体</a></td><td>查看中央抽屉从封闭方盒改为可见底板、侧板和后板的敞口结构，以及模型与双视口验证。</td><td>已完成</td></tr>
+              <tr><td><a href="./changes/2026-08-23-007-explore-memory-room-gaussian-splatting.md">历史 Gaussian 记忆房间试验</a></td><td>保留首轮单 Canvas 技术试验、性能边界和取消结论，不再作为当前实现依据。</td><td>已取消</td></tr>
+              <tr><td><a href="./changes/2026-08-23-008-expand-gaussian-memory-room.md">历史三面记忆房间扩展</a></td><td>保留三面资产扩展与视觉验证历史；相关实现已经清理。</td><td>已取消</td></tr>
+              <tr><td><a href="./changes/2026-08-24-003-remove-cancelled-gaussian-memory-room.md">已取消实验清理</a></td><td>查看运行链、依赖、资源、测试和当前事实文档的完整清理范围与验证。</td><td>已完成</td></tr>
               <tr><td><a href="./changes/2026-08-23-002-fix-nameplate-input-casing.md">铭牌输入大小写修复</a></td><td>查看强制大写展示根因、原值保存链路和小写输入回归测试。</td><td>已完成</td></tr>
               <tr><td><a href="./changes/2026-08-23-003-audit-and-commit-workspace-changes.md">工作区审计与提交</a></td><td>查看本次差异范围、验证结果、状态收口和提交边界。</td><td>已完成</td></tr>
               <tr><td><a href="./decisions/2026-08-06-001-documentation-as-review-interface.md">文档审核界面决策</a></td><td>理解为什么采用先审批、后实施、再回写。</td><td>已接受</td></tr>
@@ -201,7 +209,7 @@
       </section>
 
       <footer>
-        Dear Desk 项目文档 · 当前内容依据仓库实际文件整理 · 更新于 2026-08-23
+        Dear Desk 项目文档 · 当前内容依据仓库实际文件整理 · 更新于 2026-08-24
       </footer>
     </main>
   </div>

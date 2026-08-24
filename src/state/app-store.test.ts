@@ -16,6 +16,7 @@ const date = '2026-08-06' as LocalDate
 
 const createRepository = (entry: DailyEntry | null = null): DailyEntryRepository => ({
   getByDate: vi.fn().mockResolvedValue(entry),
+  listEntries: vi.fn().mockResolvedValue(entry ? [entry] : []),
   listDates: vi.fn().mockResolvedValue(entry ? [entry.date] : []),
   save: vi.fn().mockImplementation(async (selectedDate, text) => ({
     date: selectedDate,
@@ -100,6 +101,7 @@ const createStickerRepository = (): StickerRepository => ({
   delete: vi.fn().mockResolvedValue(undefined),
   listDesk: vi.fn().mockResolvedValue([]),
   listJournal: vi.fn().mockResolvedValue([]),
+  listJournalDateCounts: vi.fn().mockResolvedValue([]),
   listJournalDates: vi.fn().mockResolvedValue([]),
   move: vi.fn().mockImplementation(async (id, position) => {
     const sticker = id === 'instance-journal' ? journalSticker : deskSticker
@@ -282,6 +284,85 @@ describe('app store', () => {
     store.getState().settleJournalTurn()
     expect(store.getState().journalCursor).toBe(2)
     await expect(store.getState().requestJournalTurn('next')).resolves.toBe(false)
+  })
+
+  it('opens old traces through the drawer and initializes the journal at the chosen date', async () => {
+    const oldDate = '2026-07-18' as LocalDate
+    const stickerOnlyDate = '2026-07-10' as LocalDate
+    const oldEntry: DailyEntry = {
+      date: oldDate,
+      title: '夏日午后',
+      text: '窗边有一点风。',
+      createdAt: '2026-07-18T01:00:00.000Z',
+      updatedAt: '2026-07-18T01:00:00.000Z',
+    }
+    const repository = createRepository()
+    vi.mocked(repository.listEntries).mockResolvedValue([oldEntry])
+    vi.mocked(repository.listDates).mockResolvedValue([oldDate])
+    vi.mocked(repository.getByDate).mockImplementation(async (requestedDate) =>
+      requestedDate === oldDate ? oldEntry : null)
+    const stickers = createStickerRepository()
+    vi.mocked(stickers.listJournalDateCounts).mockResolvedValue([
+      { count: 2, date: oldDate },
+      { count: 1, date: stickerOnlyDate },
+    ])
+    vi.mocked(stickers.listJournalDates).mockResolvedValue([oldDate, stickerOnlyDate])
+    const store = createAppStore(repository, date, stickers)
+
+    store.getState().requestPastTracesOpen()
+    expect(store.getState().pastTracesPhase).toBe('opening')
+    await vi.waitFor(() => expect(store.getState().pastTracesStatus).toBe('ready'))
+    expect(store.getState().pastTraces.map((trace) => trace.date)).toEqual([
+      oldDate,
+      stickerOnlyDate,
+    ])
+
+    store.getState().settlePastTracesTransition()
+    store.getState().selectPastTrace(oldDate)
+    expect(store.getState()).toMatchObject({
+      pastTracesPhase: 'closing',
+      pendingJournalDate: oldDate,
+    })
+    store.getState().settlePastTracesTransition()
+    expect(store.getState()).toMatchObject({
+      journalInitialDate: oldDate,
+      notebookPhase: 'approaching',
+      pastTracesPhase: 'closed',
+    })
+
+    await store.getState().loadJournalPages()
+    expect(store.getState()).toMatchObject({
+      journalCursor: 1,
+      journalInitialDate: null,
+      journalPageDates: [stickerOnlyDate, oldDate, date],
+    })
+  })
+
+  it('opens old traces directly when the WebGL scene is unavailable', async () => {
+    const oldDate = '2026-07-18' as LocalDate
+    const repository = createRepository()
+    vi.mocked(repository.listEntries).mockResolvedValue([
+      {
+        date: oldDate,
+        text: '旧记录',
+        createdAt: '2026-07-18T01:00:00.000Z',
+        updatedAt: '2026-07-18T01:00:00.000Z',
+      },
+    ])
+    const store = createAppStore(repository, date, createStickerRepository())
+
+    store.getState().openPastTracesWithoutScene()
+    await vi.waitFor(() => expect(store.getState().pastTracesStatus).toBe('ready'))
+    expect(store.getState()).toMatchObject({
+      pastTracesPhase: 'open',
+      pastTracesUsesScene: false,
+    })
+    store.getState().selectPastTrace(oldDate)
+    expect(store.getState()).toMatchObject({
+      journalInitialDate: oldDate,
+      notebookPhase: 'editing',
+      pastTracesPhase: 'closed',
+    })
   })
 
   it('opens the sticker workbench directly from the desk without a journal draft', () => {

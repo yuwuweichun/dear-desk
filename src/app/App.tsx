@@ -1,5 +1,5 @@
 import { Time } from 'animal-island-ui'
-import { BookOpen, Camera, CameraOff, Pencil, Sticker, X } from 'lucide-react'
+import { Archive, BookOpen, Camera, CameraOff, Pencil, Sticker, X } from 'lucide-react'
 import { lazy, Suspense, useEffect, useState } from 'react'
 
 import {
@@ -8,6 +8,7 @@ import {
   type ContentFontId,
 } from '../domain/journal-font'
 import { JournalPanel } from '../features/journal/JournalPanel'
+import { PastTracesPanel } from '../features/history/PastTracesPanel'
 import { ContentFontControl } from '../features/settings/ContentFontControl'
 import { StickerControls } from '../features/stickers/StickerControls'
 import { StickerStudio } from '../features/stickers/StickerStudio'
@@ -38,6 +39,9 @@ function SceneFallback() {
   const openNotebookWithoutScene = useAppStore(
     (state) => state.openNotebookWithoutScene,
   )
+  const openPastTracesWithoutScene = useAppStore(
+    (state) => state.openPastTracesWithoutScene,
+  )
 
   return (
     <div className="scene-fallback" role="status">
@@ -48,6 +52,13 @@ function SceneFallback() {
         variant="primary"
       >
         打开本子
+      </Button>
+      <Button
+        icon={<Archive aria-hidden="true" size={18} />}
+        onClick={openPastTracesWithoutScene}
+        variant="secondary"
+      >
+        旧痕迹
       </Button>
     </div>
   )
@@ -80,8 +91,12 @@ function ProductApp() {
   const notebookCoverErrorMessage = useAppStore((state) => state.notebookCoverErrorMessage)
   const saveNotebookCoverLabel = useAppStore((state) => state.saveNotebookCoverLabel)
   const notebookPhase = useAppStore((state) => state.notebookPhase)
+  const pastTracesPhase = useAppStore((state) => state.pastTracesPhase)
   const requestNotebookOpen = useAppStore((state) => state.requestNotebookOpen)
   const openStickerStudio = useAppStore((state) => state.openStickerStudio)
+  const requestPastTracesOpen = useAppStore(
+    (state) => state.requestPastTracesOpen,
+  )
   const settleNotebookTransition = useAppStore(
     (state) => state.settleNotebookTransition,
   )
@@ -105,6 +120,7 @@ function ProductApp() {
 
   const showDeskActions =
     notebookPhase === 'desk' &&
+    pastTracesPhase === 'closed' &&
     stickerWorkflow === 'idle' &&
     !selectedStickerId
 
@@ -126,6 +142,7 @@ function ProductApp() {
       data-camera-transitioning={deskCameraTransitioning}
       data-free-camera-enabled={freeCameraEnabled}
       data-notebook-phase={notebookPhase}
+      data-past-traces-phase={pastTracesPhase}
       data-sticker-workflow={stickerWorkflow}
     >
       {stickerWorkflow === 'composing' ? (
@@ -165,6 +182,18 @@ function ProductApp() {
             variant="primary"
           >
             <span>打开本子</span>
+          </Button>
+          <Button
+            className="past-traces-button"
+            icon={<Archive aria-hidden="true" size={19} strokeWidth={1.8} />}
+            onClick={() => {
+              setShowColorEditor(false)
+              setShowNameplateEditor(false)
+              requestPastTracesOpen()
+            }}
+            variant="secondary"
+          >
+            <span>旧痕迹</span>
           </Button>
           <Button
             aria-label="编辑铭牌"
@@ -314,6 +343,7 @@ function ProductApp() {
       ) : null}
 
       {notebookPhase === 'editing' ? <JournalPanel contentFont={contentFont} /> : null}
+      <PastTracesPanel />
       {stickerWorkflow !== 'composing' ? <StickerControls /> : null}
     </main>
   )

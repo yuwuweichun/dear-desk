@@ -6,6 +6,10 @@ import type {
   LocalDate,
 } from '../domain/daily-entry'
 import { sortLocalDates } from '../domain/daily-entry'
+import {
+  buildPastTraceSummaries,
+  type PastTraceSummary,
+} from '../domain/past-trace'
 import type {
   NotebookCoverSettings,
   NotebookCoverSettingsRepository,
@@ -26,11 +30,13 @@ type SaveStatus = 'idle' | 'saving' | 'saved' | 'error'
 type StickerStatus = 'idle' | 'loading' | 'saving' | 'error'
 type JournalLoadStatus = 'idle' | 'loading' | 'ready' | 'error'
 type NotebookCoverStatus = 'idle' | 'loading' | 'saving' | 'ready' | 'error'
+type PastTracesStatus = 'idle' | 'loading' | 'ready' | 'error'
 
 export type JournalTurnDirection = 'previous' | 'next'
 export type JournalTurnPhase = 'idle' | 'loading' | 'turning'
 
 export type DeskCameraPreset = 'far' | 'front' | 'near'
+export type PastTracesPhase = 'closed' | 'opening' | 'open' | 'closing'
 
 const nextDeskCameraPreset: Record<DeskCameraPreset, DeskCameraPreset> = {
   far: 'front',
@@ -80,6 +86,13 @@ export interface AppState {
   journalTurnDirection: JournalTurnDirection | null
   journalTurnPhase: JournalTurnPhase
   journalPendingCursor: number | null
+  journalInitialDate: LocalDate | null
+  pastTraces: PastTraceSummary[]
+  pastTracesErrorMessage: string | null
+  pastTracesPhase: PastTracesPhase
+  pastTracesStatus: PastTracesStatus
+  pastTracesUsesScene: boolean
+  pendingJournalDate: LocalDate | null
   stickerWorkflow: StickerWorkflow
   stickerStatus: StickerStatus
   stickerErrorMessage: string | null
@@ -96,6 +109,12 @@ export interface AppState {
   requestJournalTurn: (direction: JournalTurnDirection) => Promise<boolean>
   settleJournalTurn: () => void
   requestNotebookOpen: () => void
+  loadPastTraces: () => Promise<void>
+  requestPastTracesOpen: () => void
+  openPastTracesWithoutScene: () => void
+  requestPastTracesClose: () => void
+  selectPastTrace: (date: LocalDate) => void
+  settlePastTracesTransition: () => void
   cycleDeskCameraPreset: () => void
   toggleFreeCamera: () => void
   disableFreeCamera: () => void
@@ -148,6 +167,7 @@ const unavailableStickerRepository: StickerRepository = {
   delete: async () => undefined,
   listDesk: async () => [],
   listJournal: async () => [],
+  listJournalDateCounts: async () => [],
   listJournalDates: async () => [],
   move: async () => {
     throw new Error('贴纸存储不可用。')
@@ -184,6 +204,13 @@ export const createAppStore = (
     journalTurnDirection: null,
     journalTurnPhase: 'idle',
     journalPendingCursor: null,
+    journalInitialDate: null,
+    pastTraces: [],
+    pastTracesErrorMessage: null,
+    pastTracesPhase: 'closed',
+    pastTracesStatus: 'idle',
+    pastTracesUsesScene: true,
+    pendingJournalDate: null,
     stickerWorkflow: 'idle',
     stickerStatus: 'idle',
     stickerErrorMessage: null,
@@ -282,6 +309,7 @@ export const createAppStore = (
     loadJournalPages: async () => {
       set({ journalLoadStatus: 'loading', journalErrorMessage: null })
       try {
+        const initialDate = get().journalInitialDate ?? get().selectedDate
         const [entryDates, stickerDates] = await Promise.all([
           repository.listDates(),
           stickerRepository.listJournalDates(),
@@ -291,7 +319,10 @@ export const createAppStore = (
           ...stickerDates,
           get().selectedDate,
         ]).filter((date) => date <= get().selectedDate)
-        const cursor = Math.max(0, dates.indexOf(get().selectedDate))
+        const requestedCursor = dates.indexOf(initialDate)
+        const cursor = requestedCursor >= 0
+          ? requestedCursor
+          : Math.max(0, dates.indexOf(get().selectedDate))
         const visibleDates = dates.slice(Math.max(0, cursor - 1), cursor + 1)
         const pages = await Promise.all(
           visibleDates.map(async (date) => ({
@@ -315,9 +346,14 @@ export const createAppStore = (
           journalTurnDirection: null,
           journalTurnPhase: 'idle',
           journalPendingCursor: null,
+          journalInitialDate: null,
+          journalErrorMessage: requestedCursor >= 0
+            ? null
+            : '这一天已不在旧痕迹中，已回到今天。',
         })
       } catch (error) {
         set({
+          journalInitialDate: null,
           journalLoadStatus: 'error',
           journalErrorMessage: messageFromError(
             error,
@@ -399,6 +435,7 @@ export const createAppStore = (
     requestNotebookOpen: () =>
       set((state) =>
         state.notebookPhase === 'desk' &&
+        state.pastTracesPhase === 'closed' &&
         state.stickerWorkflow === 'idle' &&
         !state.deskCameraTransitioning
           ? {
@@ -408,14 +445,142 @@ export const createAppStore = (
                   : 'opening',
               freeCameraEnabled: false,
               deskCameraTransitioning: false,
+              journalInitialDate: state.selectedDate,
               selectedStickerId: null,
             }
           : state,
       ),
 
+    loadPastTraces: async () => {
+      set({ pastTracesStatus: 'loading', pastTracesErrorMessage: null })
+      try {
+        const [entries, stickerCounts] = await Promise.all([
+          repository.listEntries(),
+          stickerRepository.listJournalDateCounts(),
+        ])
+        set({
+          pastTraces: buildPastTraceSummaries(
+            entries,
+            stickerCounts,
+            get().selectedDate,
+          ),
+          pastTracesStatus: 'ready',
+        })
+      } catch (error) {
+        set({
+          pastTracesStatus: 'error',
+          pastTracesErrorMessage: messageFromError(
+            error,
+            '旧痕迹暂时无法读取。',
+          ),
+        })
+      }
+    },
+
+    requestPastTracesOpen: () => {
+      const state = get()
+      if (
+        state.notebookPhase !== 'desk' ||
+        state.pastTracesPhase !== 'closed' ||
+        state.stickerWorkflow !== 'idle' ||
+        state.deskCameraTransitioning ||
+        state.selectedStickerId
+      ) {
+        return
+      }
+      set({
+        deskCameraTransitioning: state.freeCameraEnabled,
+        freeCameraEnabled: false,
+        pastTracesPhase: 'opening',
+        pastTracesUsesScene: true,
+        pendingJournalDate: null,
+        selectedStickerId: null,
+      })
+      void get().loadPastTraces()
+    },
+
+    openPastTracesWithoutScene: () => {
+      const state = get()
+      if (
+        state.notebookPhase !== 'desk' ||
+        state.pastTracesPhase !== 'closed' ||
+        state.stickerWorkflow !== 'idle'
+      ) {
+        return
+      }
+      set({
+        freeCameraEnabled: false,
+        pastTracesPhase: 'open',
+        pastTracesUsesScene: false,
+        pendingJournalDate: null,
+        selectedStickerId: null,
+      })
+      void get().loadPastTraces()
+    },
+
+    requestPastTracesClose: () =>
+      set((state) => {
+        if (state.pastTracesPhase !== 'open') return state
+        return state.pastTracesUsesScene
+          ? { pastTracesPhase: 'closing', pendingJournalDate: null }
+          : {
+              pastTracesPhase: 'closed',
+              pastTracesUsesScene: true,
+              pendingJournalDate: null,
+            }
+      }),
+
+    selectPastTrace: (date) =>
+      set((state) => {
+        if (
+          state.pastTracesPhase !== 'open' ||
+          !state.pastTraces.some((trace) => trace.date === date)
+        ) {
+          return state
+        }
+        if (state.pastTracesUsesScene) {
+          return {
+            pastTracesPhase: 'closing',
+            pendingJournalDate: date,
+          }
+        }
+        return {
+          journalInitialDate: date,
+          notebookPhase: 'editing',
+          pastTracesPhase: 'closed',
+          pastTracesUsesScene: true,
+          pendingJournalDate: null,
+        }
+      }),
+
+    settlePastTracesTransition: () =>
+      set((state) => {
+        if (state.pastTracesPhase === 'opening') {
+          return { pastTracesPhase: 'open' }
+        }
+        if (state.pastTracesPhase !== 'closing') return state
+        if (!state.pendingJournalDate) {
+          return {
+            pastTracesPhase: 'closed',
+            pastTracesUsesScene: true,
+          }
+        }
+        return {
+          deskCameraTransitioning: false,
+          freeCameraEnabled: false,
+          journalInitialDate: state.pendingJournalDate,
+          notebookPhase: state.deskCameraPreset === 'near' ? 'opening' : 'approaching',
+          pastTracesPhase: 'closed',
+          pastTracesUsesScene: true,
+          pendingJournalDate: null,
+          selectedStickerId: null,
+        }
+      }),
+
     cycleDeskCameraPreset: () =>
       set((state) =>
         state.notebookPhase === 'desk' &&
+        state.pastTracesPhase === 'closed' &&
         state.stickerWorkflow === 'idle' &&
         !state.freeCameraEnabled &&
         !state.deskCameraTransitioning
@@ -436,6 +601,7 @@ export const createAppStore = (
           }
         }
         return state.notebookPhase === 'desk' &&
+          state.pastTracesPhase === 'closed' &&
           state.stickerWorkflow === 'idle' &&
           !state.selectedStickerId &&
           !state.deskCameraTransitioning
@@ -480,11 +646,13 @@ export const createAppStore = (
 
     openNotebookWithoutScene: () =>
       set((state) =>
+        state.pastTracesPhase === 'closed' &&
         ['desk', 'approaching', 'opening'].includes(state.notebookPhase)
           ? {
               notebookPhase: 'editing',
               freeCameraEnabled: false,
               deskCameraTransitioning: false,
+              journalInitialDate: state.selectedDate,
             }
           : state,
       ),
@@ -528,7 +696,9 @@ export const createAppStore = (
 
     openStickerStudio: () =>
       set((state) =>
-        state.notebookPhase === 'desk' && state.stickerWorkflow === 'idle'
+        state.notebookPhase === 'desk' &&
+        state.pastTracesPhase === 'closed' &&
+        state.stickerWorkflow === 'idle'
           ? {
               freeCameraEnabled: false,
               deskCameraTransitioning: false,
@@ -642,14 +812,16 @@ export const createAppStore = (
 
     selectSticker: (instanceId) =>
       set((state) => ({
-        ...(instanceId && state.freeCameraEnabled
+        ...(state.pastTracesPhase === 'closed' && instanceId && state.freeCameraEnabled
           ? {
               freeCameraEnabled: false,
               deskCameraTransitioning: true,
             }
           : {}),
         selectedStickerId:
-          state.stickerWorkflow === 'idle' ? instanceId : state.selectedStickerId,
+          state.pastTracesPhase === 'closed' && state.stickerWorkflow === 'idle'
+            ? instanceId
+            : state.selectedStickerId,
       })),
 
     previewStickerPosition: (instanceId, position) =>

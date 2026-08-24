@@ -22,7 +22,7 @@
         <kbd aria-hidden="true">/</kbd>
         <div id="search-results" class="search-results" role="listbox" aria-label="搜索结果" hidden></div>
       </div>
-      <span class="top-meta">CURRENT · 2026-08-23</span>
+      <span class="top-meta">CURRENT · 2026-08-24</span>
       <button class="toc-toggle" type="button" aria-controls="sidebar" aria-expanded="false">目录</button>
     </div>
   </header>
@@ -54,7 +54,7 @@
         <p class="lead">你看到的是一张可以打开本子、写日记和摆贴纸的桌面。文字和贴纸先保存在当前浏览器里，页面状态只负责协调当下操作，桌面与纸页再把同一份内容画出来；因此动画可以变化，已经保存的记录不会跟着模型消失。</p>
         <div class="callout">
           <strong>当前事实</strong>
-          <p>当前应用已经能打开本子、阅读和书写日期页面、制作贴纸并把它们留在桌面或日记中。本子打开时长边书脊始终贴着桌面，书口先向上立起，再让左右两半从书脊向两侧摊开；旧的连续快速扫页已经移除。所有内容仍只保存在当前浏览器，三维物体和动画只是可随时重建的画面。</p>
+          <p>当前应用已经能打开本子、阅读和书写日期页面、制作贴纸并把它们留在桌面或日记中，也能从中央抽屉或 DOM 等价按钮按月份找回旧文字与日记贴纸。本子打开时长边书脊始终贴着桌面，书口先向上立起，再让左右两半从书脊向两侧摊开；旧的连续快速扫页已经移除。所有内容仍只保存在当前浏览器，三维物体、抽屉开合和动画只是可随时重建的画面。</p>
         </div>
       </header>
 
@@ -93,10 +93,11 @@
         └── otherwise
             ├── DeskScene -> one R3F Canvas
             │   ├── CameraRig + SceneEnvironment
-            │   ├── createDeskModel + createDeskMatModel
+            │   ├── createDeskModel + center-drawer hit target + createDeskMatModel
             │   ├── independent desk-mat placement hit surface
             │   ├── NotebookObject -> createNotebookModel
             │   └── StickerObject[] for desk surface
+            ├── PastTracesPanel -> DOM month-grouped history index
             ├── JournalPanel -> DOM double-page book
             │   ├── BlankJournalPage -> previous-page intent
             │   ├── JournalReadingPage -> current right-page text + stickers
@@ -113,12 +114,14 @@
       <section id="scene-models" data-search-title="程序化场景模型与运行时边界">
         <p class="section-index">03 · 场景模型</p>
         <h2>可序列化规格生成 Three.js 运行对象，React 只协调生命周期</h2>
-        <p><code>DeskScene</code> 创建一份 <code>createModelMaterialLibrary</code>，再把它交给 <code>createDeskModel</code>、<code>createDeskMatModel</code> 和 <code>createNotebookModel</code>。三个工厂都返回 plain Three.js <code>Group</code>；根节点的 <code>userData.sculptRuntime</code> 暴露命名节点、socket 与 collider，书写桌还发布三只抽屉的线性 action、attachment binding 和附件更新入口，供交互包装层使用，但这些运行对象不会进入 Zustand 或 IndexedDB，当前产品也没有开放抽屉操作。</p>
+        <p><code>DeskScene</code> 创建一份 <code>createModelMaterialLibrary</code>，再把它交给 <code>createDeskModel</code>、<code>createDeskMatModel</code> 和 <code>createNotebookModel</code>。三个工厂都返回 plain Three.js <code>Group</code>；根节点的 <code>userData.sculptRuntime</code> 暴露命名节点、socket 与 collider，书写桌还发布三只抽屉的线性 action、attachment binding 和附件更新入口。每只抽屉保留独立前面板，后方主体由底板、左右侧板和后板合并成一个无顶盖的 <code>BufferGeometry</code>，既能从上方看到内部，又维持每只主体一个 draw call。<code>DeskBody</code> 只在中央抽屉前挂载透明命中面，并由 <code>PastTracesPhase</code> 驱动约 300ms 的确定性进度；<code>setDeskDrawerProgress()</code> 沿既有 Z 轴移动 <code>drawer-center</code> 并刷新实例化黄铜旋钮附件。左右抽屉保持零进度且没有命中入口。模型运行对象仍不进入 Zustand 或 IndexedDB；reduced-motion 直接落到开/关端点。</p>
         <div class="code-block">
           <div class="code-head"><span>模型创建、动作与释放调用链</span><button class="copy-button" type="button" data-copy-target="model-runtime-chain">复制</button></div>
           <pre id="model-runtime-chain"><code>DeskScene
   -> createModelMaterialLibrary()        // shared 1024px PBR channels
   -> createDeskModel(materials)
+       -> setDeskDrawerProgress(root, 'drawer-center', t)
+       -> updateAttachments()              // center brass knob follows
   -> createDeskMatModel(materials)
   -> NotebookObject
        -> createNotebookModel(materials)
@@ -139,6 +142,7 @@
         <ol class="checks">
           <li><strong>加载今天</strong><span><code>App</code> 调用 <code>loadToday()</code> 和 <code>loadStickers()</code>，保持桌面摘要、当天编辑和贴纸目标兼容。</span></li>
           <li><strong>打开本子</strong><span>3D 命中区或 DOM 按钮把 <code>NotebookPhase</code> 推进到 <code>editing</code>；此时统一挂载 <code>JournalPanel</code> 并以 <code>reading + idle</code> 开始，同时隐藏 3D 本子。</span></li>
+          <li><strong>从旧痕迹定位</strong><span>中央抽屉或桌面“旧痕迹”按钮打开 <code>PastTracesPanel</code>；选择日期后先收回抽屉，再把一次性的 <code>journalInitialDate</code> 交给本子。<code>loadJournalPages()</code> 以该日期建立本次游标，普通本子入口仍从今天开始；消费后立即清空，不保存阅读位置。</span></li>
           <li><strong>建立页序</strong><span><code>loadJournalPages()</code> 并行读取 <code>DailyEntryRepository.listDates()</code> 与 <code>StickerRepository.listJournalDates()</code>，合并今天、去重、排序并丢弃未来日期。</span></li>
           <li><strong>按需读取</strong><span>首次读取当前右页日期的正文与贴纸 Blob；页序查询本身只读取日期/instance 字段，不加载全部历史 PNG。</span></li>
           <li><strong>呈现当前日期</strong><span><code>journalCursor</code> 只代表右页日期。左页展示同一日期的贴纸并提供“前往贴纸工作台”入口；右页统一投影今天或历史正文。</span></li>
@@ -201,6 +205,7 @@
               <tr><td>贴纸 source、Forge PNG、surface、位置与旋转</td><td>IndexedDB / <code>StickerRepository</code></td><td>跨页面重开</td><td>Texture、对象 URL</td></tr>
               <tr><td><code>selectedDate</code>、当天正文与贴纸</td><td>Zustand store</td><td>当前页面运行</td><td>未来日期、DOM Event</td></tr>
               <tr><td>页面日期、可见页缓存、游标和翻页阶段</td><td>Zustand store</td><td>打开本子期间；重开回今天</td><td>IndexedDB 阅读位置</td></tr>
+              <tr><td>旧痕迹摘要、载入状态、抽屉阶段与一次性目标日期</td><td>Zustand store / <code>past-trace.ts</code></td><td>当前页面；关闭或刷新后重新派生</td><td>IndexedDB UI 状态、Three.js 对象和贴纸 Blob</td></tr>
               <tr><td><code>journalMode</code>、<code>writingPhase</code>、<code>draftDate</code> 与未保存草稿</td><td><code>JournalBook</code></td><td>本次本子面板；关闭后丢弃</td><td>Zustand、IndexedDB 与自动保存</td></tr>
               <tr><td>全局内容字体偏好</td><td><code>ProductApp</code> + <code>localStorage</code> / <code>journal-font.ts</code></td><td>当前浏览器；清除站点数据后回到纸页宋体</td><td><code>DailyEntry</code>、<code>NotebookCoverSettings</code>、IndexedDB、贴纸文字与 UI 字体</td></tr>
               <tr><td>当前/目标双页快照、折线、裁切与阴影</td><td><code>PageTurnSheet</code> + <code>page-flip</code> 隔离适配层</td><td>一次动画；卸载时销毁实例、事件、对象 URL 与受管动画帧</td><td>真实 React 页面、store 与数据库</td></tr>
@@ -218,6 +223,7 @@
         <h2>IndexedDB v4 保存业务内容，localStorage 只保存轻量字体偏好</h2>
         <p>数据库名为 <code>dear-desk</code>。v3 保留 <code>dailyEntries</code>，新增图片 source 表，并让实例使用 <code>desk | journal</code> 判别联合；日记实例通过 <code>[surface+journalDate]</code> 索引按日期查询。v4 新增单例的 <code>notebookCoverSettings</code> 表保存本子铭牌文字。<code>dailyEntries</code> 现在写入标题与正文；旧版本记录没有标题字段时由日记投影按今天/历史页回退。阅读/书写模式、标题/正文草稿、游标仍不持久化。</p>
         <p>内容字体选择不是日记或铭牌业务内容。<code>journal-font.ts</code> 保留兼容键 <code>dear-desk:journal-font</code>，在 <code>localStorage</code> 保存 <code>paper | xuandong | suifeng | zhimang</code>；<code>ProductApp</code> 读取后成为当前页面唯一运行时所有者，并同时下传给日记和铭牌。读取会检查值是否合法，并在存储不可用或值不受支持时回退 <code>paper</code>。因此既有正文、铭牌文字和 IndexedDB 均无需迁移，旧的 <code>jingjing</code> 偏好会安全回退。</p>
+        <p>旧痕迹不增加 schema 或持久化表。<code>DailyEntryRepository.listEntries()</code> 读取正文记录，<code>StickerRepository.listJournalDateCounts()</code> 只读取日记 instance 的日期并聚合数量，不加载 definition、render 或 source Blob。<code>buildPastTraceSummaries()</code> 在内存中合并两路数据、过滤今天与未来日期并倒序生成标题、正文预览和贴纸数量；贴纸-only 日期也会保留。抽屉阶段、面板展开、摘要缓存和目标阅读日期都只属于当前页面。</p>
         <div class="code-block">
           <div class="code-head"><span>IndexedDB v4 schema</span><button class="copy-button" type="button" data-copy-target="database-schema">复制</button></div>
           <pre id="database-schema"><code>database.version(4).stores({
@@ -263,6 +269,8 @@
             <tbody>
               <tr><td>今天读取失败</td><td><code>loadStatus: error</code>，显示本地记录不可用</td><td>数据库不被改写</td></tr>
               <tr><td>历史日期索引或可见页读取失败</td><td><code>journalLoadStatus: error</code>，双页显示可见错误</td><td>今天正文和贴纸链路仍独立</td></tr>
+              <tr><td>旧痕迹摘要读取失败</td><td><code>pastTracesStatus: error</code>，DOM 面板保留重试与关闭路径</td><td>已保存正文、贴纸和普通本子入口不被改写</td></tr>
+              <tr><td>已选择的历史日期在打开前消失</td><td>本子回退今天并显示可见读取提示</td><td>现有页序与 IndexedDB 数据</td></tr>
               <tr><td>目标页预读失败</td><td>翻页从 loading 复位到 idle，不提交游标</td><td>原跨页保持不变</td></tr>
               <tr><td>快速重复点击</td><td>非 idle 请求返回 <code>false</code></td><td>只有一个 pending cursor</td></tr>
               <tr><td>dirty 书写时翻页、切回阅读或关闭</td><td>意图被组件拦截，live status 提示先收笔</td><td>当前右页、模式与局部草稿</td></tr>
@@ -271,10 +279,10 @@
               <tr><td>铭牌字体加载期间再次切换或卸载</td><td><code>NotebookObject</code> 取消过期异步结果，不把旧字体 Mesh 加回场景</td><td>当前字体状态和最后一份有效铭牌投影</td></tr>
               <tr><td>贴纸创建事务失败</td><td>不加入内存集合并显示错误</td><td>不会留下部分 source/definition/render/instance</td></tr>
               <tr><td>贴纸移动提交失败</td><td>显示错误并重新加载持久化位置</td><td>最后一次成功位置</td></tr>
-              <tr><td>WebGL 初始化失败</td><td>显示 DOM 降级入口</td><td>双页 DOM 与 IndexedDB 日记链路</td></tr>
+              <tr><td>WebGL 初始化失败</td><td>显示“打开本子”和“旧痕迹”DOM 降级入口；旧痕迹跳过抽屉动画</td><td>双页 DOM、历史摘要与 IndexedDB 日记链路</td></tr>
               <tr><td>模型卸载或 StrictMode 重挂载</td><td>工厂释放自有 geometry；共享材质库释放 16 张纹理和材质；环境释放 PMREM</td><td>可序列化业务状态与 IndexedDB 数据</td></tr>
               <tr><td>模型超过预算</td><td>工厂测试失败；上限为 45 draw calls、80,000 triangles、16 textures 和一盏投影光</td><td>critical feature 不以静默删减换取通过</td></tr>
-              <tr><td>reduced-motion</td><td>纸张大角度旋转改为 120ms 淡出</td><td>相同游标提交和边界语义</td></tr>
+              <tr><td>reduced-motion</td><td>纸张大角度旋转改为 120ms 淡出；中央抽屉直接落到稳定端点</td><td>相同游标提交和边界语义</td></tr>
             </tbody>
           </table>
         </div>
@@ -312,9 +320,11 @@ edit historical text:
         <p class="section-index">11 · 源码地图</p>
         <h2>先读状态协议，再沿 repository 和两种投影向下</h2>
         <div class="source-map">
-          <div><code><a href="../../src/app/App.tsx">src/app/App.tsx</a></code><span><code>ProductApp</code> 组合桌面工作流、拥有全局内容字体并向日记与场景下传；idle 阶段挂载 <code>Time type="hud"</code></span></div>
+          <div><code><a href="../../src/app/App.tsx">src/app/App.tsx</a></code><span><code>ProductApp</code> 组合桌面、旧痕迹与日记工作流，拥有全局内容字体并向日记与场景下传；idle 阶段挂载 <code>Time type="hud"</code></span></div>
           <div><code><a href="../../src/app/App.test.tsx">src/app/App.test.tsx</a></code><span>验证 HUD、右上工具顺序、全局字体偏好恢复以及日记/场景共享同一字体 ID</span></div>
-          <div><code><a href="../../src/state/app-store.ts">src/state/app-store.ts</a></code><span><code>loadJournalPages</code>、<code>requestJournalTurn</code>、<code>saveJournalEntry</code> 与贴纸工作流</span></div>
+          <div><code><a href="../../src/state/app-store.ts">src/state/app-store.ts</a></code><span>旧痕迹开合/载入状态机、一次性日记目标、<code>loadJournalPages</code>、翻页、保存与贴纸工作流</span></div>
+          <div><code><a href="../../src/features/history/PastTracesPanel.tsx">PastTracesPanel.tsx</a></code><span>按月份分组的 DOM 历史索引、空/错/载入状态、日期选择、Escape 与关闭语义</span></div>
+          <div><code><a href="../../src/domain/past-trace.ts">src/domain/past-trace.ts</a></code><span>合并正文与日记贴纸计数，过滤今天/未来并生成轻量历史摘要</span></div>
           <div><code><a href="../../src/features/settings/ContentFontControl.tsx">ContentFontControl.tsx</a></code><span>首页右上字体按钮、向左菜单、候选字体预览和可访问选择语义</span></div>
           <div><code><a href="../../src/features/journal/JournalPanel.tsx">JournalPanel.tsx</a></code><span><code>JournalBook</code> 消费全局内容字体，并组合竖排模式切换、书写、dirty guard、按日期保存与翻页</span></div>
           <div><code><a href="../../src/domain/journal-font.ts">src/domain/journal-font.ts</a></code><span>全局内容字体 ID、字体栈、兼容 <code>localStorage</code> 键与异常回退</span></div>
@@ -327,17 +337,17 @@ edit historical text:
           <div><code><a href="../../src/features/journal/JournalStickerLayer.tsx">JournalStickerLayer.tsx</a></code><span>今天可交互、历史只投影的 DOM 贴纸层</span></div>
           <div><code><a href="../../src/domain/daily-entry.ts">src/domain/daily-entry.ts</a></code><span><code>LocalDate</code>、正文规则、日期去重排序和 repository 接口</span></div>
           <div><code><a href="../../src/domain/sticker.ts">src/domain/sticker.ts</a></code><span>双 surface union、坐标和日期查询接口</span></div>
-          <div><code><a href="../../src/persistence/daily-entry-repository.ts">daily-entry-repository.ts</a></code><span><code>getByDate</code>、<code>listDates</code> 与显式保存</span></div>
-          <div><code><a href="../../src/persistence/sticker-repository.ts">sticker-repository.ts</a></code><span>按 surface/date 查询、日期索引、四表事务与编辑</span></div>
+          <div><code><a href="../../src/persistence/daily-entry-repository.ts">daily-entry-repository.ts</a></code><span><code>getByDate</code>、<code>listDates</code>、历史正文列表与显式保存</span></div>
+          <div><code><a href="../../src/persistence/sticker-repository.ts">sticker-repository.ts</a></code><span>按 surface/date 查询、轻量日记日期计数、四表事务与编辑</span></div>
           <div><code><a href="../../src/persistence/database.ts">src/persistence/database.ts</a></code><span>IndexedDB v1-v4 schema、旧贴纸实例迁移与本子铭牌设置表</span></div>
           <div><code><a href="../../src/scene/nameplate-text.ts">nameplate-text.ts</a></code><span>按全局字体生成铭牌色调/凹凸/粗糙度贴图、黄铜表面材质和统一释放入口</span></div>
           <div><code><a href="../../src/scene/NotebookObject.tsx">NotebookObject.tsx</a></code><span>打开意图、阶段计时、可逆展示进度，以及字体加载完成后的铭牌 Mesh 原子替换</span></div>
-          <div><code><a href="../../src/scene/DeskScene.tsx">src/scene/DeskScene.tsx</a></code><span>R3F root、全局字体下传、相机转场、桌面 placement 与单 Canvas 生命周期</span></div>
+          <div><code><a href="../../src/scene/DeskScene.tsx">src/scene/DeskScene.tsx</a></code><span>R3F root、中央抽屉命中/动画、全局字体下传、相机转场、桌面 placement 与单 Canvas 生命周期</span></div>
           <div><code><a href="../../src/scene/SceneColorEditor.tsx">src/scene/SceneColorEditor.tsx</a></code><span>九项临时色块/HEX、重置、复制反馈与桌面/移动面板命令</span></div>
           <div><code><a href="../../src/scene/scene-color.ts">src/scene/scene-color.ts</a></code><span>完整六位 HEX 校验与可复制配置序列化</span></div>
           <div><code><a href="../../src/scene/models/model-specs.ts">models/model-specs.ts</a></code><span><code>MODEL_LIMITS</code> 与三对象可序列化尺寸规格</span></div>
           <div><code><a href="../../src/scene/models/material-library.ts">models/material-library.ts</a></code><span><code>SceneColorConfig</code>、<code>applySceneColors</code>、独立桌腿材质、默认 V2 解析与 wood/cloth/kraft/paper 的 16 张 PBR 通道</span></div>
-          <div><code><a href="../../src/scene/models/create-desk-model.ts">models/create-desk-model.ts</a></code><span><code>createDeskModel</code>、三抽屉、收分桌腿、实例化黄铜旋钮、附件/action 与释放入口</span></div>
+          <div><code><a href="../../src/scene/models/create-desk-model.ts">models/create-desk-model.ts</a></code><span><code>createDeskModel</code>、<code>setDeskDrawerProgress</code>、三抽屉、收分桌腿、实例化黄铜旋钮、附件/action 与释放入口</span></div>
           <div><code><a href="../../src/scene/models/create-desk-mat-model.ts">models/create-desk-mat-model.ts</a></code><span><code>createDeskMatModel</code>、平面圆角、滚边与实例化织线</span></div>
           <div><code><a href="../../src/scene/models/create-notebook-model.ts">models/create-notebook-model.ts</a></code><span><code>createNotebookModel</code>、中央展示锚点、<code>setOpenProgress</code>、闭合连续壳体、全开封面板与同高页堆</span></div>
           <div><code><a href="../../src/scene/models/SceneEnvironment.tsx">models/SceneEnvironment.tsx</a></code><span>程序化环境反射和 PMREM 释放</span></div>
@@ -353,7 +363,7 @@ edit historical text:
       <section id="verification" data-search-title="验证证据与未覆盖边界">
         <p class="section-index">12 · 验证</p>
         <h2>自动证据、模型规格和双视口 UI 检查均已通过</h2>
-        <p>当前 90 项测试覆盖既有日期、保存、翻页、贴纸和迁移行为，也覆盖四张翻页快照的日期与方向排序、空页眉辅助文字删除、非空贴纸数量保留、响应式翻页时长、上游递归动画帧清理、模型层级、材质与资源释放、九项调色键、HEX 校验、本子竖起/摊开端点、左右镜像角位移、旧顶层纸面与快速页片删除、统一的 3D/DOM 交接、HUD 时钟、全局内容字体偏好读写/回退、右上工具顺序、日记/铭牌同步、铭牌输入大小写、三张铭牌贴图和 GPU 资源释放。ESLint、TypeScript/Vite production build 和文档引用检查均通过；生产构建产物不包含云峰晶晶体或 <code>/dev-fonts/</code> 引用，并包含志莽行书 OFL 资源。</p>
+        <p>当前 96 项自动测试覆盖既有日期、保存、翻页、贴纸和迁移行为，也覆盖旧痕迹正文/贴纸-only 合并与过滤、轻量 repository 查询、入口状态机、一次性目标日期、中央抽屉端点、黄铜旋钮附件，以及敞口主体的四块板件和从开口直接命中底板的射线。ESLint、TypeScript/Vite production build、文档引用和差异空白检查均通过；生产构建继续只报告既有大 chunk 警告。<code>ego-browser</code> 已验证桌面与 390 × 844：中央抽屉进入 open 端点、桌面前视角可见敞口主体、移动端维持单 Canvas 且无横向溢出；既有旧痕迹入口链路和本地 HTML 的搜索、导航、复制、术语卡与文档首页入口也通过。</p>
         <div class="table-wrap">
           <table>
             <thead><tr><th>能力</th><th>当前状态</th><th>证据边界</th></tr></thead>
@@ -361,6 +371,7 @@ edit historical text:
               <tr><td>当天正文与 IndexedDB 恢复</td><td><span class="status status-review">已实现</span></td><td>repository、store、DOM 自动测试</td></tr>
               <tr><td>独立贴纸工作台与双 surface</td><td><span class="status status-review">已完成</span></td><td>自动测试、构建与开发者验收；浏览器证据边界见 DD-20260808-002</td></tr>
               <tr><td>双页本子与仿真翻页</td><td><span class="status status-review">已完成</span></td><td>DD-20260821-002 已把刚性 CSS 半页替换为隔离的 <code>page-flip@2.0.7</code> 四页快照；组件/清理测试、lint、build、桌面/移动双向中间帧、reduced-motion 和连续四轮资源清理均通过，并已由用户验收</td></tr>
+              <tr><td>旧痕迹中央抽屉入口</td><td><span class="status status-review">已完成</span></td><td>中央敞口抽屉与 DOM 等价入口共享状态机；历史摘要不读取贴纸图片 Blob，支持贴纸-only 日期和指定日期打开本子。清理已取消实验后的 96 项测试、lint、build、桌面/移动、WebGL 降级、reduced-motion、刷新恢复和本地 HTML 交互均通过；浏览器空态因隔离 origin 已有历史数据，改由组件与 store 自动测试覆盖；DD-20260824-002 与 004 已由用户验收</td></tr>
               <tr><td>统一阅读与历史正文书写</td><td><span class="status status-review">待验收</span></td><td>43 个全量测试、lint、build 及桌面/移动打开与关闭恢复流程通过</td></tr>
               <tr><td>全局内容字体与铭牌凹刻</td><td><span class="status status-review">已完成</span></td><td>首页提供纸页宋体/玄冬楷书/随峰体/志莽行书，同一状态驱动日记正文与铭牌；UI 字体隔离、偏好恢复、三贴图资源释放、lint、production build 和 1440 × 900 / 390 × 844 交互检查均已通过，并已由用户验收</td></tr>
               <tr><td>日记页眉字体与状态精简</td><td><span class="status status-review">已完成</span></td><td>DD-20260823-006 已让实时页、标题输入和四张翻页快照的日期/页标题继承内容字体，并删除“尚未留下”“当前日期”“旧日记录”；90 项测试、lint、build、桌面/移动实时与翻页中间态、偏好刷新恢复均通过，并已由用户验收</td></tr>
@@ -374,11 +385,11 @@ edit historical text:
         </div>
         <div class="note">
           <strong>第三方 UI 的已知成本</strong>
-          <p><code>animal-island-ui</code> 根导入会把未使用的装饰资源和约 3.5 MB 中文字体带入构建，Vite 因此继续报告大 chunk；这不改变按需加载抠图模型的边界。<code>npm audit --omit=dev</code> 的 4 个 high 问题均来自既有 Transformers 的 onnxruntime/sharp/adm-zip 链，当前无可用修复，不来自本次 UI 依赖。</p>
+          <p><code>animal-island-ui</code> 根导入会把未使用的装饰资源和约 3.5 MB 中文字体带入构建，Vite 因此继续报告大 chunk；这不改变按需加载抠图模型的边界。<code>npm audit --omit=dev</code> 的 high 问题仍需按实际检查结果记录，不能归因于视觉资产。</p>
         </div>
       </section>
 
-  <footer>Dear Desk 当前系统架构 · 基于可运行源码、90 个自动测试与 DD-20260823-006 实施结果 · 2026-08-23</footer>
+  <footer>Dear Desk 当前系统架构 · 基于可运行源码、自动测试与 DD-20260824-004 实施结果 · 2026-08-24</footer>
     </main>
   </div>
 

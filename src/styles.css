@@ -474,6 +474,193 @@ textarea:focus-visible {
   margin-top: 22px;
 }
 
+.past-traces-backdrop {
+  position: fixed;
+  z-index: 70;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(29, 34, 32, 0.36);
+  backdrop-filter: blur(4px);
+}
+
+.past-traces-panel {
+  width: min(660px, 100%);
+  max-height: min(720px, calc(100svh - 48px));
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 2px solid #c9b68e;
+  border-radius: 8px;
+  background: #fffdf6;
+  color: #342f29;
+  box-shadow: 0 8px 0 rgba(70, 54, 38, 0.16), 0 26px 64px rgba(28, 33, 31, 0.24);
+}
+
+.past-traces-header {
+  min-height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 14px 12px 18px;
+  border-bottom: 1px solid #d8cfbf;
+  background: #f5f9f4;
+}
+
+.past-traces-heading {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #376d62;
+}
+
+.past-traces-heading > div {
+  min-width: 0;
+}
+
+.past-traces-heading p,
+.past-traces-heading h2 {
+  margin: 0;
+  letter-spacing: 0;
+}
+
+.past-traces-heading p {
+  color: #806b4b;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.past-traces-heading h2 {
+  margin-top: 2px;
+  color: #342f29;
+  font-size: 22px;
+}
+
+.past-traces-header .dd-icon-button {
+  width: 40px;
+  min-width: 40px;
+  height: 40px;
+  min-height: 40px;
+  padding: 0;
+}
+
+.past-traces-content {
+  min-height: 240px;
+  overflow-y: auto;
+  padding: 6px 18px 18px;
+  scrollbar-gutter: stable;
+}
+
+.past-traces-message {
+  min-height: 230px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 14px;
+  color: #776b5c;
+  text-align: center;
+}
+
+.past-traces-message p {
+  max-width: 36ch;
+  margin: 0;
+  line-height: 1.6;
+}
+
+.past-traces-month {
+  padding-top: 14px;
+}
+
+.past-traces-month h3 {
+  margin: 0 0 4px;
+  color: #806b4b;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0;
+}
+
+.past-traces-month ol {
+  padding: 0;
+  margin: 0;
+  border-top: 1px solid #ddd4c5;
+  list-style: none;
+}
+
+.past-traces-month li {
+  border-bottom: 1px solid #e4ddd0;
+}
+
+.past-trace-row {
+  width: 100%;
+  min-height: 78px;
+  display: grid;
+  grid-template-columns: 132px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  padding: 11px 8px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.past-trace-row:hover,
+.past-trace-row:focus-visible {
+  background: #e9f7f2;
+}
+
+.past-trace-date,
+.past-trace-sticker-count {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.past-trace-date {
+  color: #4f746b;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.past-trace-copy {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.past-trace-copy strong,
+.past-trace-copy > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.past-trace-copy strong {
+  color: #342f29;
+  font-size: 15px;
+}
+
+.past-trace-copy > span {
+  color: #766d60;
+  font-size: 12px;
+}
+
+.past-trace-sticker-count {
+  min-width: 42px;
+  justify-content: center;
+  padding: 5px 8px;
+  border: 1px solid #e7a99d;
+  border-radius: 7px;
+  background: #fff2ee;
+  color: #a34e42;
+  font-size: 12px;
+  font-weight: 900;
+}
+
 .journal-panel {
   --journal-writing-font: Georgia, "Songti SC", serif;
   position: absolute;
@@ -1336,6 +1523,36 @@ textarea:focus-visible {
     border-bottom: 0;
     border-left: 0;
     border-radius: 8px 8px 0 0;
+  }
+
+  .past-traces-backdrop {
+    align-items: end;
+    padding: 0;
+  }
+
+  .past-traces-panel {
+    width: 100%;
+    max-height: min(82svh, 680px);
+    border-right: 0;
+    border-bottom: 0;
+    border-left: 0;
+    border-radius: 8px 8px 0 0;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .past-traces-content {
+    padding-right: 14px;
+    padding-left: 14px;
+  }
+
+  .past-trace-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px 12px;
+    min-height: 92px;
+  }
+
+  .past-trace-date {
+    grid-column: 1 / -1;
   }
 
   .journal-panel {

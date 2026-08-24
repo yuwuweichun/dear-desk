@@ -43,6 +43,7 @@ describe('DexieDailyEntryRepository', () => {
     expect(updated.createdAt).toBe(created.createdAt)
     expect(updated.updatedAt).toBe('2026-08-06T02:00:00.000Z')
     await expect(repository.getByDate(date)).resolves.toEqual(updated)
+    await expect(repository.listEntries()).resolves.toEqual([updated])
     await expect(repository.listDates()).resolves.toEqual([date])
     await expect(database.dailyEntries.count()).resolves.toBe(1)
   })

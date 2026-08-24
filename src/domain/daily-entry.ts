@@ -16,6 +16,7 @@ export interface DailyEntry {
 
 export interface DailyEntryRepository {
   getByDate(date: LocalDate): Promise<DailyEntry | null>
+  listEntries(): Promise<DailyEntry[]>
   listDates(): Promise<LocalDate[]>
   save(date: LocalDate, text: string, title?: string): Promise<DailyEntry>
 }

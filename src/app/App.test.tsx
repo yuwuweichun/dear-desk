@@ -35,6 +35,7 @@ const date = '2026-08-13' as LocalDate
 
 const createRepository = (): DailyEntryRepository => ({
   getByDate: vi.fn().mockResolvedValue(null),
+  listEntries: vi.fn().mockResolvedValue([]),
   listDates: vi.fn().mockResolvedValue([]),
   save: vi.fn(),
 })
@@ -88,6 +89,25 @@ describe('App notebook animation handoff', () => {
     )
 
     expect(screen.getByTestId('journal-panel')).toBeInTheDocument()
+  })
+})
+
+describe('App old traces entry', () => {
+  it('opens the center-drawer workflow from the equivalent desk command', async () => {
+    const store = createAppStore(createRepository(), date)
+    render(
+      <AppStoreProvider store={store}>
+        <App />
+      </AppStoreProvider>,
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: '旧痕迹' }))
+    expect(store.getState().pastTracesPhase).toBe('opening')
+    await vi.waitFor(() => expect(store.getState().pastTracesStatus).toBe('ready'))
+
+    act(() => store.getState().settlePastTracesTransition())
+    expect(screen.getByRole('dialog', { name: '旧痕迹' })).toBeInTheDocument()
+    expect(screen.getByText('还没有可以翻找的旧痕迹。')).toBeInTheDocument()
   })
 })
 

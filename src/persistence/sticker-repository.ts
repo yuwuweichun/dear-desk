@@ -39,13 +39,22 @@ export class DexieStickerRepository implements StickerRepository {
   }
 
   async listJournalDates(): Promise<LocalDate[]> {
+    return (await this.listJournalDateCounts()).map(({ date }) => date)
+  }
+
+  async listJournalDateCounts() {
     const instances = await this.db.stickerInstances
       .where('surface')
       .equals('journal')
       .toArray()
-    return [...new Set(instances.flatMap((instance) =>
-      instance.surface === 'journal' ? [instance.journalDate] : [],
-    ))].sort((left, right) => left.localeCompare(right))
+    const counts = new Map<LocalDate, number>()
+    for (const instance of instances) {
+      if (instance.surface !== 'journal') continue
+      counts.set(instance.journalDate, (counts.get(instance.journalDate) ?? 0) + 1)
+    }
+    return [...counts]
+      .map(([date, count]) => ({ count, date }))
+      .sort((left, right) => left.date.localeCompare(right.date))
   }
 
   private async listInstances(

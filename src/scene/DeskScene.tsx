@@ -10,18 +10,23 @@ import { useAppStore } from '../state/app-store-context'
 import type {
   DeskCameraPreset,
   NotebookPhase,
+  PastTracesPhase,
   StickerWorkflow,
 } from '../state/app-store'
 import { NotebookObject } from './NotebookObject'
 import { createDeskMatModel } from './models/create-desk-mat-model'
-import { createDeskModel } from './models/create-desk-model'
+import {
+  createDeskModel,
+  setDeskDrawerProgress,
+} from './models/create-desk-model'
 import {
   applySceneColors,
   createModelMaterialLibrary,
   type ModelMaterialLibrary,
   type SceneColorConfig,
 } from './models/material-library'
-import { DESK_MAT_MODEL_SPEC } from './models/model-specs'
+import { DESK_MAT_MODEL_SPEC, DESK_MODEL_SPEC } from './models/model-specs'
+import { PAST_TRACE_DRAWER_DURATION_SECONDS } from '../domain/past-trace'
 import { SceneEnvironment } from './models/SceneEnvironment'
 import { StickerObject } from './StickerObject'
 import {
@@ -309,14 +314,37 @@ const disposeFactoryModel = (model: THREE.Group) => {
   if (typeof dispose === 'function') dispose()
 }
 
-function DeskBody({ materials }: { materials: ModelMaterialLibrary }) {
+interface DeskBodyProps {
+  materials: ModelMaterialLibrary
+  onOpenPastTraces: () => void
+  onSettlePastTraces: () => void
+  pastTracesPhase: PastTracesPhase
+  reducedMotion: boolean
+}
+
+function DeskBody({
+  materials,
+  onOpenPastTraces,
+  onSettlePastTraces,
+  pastTracesPhase,
+  reducedMotion,
+}: DeskBodyProps) {
   const [model, setModel] = useState<THREE.Group | null>(null)
+  const progressRef = useRef(
+    pastTracesPhase === 'open' || pastTracesPhase === 'closing' ? 1 : 0,
+  )
+  const settledPhaseRef = useRef<PastTracesPhase | null>(null)
 
   useEffect(() => {
     const nextModel = createDeskModel(materials, {
       pass: 'optimization-pass',
     })
     let disposed = false
+    setDeskDrawerProgress(
+      nextModel,
+      'drawer-center',
+      easeInOutCubic(progressRef.current),
+    )
     queueMicrotask(() => {
       if (!disposed) setModel(nextModel)
     })
@@ -326,7 +354,88 @@ function DeskBody({ materials }: { materials: ModelMaterialLibrary }) {
     }
   }, [materials])
 
-  return model ? <primitive object={model} dispose={null} /> : null
+  useEffect(() => {
+    settledPhaseRef.current = null
+  }, [pastTracesPhase])
+
+  useEffect(() => () => {
+    document.body.style.cursor = ''
+  }, [])
+
+  useFrame((_state, delta) => {
+    if (!model) return
+    const target = pastTracesPhase === 'opening' || pastTracesPhase === 'open' ? 1 : 0
+    if (
+      progressRef.current === target &&
+      (pastTracesPhase === 'open' || pastTracesPhase === 'closed')
+    ) {
+      return
+    }
+    const distance = reducedMotion
+      ? 1
+      : delta / PAST_TRACE_DRAWER_DURATION_SECONDS
+    const next = progressRef.current < target
+      ? Math.min(target, progressRef.current + distance)
+      : Math.max(target, progressRef.current - distance)
+    const reached = next === target
+    progressRef.current = reached ? target : next
+    setDeskDrawerProgress(
+      model,
+      'drawer-center',
+      easeInOutCubic(progressRef.current),
+    )
+
+    if (
+      reached &&
+      (pastTracesPhase === 'opening' || pastTracesPhase === 'closing') &&
+      settledPhaseRef.current !== pastTracesPhase
+    ) {
+      settledPhaseRef.current = pastTracesPhase
+      onSettlePastTraces()
+    }
+  })
+
+  if (!model) return null
+
+  return (
+    <>
+      <primitive object={model} dispose={null} />
+      {pastTracesPhase === 'closed' ? (
+        <mesh
+          name="past-traces-center-drawer-hit-surface"
+          position={[
+            DESK_MODEL_SPEC.drawers[1].positionX,
+            DESK_MODEL_SPEC.drawerPositionY,
+            DESK_MODEL_SPEC.drawerPositionZ + 0.08,
+          ]}
+          onClick={(event) => {
+            event.stopPropagation()
+            document.body.style.cursor = ''
+            onOpenPastTraces()
+          }}
+          onPointerOut={() => {
+            document.body.style.cursor = ''
+          }}
+          onPointerOver={(event) => {
+            event.stopPropagation()
+            document.body.style.cursor = 'pointer'
+          }}
+        >
+          <boxGeometry args={[
+            DESK_MODEL_SPEC.drawers[1].width,
+            DESK_MODEL_SPEC.drawerHeight,
+            0.36,
+          ]} />
+          <meshBasicMaterial
+            colorWrite={false}
+            depthWrite={false}
+            opacity={0}
+            transparent
+          />
+        </mesh>
+      ) : null}
+    </>
+  )
 }
 
 function DeskMat({ materials }: { materials: ModelMaterialLibrary }) {
@@ -361,11 +470,14 @@ interface DeskContentsProps {
   freeCameraEnabled: boolean
   notebookPhase: NotebookPhase
   notebookCoverLabel: string
+  pastTracesPhase: PastTracesPhase
   placePendingDeskSticker: (position: StickerPosition) => Promise<boolean>
   colors: SceneColorConfig
   previewStickerPosition: (instanceId: string, position: StickerPosition) => void
   reducedMotion: boolean
   requestNotebookOpen: () => void
+  requestPastTracesOpen: () => void
+  settlePastTracesTransition: () => void
   settleDeskCameraPreset: () => void
   selectSticker: (instanceId: string | null) => void
   selectedStickerId: string | null
@@ -382,11 +494,14 @@ function DeskContents({
   freeCameraEnabled,
   notebookPhase,
   notebookCoverLabel,
+  pastTracesPhase,
   placePendingDeskSticker,
   colors,
   previewStickerPosition,
   reducedMotion,
   requestNotebookOpen,
+  requestPastTracesOpen,
+  settlePastTracesTransition,
   settleDeskCameraPreset,
   selectSticker,
   selectedStickerId,
@@ -455,16 +570,27 @@ function DeskContents({
       />
       <FreeOrbitCamera
         deskCameraPreset={deskCameraPreset}
-        enabled={freeCameraEnabled && notebookPhase === 'desk'}
+        enabled={
+          freeCameraEnabled &&
+          notebookPhase === 'desk' &&
+          pastTracesPhase === 'closed'
+        }
       />
 
-      <DeskBody materials={materials} />
+      <DeskBody
+        materials={materials}
+        onOpenPastTraces={requestPastTracesOpen}
+        onSettlePastTraces={settlePastTracesTransition}
+        pastTracesPhase={pastTracesPhase}
+        reducedMotion={reducedMotion}
+      />
       <DeskMat materials={materials} />
       <mesh
         name="desk-mat-hit-surface"
         position={[0, DESK_MAT_MODEL_SPEC.topY, 0.2]}
         rotation={[-Math.PI / 2, 0, 0]}
         onClick={(event) => {
+          if (pastTracesPhase !== 'closed') return
           if (stickerWorkflow === 'placingDesk') {
             event.stopPropagation()
             void placePendingDeskSticker({ x: event.point.x, z: event.point.z })
@@ -491,7 +617,11 @@ function DeskContents({
         <StickerObject
           key={sticker.instance.id}
           sticker={sticker}
-          interactive={stickerWorkflow === 'idle' && notebookPhase === 'desk'}
+          interactive={
+            stickerWorkflow === 'idle' &&
+            notebookPhase === 'desk' &&
+            pastTracesPhase === 'closed'
+          }
           selected={selectedStickerId === sticker.instance.id}
           onSelect={selectSticker}
           onPreviewPosition={previewStickerPosition}
@@ -536,6 +666,7 @@ export function DeskScene({ colors, contentFont, fallback }: DeskSceneProps) {
     (state) => state.commitStickerPosition,
   )
   const notebookPhase = useAppStore((state) => state.notebookPhase)
+  const pastTracesPhase = useAppStore((state) => state.pastTracesPhase)
   const notebookCoverLabel = useAppStore(
     (state) => state.notebookCoverSettings?.label ?? '',
   )
@@ -544,6 +675,12 @@ export function DeskScene({ colors, contentFont, fallback }: DeskSceneProps) {
     (state) => state.previewStickerPosition,
   )
   const requestNotebookOpen = useAppStore((state) => state.requestNotebookOpen)
+  const requestPastTracesOpen = useAppStore(
+    (state) => state.requestPastTracesOpen,
+  )
+  const settlePastTracesTransition = useAppStore(
+    (state) => state.settlePastTracesTransition,
+  )
   const settleDeskCameraPreset = useAppStore(
     (state) => state.settleDeskCameraPreset,
   )
@@ -560,11 +697,14 @@ export function DeskScene({ colors, contentFont, fallback }: DeskSceneProps) {
     freeCameraEnabled,
     notebookPhase,
     notebookCoverLabel,
+    pastTracesPhase,
     placePendingDeskSticker,
     colors,
     previewStickerPosition,
     reducedMotion,
     requestNotebookOpen,
+    requestPastTracesOpen,
+    settlePastTracesTransition,
     settleDeskCameraPreset,
     selectSticker,
     selectedStickerId,
@@ -696,11 +836,14 @@ export function DeskScene({ colors, contentFont, fallback }: DeskSceneProps) {
       freeCameraEnabled,
       notebookPhase,
       notebookCoverLabel,
+      pastTracesPhase,
       placePendingDeskSticker,
       colors,
       previewStickerPosition,
       reducedMotion,
       requestNotebookOpen,
+      requestPastTracesOpen,
+      settlePastTracesTransition,
       settleDeskCameraPreset,
       selectSticker,
       selectedStickerId,
@@ -719,11 +862,14 @@ export function DeskScene({ colors, contentFont, fallback }: DeskSceneProps) {
     freeCameraEnabled,
     notebookPhase,
     notebookCoverLabel,
+    pastTracesPhase,
     placePendingDeskSticker,
     colors,
     previewStickerPosition,
     reducedMotion,
     requestNotebookOpen,
+    requestPastTracesOpen,
+    settlePastTracesTransition,
     settleDeskCameraPreset,
     selectSticker,
     selectedStickerId,

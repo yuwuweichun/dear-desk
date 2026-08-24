@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js'
 
 import {
   createRoundedPanelGeometry,
@@ -9,11 +10,13 @@ import type { ModelMaterialLibrary } from './material-library'
 import { DESK_MODEL_SPEC, MODEL_LIMITS } from './model-specs'
 import {
   isPassEnabled,
+  getSculptRuntime,
   markMesh,
   measureModelResources,
   setSculptRuntime,
   type ModelFactoryOptions,
   type SculptCollider,
+  type SculptRuntime,
 } from './model-types'
 
 export interface DeskModelNodes extends Record<string, THREE.Object3D> {
@@ -39,7 +42,36 @@ export interface DeskModelNodes extends Record<string, THREE.Object3D> {
   tabletop: THREE.Mesh
 }
 
-type DrawerId = (typeof DESK_MODEL_SPEC.drawers)[number]['id']
+export type DrawerId = (typeof DESK_MODEL_SPEC.drawers)[number]['id']
+
+const DRAWER_NODE_KEYS = {
+  'drawer-left': 'drawerLeft',
+  'drawer-center': 'drawerCenter',
+  'drawer-right': 'drawerRight',
+} as const satisfies Record<DrawerId, keyof DeskModelNodes>
+
+export function setDeskDrawerProgress(
+  root: THREE.Group,
+  drawerId: DrawerId,
+  progress: number,
+) {
+  const runtime = getSculptRuntime<DeskModelNodes>(root) as SculptRuntime<DeskModelNodes>
+  const drawer = runtime.nodes[DRAWER_NODE_KEYS[drawerId]]
+  const action = drawer.userData.action as {
+    axis: [number, number, number]
+    limits: [number, number]
+    role: 'linear-slide'
+  }
+  const normalized = THREE.MathUtils.clamp(progress, 0, 1)
+  const offset = THREE.MathUtils.lerp(action.limits[0], action.limits[1], normalized)
+  drawer.position.set(
+    action.axis[0] * offset,
+    action.axis[1] * offset,
+    action.axis[2] * offset,
+  )
+  runtime.updateAttachments?.()
+  return offset
+}
 
 const LEG_BINDINGS = [
   { id: 'left-rear-leg', nodeKey: 'legLeftRear', positionIndex: 0 },
@@ -305,20 +337,44 @@ export function createDeskModel(
       0.035,
     ),
   )
-  const sideDrawerBodyGeometry = own(
-    new THREE.BoxGeometry(
-      DESK_MODEL_SPEC.drawers[0].width - 0.18,
-      DESK_MODEL_SPEC.drawerHeight - 0.14,
-      1.18,
-    ),
-  )
-  const centerDrawerBodyGeometry = own(
-    new THREE.BoxGeometry(
-      DESK_MODEL_SPEC.drawers[1].width - 0.18,
-      DESK_MODEL_SPEC.drawerHeight - 0.14,
-      1.18,
-    ),
-  )
+  const drawerBodyDepth = 1.18
+  const drawerBodyHeight = DESK_MODEL_SPEC.drawerHeight - 0.14
+  const drawerWallThickness = 0.1
+  const drawerBodyGeometries = new Map<number, THREE.BufferGeometry>()
+
+  for (const drawerSpec of DESK_MODEL_SPEC.drawers) {
+    const bodyWidth = drawerSpec.width - 0.18
+    if (drawerBodyGeometries.has(bodyWidth)) continue
+
+    const bottom = new THREE.BoxGeometry(
+      bodyWidth,
+      drawerWallThickness,
+      drawerBodyDepth,
+    )
+    bottom.translate(0, -drawerBodyHeight / 2 + drawerWallThickness / 2, 0)
+    const leftSide = new THREE.BoxGeometry(
+      drawerWallThickness,
+      drawerBodyHeight,
+      drawerBodyDepth,
+    )
+    leftSide.translate(-bodyWidth / 2 + drawerWallThickness / 2, 0, 0)
+    const rightSide = leftSide.clone()
+    rightSide.translate(bodyWidth - drawerWallThickness, 0, 0)
+    const back = new THREE.BoxGeometry(
+      bodyWidth,
+      drawerBodyHeight,
+      drawerWallThickness,
+    )
+    back.translate(0, 0, -drawerBodyDepth / 2 + drawerWallThickness / 2)
+
+    const shellParts = [bottom, leftSide, rightSide, back]
+    const bodyGeometry = mergeGeometries(shellParts)
+    shellParts.forEach((geometry) => geometry.dispose())
+    if (!bodyGeometry) throw new Error(`Could not build ${drawerSpec.id} shell`)
+    bodyGeometry.userData.openTop = true
+    bodyGeometry.userData.shellParts = ['bottom', 'left-side', 'right-side', 'back']
+    drawerBodyGeometries.set(bodyWidth, own(bodyGeometry))
+  }
 
   for (const drawerSpec of DESK_MODEL_SPEC.drawers) {
     const group = new THREE.Group()
@@ -343,11 +399,10 @@ export function createDeskModel(
     markMesh(face, `${drawerSpec.id}-face`, options)
     group.add(face)
 
-    const bodyGeometry = drawerSpec.id === 'drawer-center'
-      ? centerDrawerBodyGeometry
-      : sideDrawerBodyGeometry
-    const body = new THREE.Mesh(bodyGeometry, frameMaterial)
+    const bodyWidth = drawerSpec.width - 0.18
+    const body = new THREE.Mesh(drawerBodyGeometries.get(bodyWidth)!, frameMaterial)
     body.position.z = -0.66
+    body.userData.openTop = true
     markMesh(body, `${drawerSpec.id}-body`, options)
     body.castShadow = false
     group.add(body)

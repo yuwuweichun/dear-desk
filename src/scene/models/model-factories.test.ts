@@ -2,7 +2,7 @@ import * as THREE from 'three'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { createDeskMatModel } from './create-desk-mat-model'
-import { createDeskModel } from './create-desk-model'
+import { createDeskModel, setDeskDrawerProgress } from './create-desk-model'
 import { createNotebookModel } from './create-notebook-model'
 import { createRoundedPlateGeometry } from './geometry'
 import {
@@ -387,6 +387,26 @@ describe('procedural scene model factories', () => {
       materials.walnutDrawer,
       materials.walnutDark,
     ])
+    for (const drawerSpec of DESK_MODEL_SPEC.drawers) {
+      const body = desk.getObjectByName(`${drawerSpec.id}-body`)
+      expect(body).toBeInstanceOf(THREE.Mesh)
+      expect(body?.userData.openTop).toBe(true)
+      expect((body as THREE.Mesh).geometry.userData.shellParts).toEqual([
+        'bottom',
+        'left-side',
+        'right-side',
+        'back',
+      ])
+    }
+    desk.updateMatrixWorld(true)
+    const centerBody = desk.getObjectByName('drawer-center-body') as THREE.Mesh
+    const openingRay = new THREE.Raycaster(
+      centerBody.localToWorld(new THREE.Vector3(0, 1, 0)),
+      new THREE.Vector3(0, -1, 0),
+    )
+    const openingHit = openingRay.intersectObject(centerBody)[0]
+    expect(openingHit).toBeTruthy()
+    expect(centerBody.worldToLocal(openingHit!.point.clone()).y).toBeLessThan(0)
     expect(deskRuntime.nodes.drawerCenter.userData.action).toEqual({
       axis: [0, 0, 1],
       limits: [0, 0.86],
@@ -395,6 +415,18 @@ describe('procedural scene model factories', () => {
     expect(deskRuntime.sockets['socket-drawer-center-slide']).toBeTruthy()
     expect(deskRuntime.sockets['socket-drawer-center-knob']).toBeTruthy()
     expect(deskRuntime.updateAttachments).toBeTypeOf('function')
+    const centerKnobBefore = new THREE.Matrix4()
+    const centerKnobAfter = new THREE.Matrix4()
+    deskRuntime.nodes.knobCrowns.getMatrixAt(1, centerKnobBefore)
+    const offset = setDeskDrawerProgress(desk, 'drawer-center', 0.5)
+    deskRuntime.nodes.knobCrowns.getMatrixAt(1, centerKnobAfter)
+    expect(offset).toBeCloseTo(0.43)
+    expect(deskRuntime.nodes.drawerCenter.position.z).toBeCloseTo(0.43)
+    expect(deskRuntime.nodes.drawerLeft.position.z).toBe(0)
+    expect(deskRuntime.nodes.drawerRight.position.z).toBe(0)
+    expect(new THREE.Vector3().setFromMatrixPosition(centerKnobAfter).z).toBeCloseTo(
+      new THREE.Vector3().setFromMatrixPosition(centerKnobBefore).z + 0.43,
+    )
     expect(deskRuntime.colliders.tabletop).toEqual({
       center: [0, DESK_MODEL_SPEC.tabletop.positionY, 0],
       id: 'tabletop',

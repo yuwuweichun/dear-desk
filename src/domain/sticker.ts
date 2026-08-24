@@ -112,6 +112,11 @@ export interface PlacedSticker {
   instance: StickerInstance
 }
 
+export interface JournalStickerDateCount {
+  count: number
+  date: LocalDate
+}
+
 interface StickerDraftBase {
   forge: StickerDefinition['forge']
   preview: Pick<StickerRenderAsset, 'blob' | 'height' | 'mimeType' | 'width'>
@@ -146,6 +151,7 @@ export interface StickerRepository {
   delete(instanceId: string): Promise<void>
   listDesk(): Promise<PlacedSticker[]>
   listJournal(date: LocalDate): Promise<PlacedSticker[]>
+  listJournalDateCounts(): Promise<JournalStickerDateCount[]>
   listJournalDates(): Promise<LocalDate[]>
   move(instanceId: string, position: StickerInstance['position']): Promise<StickerInstance>
   rotate(instanceId: string, rotationY: number): Promise<StickerInstance>

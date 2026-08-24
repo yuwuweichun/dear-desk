@@ -67,6 +67,7 @@ const createRepository = (
 ): DailyEntryRepository => ({
   getByDate: vi.fn().mockImplementation(async (requestedDate: LocalDate) =>
     entries[requestedDate] ?? null),
+  listEntries: vi.fn().mockResolvedValue(Object.values(entries)),
   listDates: vi.fn().mockResolvedValue(Object.keys(entries) as LocalDate[]),
   save: vi.fn().mockImplementation(async (
     selectedDate: LocalDate,

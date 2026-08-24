@@ -200,7 +200,20 @@
       const target = document.querySelector(`#${CSS.escape(button.dataset.copyTarget)}`);
       if (!target) return;
       try {
-        await navigator.clipboard.writeText(target.textContent);
+        if (location.protocol === 'file:' || !navigator.clipboard?.writeText) {
+          const textarea = document.createElement('textarea');
+          textarea.value = target.textContent;
+          textarea.setAttribute('readonly', '');
+          textarea.style.position = 'fixed';
+          textarea.style.opacity = '0';
+          document.body.append(textarea);
+          textarea.select();
+          const copied = document.execCommand('copy');
+          textarea.remove();
+          if (!copied) throw new Error('Copy command failed');
+        } else {
+          await navigator.clipboard.writeText(target.textContent);
+        }
         button.textContent = '已复制';
       } catch {
         button.textContent = '复制失败';

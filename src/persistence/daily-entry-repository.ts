@@ -23,6 +23,10 @@ export class DexieDailyEntryRepository implements DailyEntryRepository {
     return keys.filter((key): key is LocalDate => typeof key === 'string')
   }
 
+  async listEntries() {
+    return this.db.dailyEntries.orderBy('date').toArray()
+  }
+
   async save(
     date: LocalDate,
     text: string,
