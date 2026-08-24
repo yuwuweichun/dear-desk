@@ -5,6 +5,12 @@ export type AnimatedNotebookPhase = Extract<
   'approaching' | 'opening' | 'closing' | 'retreating'
 >
 
+export const NOTEBOOK_PAGE_FLUTTER_COUNT = 5
+
+const PAGE_FLUTTER_FIRST_START = 0.44
+const PAGE_FLUTTER_STAGGER = 0.06
+const PAGE_FLUTTER_DURATION = 0.29
+
 const standardDurations: Record<AnimatedNotebookPhase, number> = {
   approaching: 1.4,
   opening: 1.6,
@@ -56,6 +62,31 @@ export interface NotebookPresentationState {
   spineCenterProgress: number
   spreadProgress: number
   uprightProgress: number
+}
+
+export interface NotebookPageFlutterState {
+  liftProgress: number
+  progress: number
+  visible: boolean
+}
+
+export const getNotebookPageFlutterState = (
+  progress: number,
+  pageIndex: number,
+): NotebookPageFlutterState => {
+  const normalizedIndex = Math.min(
+    NOTEBOOK_PAGE_FLUTTER_COUNT - 1,
+    Math.max(0, Math.trunc(pageIndex)),
+  )
+  const start = PAGE_FLUTTER_FIRST_START + normalizedIndex * PAGE_FLUTTER_STAGGER
+  const localProgress = clamp01((clamp01(progress) - start) / PAGE_FLUTTER_DURATION)
+  const easedProgress = easeInOutCubic(localProgress)
+
+  return {
+    liftProgress: Math.sin(localProgress * Math.PI),
+    progress: easedProgress,
+    visible: localProgress > 0 && localProgress < 1,
+  }
 }
 
 export const getNotebookPresentationState = (

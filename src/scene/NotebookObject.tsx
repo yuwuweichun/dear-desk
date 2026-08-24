@@ -121,8 +121,8 @@ export function NotebookObject({
   ) => {
     if (!model) return
     const update = model.userData.setOpenProgress
-    if (typeof update === 'function') update(progress)
-  }, [model])
+    if (typeof update === 'function') update(progress, !reducedMotion)
+  }, [model, reducedMotion])
 
   useEffect(() => {
     if (!hovered) return

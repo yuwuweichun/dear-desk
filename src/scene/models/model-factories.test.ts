@@ -650,6 +650,7 @@ describe('procedural scene model factories', () => {
 
     const setOpenProgress = notebook.userData.setOpenProgress as (
       progress: number,
+      animatePageFlutter?: boolean,
     ) => void
     const getOpenProgress = notebook.userData.getOpenProgress as () => number
     const casePositions = caseShell.geometry.getAttribute(
@@ -769,7 +770,20 @@ describe('procedural scene model factories', () => {
     expect(notebookRuntime.nodes.backCoverBoard.position.x).toBeCloseTo(
       (NOTEBOOK_MODEL_SPEC.pageHinge[0] - NOTEBOOK_MODEL_SPEC.coverHinge[0]) / 2,
     )
-    expect(notebook.getObjectByName('rapid-page-flip-pool')).toBeUndefined()
+    expect(notebookRuntime.nodes.openingPageFlutter).toBeInstanceOf(
+      THREE.InstancedMesh,
+    )
+    expect(notebookRuntime.nodes.openingPageFlutter.count).toBe(5)
+    expect(notebookRuntime.nodes.openingPageFlutter.visible).toBe(true)
+    expect(notebookRuntime.nodes.openingPageFlutter.userData.activeCount).toBe(3)
+    expect(
+      notebookRuntime.nodes.openingPageFlutter.userData.localProgresses,
+    ).toEqual([...notebookRuntime.nodes.openingPageFlutter.userData.localProgresses]
+      .sort((left: number, right: number) => right - left))
+
+    setOpenProgress(0.6, false)
+    expect(notebookRuntime.nodes.openingPageFlutter.visible).toBe(false)
+    expect(notebookRuntime.nodes.openingPageFlutter.userData.activeCount).toBe(0)
     setOpenProgress(-1)
     expect(getOpenProgress()).toBe(0)
     expect(notebookRuntime.nodes.coverPivot.rotation.z).toBe(0)
@@ -794,6 +808,7 @@ describe('procedural scene model factories', () => {
     )
     expect(notebookRuntime.nodes.leftPages.visible).toBe(false)
     expect(notebookRuntime.nodes.rightPages.visible).toBe(false)
+    expect(notebookRuntime.nodes.openingPageFlutter.visible).toBe(false)
   })
 
   it('shows pass-critical repeated details from the structural pass', () => {
@@ -832,6 +847,7 @@ describe('procedural scene model factories', () => {
     expect(notebook.getObjectsByProperty('name', 'closed-text-block')).toHaveLength(1)
     expect(notebook.getObjectByName('right-opening-page-stack')).toBeTruthy()
     expect(notebook.getObjectByName('left-opening-page-stack')).toBeTruthy()
+    expect(notebook.getObjectByName('opening-page-flutter')).toBeTruthy()
     expect(runtime.nodes.closedPageEdges.count).toBe(36)
     expect(runtime.nodes.leftPageEdges.count).toBe(24)
     expect(runtime.nodes.rightPageEdges.count).toBe(24)

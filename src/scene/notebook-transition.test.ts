@@ -1,9 +1,11 @@
 import {
   easeInOutCubic,
   getDeskCameraTransitionDuration,
+  getNotebookPageFlutterState,
   getNotebookPresentationState,
   getNotebookTransitionDuration,
   isNotebookModelVisible,
+  NOTEBOOK_PAGE_FLUTTER_COUNT,
 } from './notebook-transition'
 
 describe('notebook transition timing', () => {
@@ -84,6 +86,54 @@ describe('notebook transition timing', () => {
         leftWorldAngle - Math.PI / 2,
       )
     }
+  })
+
+  it('staggers five opening pages through one ordered flutter window', () => {
+    expect(NOTEBOOK_PAGE_FLUTTER_COUNT).toBe(5)
+    expect(
+      Array.from({ length: NOTEBOOK_PAGE_FLUTTER_COUNT }, (_, index) =>
+        getNotebookPageFlutterState(0, index).visible),
+    ).toEqual([false, false, false, false, false])
+
+    const flutter = Array.from(
+      { length: NOTEBOOK_PAGE_FLUTTER_COUNT },
+      (_, index) => getNotebookPageFlutterState(0.7, index),
+    )
+    expect(flutter.every((page) => page.visible)).toBe(true)
+    expect(flutter.map((page) => page.progress)).toEqual(
+      [...flutter]
+        .map((page) => page.progress)
+        .sort((left, right) => right - left),
+    )
+    expect(flutter.every((page) => page.liftProgress > 0)).toBe(true)
+
+    expect(
+      Array.from({ length: NOTEBOOK_PAGE_FLUTTER_COUNT }, (_, index) =>
+        getNotebookPageFlutterState(1, index).visible),
+    ).toEqual([false, false, false, false, false])
+  })
+
+  it('derives reversible flutter poses from the normalized notebook progress', () => {
+    const progressSamples = [0.46, 0.58, 0.72, 0.9]
+    const openingTrace = progressSamples.map((progress) =>
+      Array.from({ length: NOTEBOOK_PAGE_FLUTTER_COUNT }, (_, index) =>
+        getNotebookPageFlutterState(progress, index)),
+    )
+    const closingTrace = [...progressSamples]
+      .reverse()
+      .map((progress) =>
+        Array.from({ length: NOTEBOOK_PAGE_FLUTTER_COUNT }, (_, index) =>
+          getNotebookPageFlutterState(progress, index)),
+      )
+      .reverse()
+    expect(closingTrace).toEqual(openingTrace)
+
+    expect(getNotebookPageFlutterState(-1, 0)).toEqual(
+      getNotebookPageFlutterState(0, 0),
+    )
+    expect(getNotebookPageFlutterState(2, 4)).toEqual(
+      getNotebookPageFlutterState(1, 4),
+    )
   })
 
   it('uses a compact and reduced schedule for one-preset camera switches', () => {

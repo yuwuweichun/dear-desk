@@ -16,7 +16,11 @@ import {
   setSculptRuntime,
   type ModelFactoryOptions,
 } from './model-types'
-import { getNotebookPresentationState } from '../notebook-transition'
+import {
+  getNotebookPageFlutterState,
+  getNotebookPresentationState,
+  NOTEBOOK_PAGE_FLUTTER_COUNT,
+} from '../notebook-transition'
 
 export interface NotebookModelNodes extends Record<string, THREE.Object3D> {
   backCover: THREE.Group
@@ -31,6 +35,7 @@ export interface NotebookModelNodes extends Record<string, THREE.Object3D> {
   leftPages: THREE.Group
   leftTopPage: THREE.Mesh
   nameplate: THREE.Group
+  openingPageFlutter: THREE.InstancedMesh
   pagePivot: THREE.Group
   presentationPivot: THREE.Group
   rightPageEdges: THREE.InstancedMesh
@@ -61,6 +66,7 @@ const OPEN_PAGE_Y = NOTEBOOK_MODEL_SPEC.cover.thickness + OPEN_STACK_THICKNESS /
 const SPINE_AXIS_X = NOTEBOOK_MODEL_SPEC.pageHinge[0]
 const OPEN_COVER_CENTER_OFFSET =
   SPINE_AXIS_X - NOTEBOOK_MODEL_SPEC.coverHinge[0]
+const PAGE_FLUTTER_Y = OPEN_PAGE_Y + OPEN_STACK_THICKNESS / 2 + 0.018
 const UPRIGHT_ANGLE = Math.PI / 2
 
 const addSecondaryUv = <T extends THREE.BufferGeometry>(geometry: T) => {
@@ -388,6 +394,48 @@ function createOpeningLeaf(
   return { edges, pages, topPage }
 }
 
+function createOpeningPageFlutter(
+  materials: ModelMaterialLibrary,
+  usePbr: boolean,
+  options: ModelFactoryOptions,
+) {
+  const geometry = addSecondaryUv(
+    scaleGeometryUvs(
+      createCurvedPageGeometry(
+        NOTEBOOK_MODEL_SPEC.page.width * 0.97,
+        NOTEBOOK_MODEL_SPEC.page.depth * 0.98,
+        1,
+      ),
+      1.5,
+      2.5,
+    ),
+  )
+  geometry.translate(NOTEBOOK_MODEL_SPEC.page.width * 0.485, 0, 0)
+  const pages = finishMesh(
+    new THREE.InstancedMesh(
+      geometry,
+      materialFor(usePbr, materials.paper, materials),
+      NOTEBOOK_PAGE_FLUTTER_COUNT,
+    ),
+    'opening-page-flutter',
+    options,
+  )
+  const hidden = new THREE.Matrix4().makeScale(0, 0, 0)
+  for (let index = 0; index < NOTEBOOK_PAGE_FLUTTER_COUNT; index += 1) {
+    pages.setMatrixAt(index, hidden)
+  }
+  pages.instanceMatrix.setUsage(THREE.DynamicDrawUsage)
+  pages.instanceMatrix.needsUpdate = true
+  pages.visible = false
+  pages.userData = {
+    activeCount: 0,
+    localProgresses: Array.from({ length: NOTEBOOK_PAGE_FLUTTER_COUNT }, () => 0),
+    pageCount: NOTEBOOK_PAGE_FLUTTER_COUNT,
+    role: 'opening-transition-page-flutter',
+  }
+  return pages
+}
+
 function createNameplate(
   materials: ModelMaterialLibrary,
   usePbr: boolean,
@@ -532,6 +580,8 @@ export function createNotebookModel(
   const left = createOpeningLeaf('left', materials, usePbr, options)
   left.pages.position.set(PAGE_PIVOT_LOCAL_X, 0, 0)
   pagePivot.add(left.pages)
+  const openingPageFlutter = createOpeningPageFlutter(materials, usePbr, options)
+  const pageFlutterDummy = new THREE.Object3D()
 
   bookVisual.add(
     backCover,
@@ -539,6 +589,7 @@ export function createNotebookModel(
     closedPageEdges,
     caseShell,
     coverPivot,
+    openingPageFlutter,
     pagePivot,
     right.pages,
   )
@@ -548,7 +599,7 @@ export function createNotebookModel(
     left.pages.remove(left.topPage, left.edges)
   }
 
-  const setOpenProgress = (value: number) => {
+  const setOpenProgress = (value: number, animatePageFlutter = true) => {
     const progress = THREE.MathUtils.clamp(value, 0, 1)
     root.userData.openProgress = progress
     const presentation = getNotebookPresentationState(progress)
@@ -594,6 +645,35 @@ export function createNotebookModel(
     closedPageEdges.scale.y = closedScale
     textBlock.visible = spreadProgress < 0.985
     closedPageEdges.visible = showForm && spreadProgress < 0.985
+
+    let activePageCount = 0
+    const localProgresses: number[] = []
+    for (let index = 0; index < NOTEBOOK_PAGE_FLUTTER_COUNT; index += 1) {
+      const flutter = getNotebookPageFlutterState(progress, index)
+      localProgresses.push(flutter.progress)
+      if (!animatePageFlutter || !showForm || !flutter.visible) {
+        pageFlutterDummy.scale.set(0, 0, 0)
+      } else {
+        activePageCount += 1
+        pageFlutterDummy.position.set(
+          NOTEBOOK_MODEL_SPEC.pageHinge[0],
+          PAGE_FLUTTER_Y + flutter.liftProgress * 0.13 + index * 0.002,
+          (index - (NOTEBOOK_PAGE_FLUTTER_COUNT - 1) / 2) * 0.006,
+        )
+        pageFlutterDummy.rotation.set(
+          0,
+          0,
+          NOTEBOOK_MODEL_SPEC.openAngle * flutter.progress,
+        )
+        pageFlutterDummy.scale.set(1, 1, 1)
+      }
+      pageFlutterDummy.updateMatrix()
+      openingPageFlutter.setMatrixAt(index, pageFlutterDummy.matrix)
+    }
+    openingPageFlutter.instanceMatrix.needsUpdate = true
+    openingPageFlutter.visible = activePageCount > 0
+    openingPageFlutter.userData.activeCount = activePageCount
+    openingPageFlutter.userData.localProgresses = localProgresses
   }
   root.userData.setOpenProgress = setOpenProgress
   root.userData.getOpenProgress = () => Number(root.userData.openProgress ?? 0)
@@ -612,6 +692,7 @@ export function createNotebookModel(
     leftPages: left.pages,
     leftTopPage: left.topPage,
     nameplate,
+    openingPageFlutter,
     pagePivot,
     presentationPivot,
     rightPageEdges: right.edges,
@@ -643,7 +724,13 @@ export function createNotebookModel(
       binding: [caseShell],
       covers: [backCover, frontCover],
       hardware: [nameplate, rivets],
-      pages: [textBlock, closedPageEdges, right.pages, left.pages],
+      pages: [
+        textBlock,
+        closedPageEdges,
+        right.pages,
+        left.pages,
+        openingPageFlutter,
+      ],
     },
     nodes,
     sockets: {

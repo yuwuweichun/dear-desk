@@ -54,7 +54,7 @@
         <p class="lead">你看到的是一张可以打开本子、写日记和摆贴纸的桌面。文字和贴纸先保存在当前浏览器里，页面状态只负责协调当下操作，桌面与纸页再把同一份内容画出来；因此动画可以变化，已经保存的记录不会跟着模型消失。</p>
         <div class="callout">
           <strong>当前事实</strong>
-          <p>当前应用已经能打开本子、阅读和书写日期页面、制作贴纸并把它们留在桌面或日记中，也能从中央抽屉或 DOM 等价按钮按月份找回旧文字与日记贴纸。本子打开时长边书脊始终贴着桌面，书口先向上立起，再让左右两半从书脊向两侧摊开；旧的连续快速扫页已经移除。所有内容仍只保存在当前浏览器，三维物体、抽屉开合和动画只是可随时重建的画面。</p>
+          <p>当前应用已经能打开本子、阅读和书写日期页面、制作贴纸并把它们留在桌面或日记中，也能从中央抽屉或 DOM 等价按钮按月份找回旧文字与日记贴纸。本子打开时长边书脊始终贴着桌面，书口先向上立起，再让左右两半从书脊向两侧摊开；摊开中后段会有 5 张纸页从中央依次翻向左侧，形成短促连续的页面扇动，但不恢复旧版从第一页循环扫页。所有内容仍只保存在当前浏览器，三维物体、抽屉开合和动画只是可随时重建的画面。</p>
         </div>
       </header>
 
@@ -125,13 +125,13 @@
   -> createDeskMatModel(materials)
   -> NotebookObject
        -> createNotebookModel(materials)
-       -> userData.setOpenProgress(t)    // rise -> center spread -> settle
+       -> userData.setOpenProgress(t)    // rise -> center spread + 5-sheet flutter -> settle
   -> unmount
        -> model.userData.dispose()       // factory-owned geometry
        -> materials.dispose()            // shared material + 16 textures
        -> SceneEnvironment cleanup       // PMREM + RoomEnvironment</code></pre>
         </div>
-        <p>本子工厂保留稳定根位置、透明命中盒和封面铰链；所有可见部件现在统一挂在中央展示锚点 <code>centered-opening-presentation</code> 下。它内部的桌面书脊铰链 <code>tabletop-spine-hinge</code> 位于长边装订轴，立起时绕这条轴旋转，轴本身不离开桌面；书口因此向上，而不是让整块封面朝镜头抬起。<code>getNotebookPresentationState</code> 先把进度映射为立起，再映射为左右摊开和落定。展开阶段的公共书脊角度严格使用 <code>1 - spreadProgress</code>：右半册世界角度从 <code>π/2</code> 到 <code>0</code>，左半册在相同公共角度上叠加 <code>π × spreadProgress</code>，因此任意时刻两侧离开直立位置的角位移绝对值相同。展示锚点同时补偿书脊横向位置，所以直立书脊和最终页芯中心共享桌面中线。完全闭合与书脊贴桌立起时，单一 <code>continuous-case-shell</code> 网格负责前封面、连续圆背和后封面；装饰性的 <code>book-joints</code> 已删除。<code>spreadProgress</code> 一旦大于零，连续壳体就退出，<code>front-cover-board</code> 与 <code>back-cover-board</code> 同帧接替；两块封面的中线补偿从 <code>0</code> 随展开进度连续插值到各自的 <code>0.2</code>，所以闭合圆背端部不会在纸面中线冒出，也不会在动画末端跳变。<code>setOpenProgress</code> 同时更新两侧页堆、书脊倾角和中心补偿；全开末段把左页 pivot 降到右页高度并精确转到 <code>π</code>。动画阶段的左右独立顶页在全开后退出，不再创建或显示额外的连续顶层纸面；左右页堆和各自页口层直接作为 3D 打开终态。旧的 <code>rapid-page-flip-pool</code> 也已删除，不再用临时页片从第一页连续扫页。<code>NotebookObject</code> 只传入既有状态机进度；关闭沿同一时间轴逆放。<code>notebookPhase === 'editing'</code> 时隐藏 3D 本子并挂载 DOM 日记，development 与 production 使用同一交接行为。</p>
+        <p>本子工厂保留稳定根位置、透明命中盒和封面铰链；所有可见部件现在统一挂在中央展示锚点 <code>centered-opening-presentation</code> 下。它内部的桌面书脊铰链 <code>tabletop-spine-hinge</code> 位于长边装订轴，立起时绕这条轴旋转，轴本身不离开桌面；书口因此向上，而不是让整块封面朝镜头抬起。<code>getNotebookPresentationState</code> 先把进度映射为立起，再映射为左右摊开和落定。展开阶段的公共书脊角度严格使用 <code>1 - spreadProgress</code>：右半册世界角度从 <code>π/2</code> 到 <code>0</code>，左半册在相同公共角度上叠加 <code>π × spreadProgress</code>，因此任意时刻两侧离开直立位置的角位移绝对值相同。展示锚点同时补偿书脊横向位置，所以直立书脊和最终页芯中心共享桌面中线。完全闭合与书脊贴桌立起时，单一 <code>continuous-case-shell</code> 网格负责前封面、连续圆背和后封面；装饰性的 <code>book-joints</code> 已删除。<code>spreadProgress</code> 一旦大于零，连续壳体就退出，<code>front-cover-board</code> 与 <code>back-cover-board</code> 同帧接替；两块封面的中线补偿从 <code>0</code> 随展开进度连续插值到各自的 <code>0.2</code>，所以闭合圆背端部不会在纸面中线冒出，也不会在动画末端跳变。<code>setOpenProgress</code> 同时更新两侧页堆、书脊倾角和中心补偿；<code>getNotebookPageFlutterState</code> 在摊开中后段为 5 张纸页生成错峰局部进度，单个 <code>opening-page-flutter</code> 实例网格共享几何与纸张材质，却让每张页片独立抬升并从中央装订轴翻向左侧。旧版 <code>rapid-page-flip-pool</code> 的约 9 次循环扫页仍保持删除；当前 5 张页片各自只翻一次，并在闭合与全开端点隐藏。全开末段把左页 pivot 降到右页高度并精确转到 <code>π</code>；动画阶段的左右独立顶页和临时页片全部退出，左右页堆与各自页口层直接作为 3D 打开终态。<code>NotebookObject</code> 只传入既有状态机进度，并在 reduced-motion 下显式禁止临时页片；关闭沿同一时间轴逆放。<code>notebookPhase === 'editing'</code> 时隐藏 3D 本子并挂载 DOM 日记，development 与 production 使用同一交接行为。</p>
         <p>桌垫的可见织物模型与透明 placement hit surface 分离，所以材质和滚边几何不承担贴纸事件。重复织线、页缘、页线与铆钉使用实例化几何；材质库以确定性 1024px 程序纹理为 wood、cloth、kraft、paper 四个 family 各提供 albedo、AO、height 和 roughness，共 16 张纹理。当前 <code>SCENE_MATERIAL_VERSION</code> 为 <code>V2.0</code>；<code>SCENE_PALETTE_PRESETS</code> 保存已全部否决的 V1-V10 历史角色色，默认 <code>SCENE_PALETTE</code> 仍解析为运行回退值 V2。开发环境可用 <code>?palette=v1..v10</code> 决定调色器初始值，production 和无效参数均回到 V2；该选择与实时试色都不进入 store、IndexedDB 或 localStorage。</p>
         <p><code>ProductApp</code> 以组件级 <code>SceneColorConfig</code> 持有九项临时 HEX，并把它传给 <code>SceneColorEditor</code> 与 <code>DeskScene</code>。材质库只创建一次 16 张程序纹理；后续输入通过 <code>applySceneColors()</code> 原位更新九个材质颜色，背景/fog 由 R3F prop 同步，不重建纹理、相机或 Canvas。桌面、桌框与围板、收分桌腿、抽屉面、桌垫工作面、垫体/包边、本子外壳和书脊/接缝各有明确材质所有权；抽屉面从 <code>deskInset</code> 派生较深木色，纸张、贴纸、PBR 与灯光不进入调色配置。</p>
       </section>
@@ -246,7 +246,7 @@
       <section id="rendering" data-search-title="DOM、R3F 与翻页渲染边界">
         <p class="section-index">08 · 渲染</p>
         <h2>R3F 给出空间本子，DOM 适配层保持表单语义</h2>
-          <p><code>NotebookObject</code> 用透明命中几何发出打开意图，并驱动 <code>createNotebookModel</code> 的中央展示锚点、封面铰链和左右页堆；它不读取正文或 Blob。桌面端与移动端 near 机位已放宽视野，竖起轮廓不会撞到上边界。<code>JournalPanel</code> 在打开进度完成、<code>notebookPhase</code> 进入 <code>editing</code> 后接管，提供当前日期贴纸左页、正文右页、独立翻页控制、局部模式控件和按日期 textarea；开发和生产使用相同的 3D 隐藏与 DOM 挂载行为。旧 <code>RoundedBox</code> / <code>scene-visuals</code> 已不在当前桌子、桌垫、本子模型路径中。</p>
+          <p><code>NotebookObject</code> 用透明命中几何发出打开意图，并驱动 <code>createNotebookModel</code> 的中央展示锚点、封面铰链、左右页堆和 5 张临时转场页片；它不读取正文或 Blob。页片只在 3D 开本中后段依次越过书脊，不承担日期翻页、内容或交互，稳定端点与 reduced-motion 均隐藏。桌面端与移动端 near 机位为竖起和展开提供专用构图。<code>JournalPanel</code> 在打开进度完成、<code>notebookPhase</code> 进入 <code>editing</code> 后接管，提供当前日期贴纸左页、正文右页、独立翻页控制、局部模式控件和按日期 textarea；开发和生产使用相同的 3D 隐藏与 DOM 挂载行为。旧 <code>RoundedBox</code> / <code>scene-visuals</code> 已不在当前桌子、桌垫、本子模型路径中。</p>
         <p>renderer 使用 ACES filmic tone mapping、显式曝光、PCF 阴影和 DPR <code>[1, 1.5]</code>；<code>SceneEnvironment</code> 生成并释放 PMREM 环境反射。场景只有一盏投影方向光，另有不投影的低强度补光；雾从主体之外开始，避免吞掉桌体层次。</p>
         <p><code>JournalStickerLayer</code> 的坐标是纸页内 <code>0..1</code> 归一化值。今天页保留 pointer capture、预览位置和 pointer up 提交；历史页即使进入正文书写也只复用 PNG 投影并关闭贴纸 pointer events。桌面 <code>StickerObject</code> 仍创建对象 URL 和 Three.js Texture，并在卸载时释放两者。</p>
         <p><code>PageTurnSheet</code> 不克隆或重排 React 管理的真实纸页，而是命令式创建四张只读快照并交给 <code>page-flip</code>。适配层关闭纸角悬停、整页点击与手势，按实际页宽反向补偿上游的像素路径计时，使桌面和移动端都接近 720ms；上游 <code>destroy()</code> 未终止内部递归动画帧，因此 <code>page-flip-runtime.ts</code> 捕获并在卸载时取消这一个循环，同时显式移除全局事件、结束动画、撤销贴纸对象 URL。真实页面只在动画完成后由既有 store 协议切换。</p>
@@ -282,7 +282,7 @@
               <tr><td>WebGL 初始化失败</td><td>显示“打开本子”和“旧痕迹”DOM 降级入口；旧痕迹跳过抽屉动画</td><td>双页 DOM、历史摘要与 IndexedDB 日记链路</td></tr>
               <tr><td>模型卸载或 StrictMode 重挂载</td><td>工厂释放自有 geometry；共享材质库释放 16 张纹理和材质；环境释放 PMREM</td><td>可序列化业务状态与 IndexedDB 数据</td></tr>
               <tr><td>模型超过预算</td><td>工厂测试失败；上限为 45 draw calls、80,000 triangles、16 textures 和一盏投影光</td><td>critical feature 不以静默删减换取通过</td></tr>
-              <tr><td>reduced-motion</td><td>纸张大角度旋转改为 120ms 淡出；中央抽屉直接落到稳定端点</td><td>相同游标提交和边界语义</td></tr>
+              <tr><td>reduced-motion</td><td>日期翻页的大角度旋转改为 120ms 淡出；开本 5 张临时页片显式隐藏；中央抽屉直接落到稳定端点</td><td>相同游标提交、打开终态和边界语义</td></tr>
             </tbody>
           </table>
         </div>
@@ -341,7 +341,8 @@ edit historical text:
           <div><code><a href="../../src/persistence/sticker-repository.ts">sticker-repository.ts</a></code><span>按 surface/date 查询、轻量日记日期计数、四表事务与编辑</span></div>
           <div><code><a href="../../src/persistence/database.ts">src/persistence/database.ts</a></code><span>IndexedDB v1-v4 schema、旧贴纸实例迁移与本子铭牌设置表</span></div>
           <div><code><a href="../../src/scene/nameplate-text.ts">nameplate-text.ts</a></code><span>按全局字体生成铭牌色调/凹凸/粗糙度贴图、黄铜表面材质和统一释放入口</span></div>
-          <div><code><a href="../../src/scene/NotebookObject.tsx">NotebookObject.tsx</a></code><span>打开意图、阶段计时、可逆展示进度，以及字体加载完成后的铭牌 Mesh 原子替换</span></div>
+          <div><code><a href="../../src/scene/notebook-transition.ts">notebook-transition.ts</a></code><span>本子阶段时长、中央展示状态和 5 张临时页片的确定性错峰进度</span></div>
+          <div><code><a href="../../src/scene/NotebookObject.tsx">NotebookObject.tsx</a></code><span>打开意图、阶段计时、可逆展示进度、reduced-motion 页片开关，以及字体加载完成后的铭牌 Mesh 原子替换</span></div>
           <div><code><a href="../../src/scene/DeskScene.tsx">src/scene/DeskScene.tsx</a></code><span>R3F root、中央抽屉命中/动画、全局字体下传、相机转场、桌面 placement 与单 Canvas 生命周期</span></div>
           <div><code><a href="../../src/scene/SceneColorEditor.tsx">src/scene/SceneColorEditor.tsx</a></code><span>九项临时色块/HEX、重置、复制反馈与桌面/移动面板命令</span></div>
           <div><code><a href="../../src/scene/scene-color.ts">src/scene/scene-color.ts</a></code><span>完整六位 HEX 校验与可复制配置序列化</span></div>
@@ -349,7 +350,7 @@ edit historical text:
           <div><code><a href="../../src/scene/models/material-library.ts">models/material-library.ts</a></code><span><code>SceneColorConfig</code>、<code>applySceneColors</code>、独立桌腿材质、默认 V2 解析与 wood/cloth/kraft/paper 的 16 张 PBR 通道</span></div>
           <div><code><a href="../../src/scene/models/create-desk-model.ts">models/create-desk-model.ts</a></code><span><code>createDeskModel</code>、<code>setDeskDrawerProgress</code>、三抽屉、收分桌腿、实例化黄铜旋钮、附件/action 与释放入口</span></div>
           <div><code><a href="../../src/scene/models/create-desk-mat-model.ts">models/create-desk-mat-model.ts</a></code><span><code>createDeskMatModel</code>、平面圆角、滚边与实例化织线</span></div>
-          <div><code><a href="../../src/scene/models/create-notebook-model.ts">models/create-notebook-model.ts</a></code><span><code>createNotebookModel</code>、中央展示锚点、<code>setOpenProgress</code>、闭合连续壳体、全开封面板与同高页堆</span></div>
+          <div><code><a href="../../src/scene/models/create-notebook-model.ts">models/create-notebook-model.ts</a></code><span><code>createNotebookModel</code>、中央展示锚点、<code>setOpenProgress</code>、5 页实例化转场、闭合连续壳体、全开封面板与同高页堆</span></div>
           <div><code><a href="../../src/scene/models/SceneEnvironment.tsx">models/SceneEnvironment.tsx</a></code><span>程序化环境反射和 PMREM 释放</span></div>
           <div><code><a href="../../src/scene/ModelReviewScene.tsx">ModelReviewScene.tsx</a></code><span>开发环境 <code>?review=desk|mat|notebook</code> 的固定对象审查入口</span></div>
           <div><code><a href="../../src/features/stickers/StickerStudio.tsx">StickerStudio.tsx</a></code><span>文字/图片、抠图、Forge 预览和目标选择</span></div>
@@ -363,7 +364,7 @@ edit historical text:
       <section id="verification" data-search-title="验证证据与未覆盖边界">
         <p class="section-index">12 · 验证</p>
         <h2>自动证据、模型规格和双视口 UI 检查均已通过</h2>
-        <p>当前 96 项自动测试覆盖既有日期、保存、翻页、贴纸和迁移行为，也覆盖旧痕迹正文/贴纸-only 合并与过滤、轻量 repository 查询、入口状态机、一次性目标日期、中央抽屉端点、黄铜旋钮附件，以及敞口主体的四块板件和从开口直接命中底板的射线。ESLint、TypeScript/Vite production build、文档引用和差异空白检查均通过；生产构建继续只报告既有大 chunk 警告。<code>ego-browser</code> 已验证桌面与 390 × 844：中央抽屉进入 open 端点、桌面前视角可见敞口主体、移动端维持单 Canvas 且无横向溢出；既有旧痕迹入口链路和本地 HTML 的搜索、导航、复制、术语卡与文档首页入口也通过。</p>
+        <p>当前 98 项自动测试覆盖既有日期、保存、翻页、贴纸和迁移行为，也覆盖旧痕迹链路、本子 5 页错峰进度、实例数量、稳定端点、反向可逆和 reduced-motion 隐藏。ESLint、TypeScript/Vite production build、文档引用和差异空白检查均通过；生产构建继续只报告既有大 chunk 警告。<code>ego-browser</code> 已在 1440 × 900 与 390 × 844 捕捉开本早、中、晚帧，确认临时页片依次越过中央装订轴、最终交接无残留、单 Canvas 且无横向溢出；模拟 reduced-motion 后首次轮询即进入稳定日记，没有可观察的开本页片阶段。本地 HTML 的搜索成功/空态、上下键与 Enter/Escape、斜杠聚焦、锚点与活动目录、键盘复制、术语卡、移动目录和唯一文档首页入口也通过。</p>
         <div class="table-wrap">
           <table>
             <thead><tr><th>能力</th><th>当前状态</th><th>证据边界</th></tr></thead>
@@ -375,7 +376,7 @@ edit historical text:
               <tr><td>统一阅读与历史正文书写</td><td><span class="status status-review">待验收</span></td><td>43 个全量测试、lint、build 及桌面/移动打开与关闭恢复流程通过</td></tr>
               <tr><td>全局内容字体与铭牌凹刻</td><td><span class="status status-review">已完成</span></td><td>首页提供纸页宋体/玄冬楷书/随峰体/志莽行书，同一状态驱动日记正文与铭牌；UI 字体隔离、偏好恢复、三贴图资源释放、lint、production build 和 1440 × 900 / 390 × 844 交互检查均已通过，并已由用户验收</td></tr>
               <tr><td>日记页眉字体与状态精简</td><td><span class="status status-review">已完成</span></td><td>DD-20260823-006 已让实时页、标题输入和四张翻页快照的日期/页标题继承内容字体，并删除“尚未留下”“当前日期”“旧日记录”；90 项测试、lint、build、桌面/移动实时与翻页中间态、偏好刷新恢复均通过，并已由用户验收</td></tr>
-              <tr><td>程序化桌子、桌垫与本子</td><td><span class="status status-review">待验收</span></td><td>本子已按 DD-20260817-007 改为书脊贴桌立起、左右半册镜像同速摊开和逆向关闭；全开终点左右页堆同高，不再创建额外连续顶层纸面，闭合圆背附件和独立页缝节点不再露出。自动测试覆盖直立书脊、镜像角位移、封面接缝与终态结构切换。桌子程序化近似的既有 silhouette IoU 仍为 <code>0.6311</code>，因此整体模型视觉继续等待用户验收</td></tr>
+              <tr><td>程序化桌子、桌垫与本子</td><td><span class="status status-review">待验收</span></td><td>本子以书脊贴桌立起、左右半册镜像摊开和逆向关闭；DD-20260824-005 在摊开中后段增加 5 张各翻一次的实例化临时页片，稳定端点与 reduced-motion 隐藏，不改变同高页堆终态。98 项全量测试、lint、build、文档引用以及桌面/移动中间帧、关闭恢复、reduced-motion、单 Canvas 和无横向溢出检查均通过，本次页片动画已由用户验收。桌子程序化近似的既有 silhouette IoU 仍为 <code>0.6311</code>，因此更大的整体模型视觉范围继续等待用户验收</td></tr>
               <tr><td>临时场景颜色编辑器</td><td><span class="status status-review">待验收</span></td><td>九项表面独立实时改色、重置、复制和刷新恢复已通过 1440 × 900 与 390 × 844；桌腿/桌框高辨识测试色证明材质分离，保持单 Canvas</td></tr>
               <tr><td>通用 DOM 与贴纸工作台重写</td><td><span class="status status-review">待验收</span></td><td><code>animal-island-ui@1.5.1</code> 经 <code>src/ui/</code> 接入；旧控件样式和旧工作台背景已删除，桌面、日记、文字/图片贴纸制作与抠图关键流程在桌面/移动端通过</td></tr>
               <tr><td>左上角 Animal Island 时间 HUD</td><td><span class="status status-review">待验收</span></td><td><code>ProductApp</code> 直接使用 <code>Time type="hud"</code>；针对性测试及 1440 × 900、390 × 844 浏览器检查确认旧记录状态已删除、无重叠与页面横向溢出</td></tr>
@@ -389,7 +390,7 @@ edit historical text:
         </div>
       </section>
 
-  <footer>Dear Desk 当前系统架构 · 基于可运行源码、自动测试与 DD-20260824-004 实施结果 · 2026-08-24</footer>
+  <footer>Dear Desk 当前系统架构 · 基于可运行源码、自动测试与 DD-20260824-005 实施结果 · 2026-08-24</footer>
     </main>
   </div>
 
