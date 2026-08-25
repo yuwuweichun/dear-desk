@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
-  <meta name="description" content="Dear Desk 当前系统架构、程序化 Three.js 模型、双页日记、贴纸与本地持久化链路">
+  <meta name="description" content="Dear Desk 当前系统架构、程序化 Three.js 模型、双页日记、动作音效、贴纸与本地持久化链路">
   <title>Dear Desk 系统架构</title>
   <link rel="stylesheet" href="../assets/docs.css">
 </head>
@@ -22,7 +22,7 @@
         <kbd aria-hidden="true">/</kbd>
         <div id="search-results" class="search-results" role="listbox" aria-label="搜索结果" hidden></div>
       </div>
-      <span class="top-meta">CURRENT · 2026-08-24</span>
+      <span class="top-meta">CURRENT · 2026-08-25</span>
       <button class="toc-toggle" type="button" aria-controls="sidebar" aria-expanded="false">目录</button>
     </div>
   </header>
@@ -36,6 +36,7 @@
         <a href="#runtime">运行时结构</a>
         <a href="#scene-models">场景模型</a>
         <a href="#journal-flow">双页日记链路</a>
+        <a href="#audio-flow">声音链路</a>
         <a href="#sticker-flow">贴纸链路</a>
         <a href="#ownership">状态所有权</a>
         <a href="#persistence">本地持久化</a>
@@ -54,7 +55,7 @@
         <p class="lead">你看到的是一张可以打开本子、写日记和摆贴纸的桌面。文字和贴纸先保存在当前浏览器里，页面状态只负责协调当下操作，桌面与纸页再把同一份内容画出来；因此动画可以变化，已经保存的记录不会跟着模型消失。</p>
         <div class="callout">
           <strong>当前事实</strong>
-          <p>当前应用已经能打开本子、阅读和书写日期页面、制作贴纸并把它们留在桌面或日记中，也能从中央抽屉或 DOM 等价按钮按月份找回旧文字与日记贴纸。本子打开时长边书脊始终贴着桌面，书口先向上立起，再让左右两半从书脊向两侧摊开；摊开中后段会有 5 张纸页从中央依次翻向左侧，形成短促连续的页面扇动，但不恢复旧版从第一页循环扫页。所有内容仍只保存在当前浏览器，三维物体、抽屉开合和动画只是可随时重建的画面。</p>
+          <p>当前应用已经能打开本子、阅读和书写日期页面、制作贴纸并把它们留在桌面或日记中，也能从中央抽屉或 DOM 等价按钮按月份找回旧文字与日记贴纸。本子打开时长边书脊始终贴着桌面，书口先向上立起，再让左右两半从书脊向两侧摊开；摊开中后段会有 5 张纸页从中央依次翻向左侧，形成短促连续的页面扇动。开本、关本、日期翻页和中央抽屉开合现在有可独立关闭的本地动作音效，右上角可以分别保存音乐与音效音量；当前尚无背景音乐资源。所有业务内容仍只保存在当前浏览器，声音播放器、三维物体、抽屉开合和动画都是可随时重建的页面运行对象。</p>
         </div>
       </header>
 
@@ -88,6 +89,8 @@
           <pre id="runtime-tree"><code>main.tsx
 └── AppStoreProvider
     └── App
+        ├── AudioRuntime -> successful state edges -> AudioController -> local MP3
+        ├── AudioSettingsControl -> music/SFX preferences in localStorage
         ├── stickerWorkflow === 'composing'
         │   └── StickerStudio -> one Sticker Forge Canvas
         └── otherwise
@@ -175,8 +178,33 @@
         </div>
       </section>
 
+      <section id="audio-flow" data-search-title="动作音效与音频设置链路">
+        <p class="section-index">05 · 声音</p>
+        <h2>动作先通过原有状态机，成功后声音才跟上</h2>
+        <p>用户听到的声音不是按钮的通用点击反馈。打开或关闭本子、翻到另一日期、拉开或收回中央抽屉时，原有业务状态先确认动作确实开始；页面级声音观察器再播放对应的本地短音轨。这样，脏草稿阻止关本、目标页读取失败或重复操作被拒绝时都不会误响。</p>
+        <div class="code-block">
+          <div class="code-head"><span>五类动作音效的真实入口</span><button class="copy-button" type="button" data-copy-target="audio-chain">复制</button></div>
+          <pre id="audio-chain"><code>NotebookPhase -> opening -> notebook-open.mp3
+NotebookPhase -> closing -> delayed notebook-close.mp3
+JournalTurnPhase -> turning -> page-turn.mp3
+PastTracesPhase -> opening -> drawer-open.mp3
+PastTracesPhase -> closing -> drawer-close.mp3
+
+AudioRuntime observes edges once
+  -> AudioController checks current SFX preference
+  -> one reusable HTMLAudioElement per effect
+  -> playback rejection is swallowed; the action continues</code></pre>
+        </div>
+        <p><code>ProductApp</code> 拥有版本为 1 的轻量音频偏好：音乐默认关闭且保留 <code>30%</code>，音效默认开启且为 <code>60%</code>。右上角 <code>AudioSettingsControl</code> 分别提供开关、滑杆和百分比；关闭某一类不会丢失其音量。偏好写入 <code>dear-desk:audio-preferences</code>，但播放器、定时器和播放位置只存在于 <code>AudioController</code>，不会进入 Zustand 或 IndexedDB。</p>
+        <p>关本音轨会按当前桌面、紧凑视口或 reduced-motion 时长计算延迟，让主要合拢声靠近视觉终点；抽屉开合由一条用户提供的合并轨按静音区间拆分、匹配响度并压缩为约半秒。五条处理后 MP3 及 SHA-256 位于 <code>public/audio/</code>，原始素材不进入仓库。用户已授权当前项目使用，但外部作者、下载页和公开再分发许可仍待补证，公开发布前必须补齐或替换。</p>
+        <div class="note">
+          <strong>音乐控制为何先存在却没有声音</strong>
+          <p>当前没有背景音乐资源，因此音乐开关和音量只保存未来偏好，不创建空播放器、不请求不存在的文件，也不显示“正在播放”。后续接入音乐时复用同一页面级所有者，并另行验证首次用户手势、循环接缝和后台暂停。</p>
+        </div>
+      </section>
+
       <section id="sticker-flow" data-search-title="贴纸制作与双表面链路">
-        <p class="section-index">05 · 贴纸</p>
+        <p class="section-index">06 · 贴纸</p>
         <h2>制作器独立于日记草稿，结果可以落到桌面或今天</h2>
         <p>桌面“贴纸工作台”进入 <code>composing</code> 后，<code>StickerStudio</code> 支持文字、PNG/JPEG/WebP、矩形保留、本地 U-2-Netp 自动抠图和 Canvas 2D 手动修整。Sticker Forge 仍只负责公开 source 的轮廓、材质、peel 预览与 flat PNG 捕获。</p>
         <div class="code-block">
@@ -195,7 +223,7 @@
       </section>
 
       <section id="ownership" data-search-title="状态所有权">
-        <p class="section-index">06 · 所有权</p>
+        <p class="section-index">07 · 所有权</p>
         <h2>持久化事实、运行游标和视觉对象各有唯一负责人</h2>
         <div class="table-wrap">
           <table>
@@ -208,6 +236,8 @@
               <tr><td>旧痕迹摘要、载入状态、抽屉阶段与一次性目标日期</td><td>Zustand store / <code>past-trace.ts</code></td><td>当前页面；关闭或刷新后重新派生</td><td>IndexedDB UI 状态、Three.js 对象和贴纸 Blob</td></tr>
               <tr><td><code>journalMode</code>、<code>writingPhase</code>、<code>draftDate</code> 与未保存草稿</td><td><code>JournalBook</code></td><td>本次本子面板；关闭后丢弃</td><td>Zustand、IndexedDB 与自动保存</td></tr>
               <tr><td>全局内容字体偏好</td><td><code>ProductApp</code> + <code>localStorage</code> / <code>journal-font.ts</code></td><td>当前浏览器；清除站点数据后回到纸页宋体</td><td><code>DailyEntry</code>、<code>NotebookCoverSettings</code>、IndexedDB、贴纸文字与 UI 字体</td></tr>
+              <tr><td>音乐/音效开关与音量</td><td><code>ProductApp</code> + <code>localStorage</code> / <code>audio-preferences.ts</code></td><td>当前浏览器；清除站点数据后回到音乐关闭/30%、音效开启/60%</td><td>Zustand、IndexedDB、正文、贴纸和音乐播放位置</td></tr>
+              <tr><td>声音播放器、延迟定时器与当前播放位置</td><td><code>AudioController</code></td><td>当前 App 挂载；卸载时停止并释放</td><td>Zustand、IndexedDB 与 Three.js</td></tr>
               <tr><td>当前/目标双页快照、折线、裁切与阴影</td><td><code>PageTurnSheet</code> + <code>page-flip</code> 隔离适配层</td><td>一次动画；卸载时销毁实例、事件、对象 URL 与受管动画帧</td><td>真实 React 页面、store 与数据库</td></tr>
               <tr><td>本子开合、相机、几何体和桌面贴纸纹理</td><td>R3F / Three.js</td><td>DeskScene Canvas</td><td>IndexedDB runtime 对象</td></tr>
               <tr><td>桌子、桌垫、本子的尺寸、部件与构建阶段</td><td><code>model-specs.ts</code> 与重建规格</td><td>源码版本</td><td>Mesh、Material、Texture</td></tr>
@@ -219,10 +249,11 @@
       </section>
 
       <section id="persistence" data-search-title="本地持久化">
-        <p class="section-index">07 · 数据</p>
-        <h2>IndexedDB v4 保存业务内容，localStorage 只保存轻量字体偏好</h2>
+        <p class="section-index">08 · 数据</p>
+        <h2>IndexedDB v4 保存业务内容，localStorage 只保存轻量呈现偏好</h2>
         <p>数据库名为 <code>dear-desk</code>。v3 保留 <code>dailyEntries</code>，新增图片 source 表，并让实例使用 <code>desk | journal</code> 判别联合；日记实例通过 <code>[surface+journalDate]</code> 索引按日期查询。v4 新增单例的 <code>notebookCoverSettings</code> 表保存本子铭牌文字。<code>dailyEntries</code> 现在写入标题与正文；旧版本记录没有标题字段时由日记投影按今天/历史页回退。阅读/书写模式、标题/正文草稿、游标仍不持久化。</p>
         <p>内容字体选择不是日记或铭牌业务内容。<code>journal-font.ts</code> 保留兼容键 <code>dear-desk:journal-font</code>，在 <code>localStorage</code> 保存 <code>paper | xuandong | suifeng | zhimang</code>；<code>ProductApp</code> 读取后成为当前页面唯一运行时所有者，并同时下传给日记和铭牌。读取会检查值是否合法，并在存储不可用或值不受支持时回退 <code>paper</code>。因此既有正文、铭牌文字和 IndexedDB 均无需迁移，旧的 <code>jingjing</code> 偏好会安全回退。</p>
+        <p>音频偏好同样不是业务内容。<code>audio-preferences.ts</code> 在 <code>dear-desk:audio-preferences</code> 保存带 <code>version: 1</code> 的音乐/音效开关与 <code>0..1</code> 音量；解析会限制越界数字、拒绝未知版本并在 JSON 或存储失败时回到安静默认值。新增声音不升级 IndexedDB，也不保存当前音轨、播放进度或浏览器媒体对象。</p>
         <p>旧痕迹不增加 schema 或持久化表。<code>DailyEntryRepository.listEntries()</code> 读取正文记录，<code>StickerRepository.listJournalDateCounts()</code> 只读取日记 instance 的日期并聚合数量，不加载 definition、render 或 source Blob。<code>buildPastTraceSummaries()</code> 在内存中合并两路数据、过滤今天与未来日期并倒序生成标题、正文预览和贴纸数量；贴纸-only 日期也会保留。抽屉阶段、面板展开、摘要缓存和目标阅读日期都只属于当前页面。</p>
         <div class="code-block">
           <div class="code-head"><span>IndexedDB v4 schema</span><button class="copy-button" type="button" data-copy-target="database-schema">复制</button></div>
@@ -244,7 +275,7 @@
       </section>
 
       <section id="rendering" data-search-title="DOM、R3F 与翻页渲染边界">
-        <p class="section-index">08 · 渲染</p>
+        <p class="section-index">09 · 渲染</p>
         <h2>R3F 给出空间本子，DOM 适配层保持表单语义</h2>
           <p><code>NotebookObject</code> 用透明命中几何发出打开意图，并驱动 <code>createNotebookModel</code> 的中央展示锚点、封面铰链、左右页堆和 5 张临时转场页片；它不读取正文或 Blob。页片只在 3D 开本中后段依次越过书脊，不承担日期翻页、内容或交互，稳定端点与 reduced-motion 均隐藏。桌面端与移动端 near 机位为竖起和展开提供专用构图。<code>JournalPanel</code> 在打开进度完成、<code>notebookPhase</code> 进入 <code>editing</code> 后接管，提供当前日期贴纸左页、正文右页、独立翻页控制、局部模式控件和按日期 textarea；开发和生产使用相同的 3D 隐藏与 DOM 挂载行为。旧 <code>RoundedBox</code> / <code>scene-visuals</code> 已不在当前桌子、桌垫、本子模型路径中。</p>
         <p>renderer 使用 ACES filmic tone mapping、显式曝光、PCF 阴影和 DPR <code>[1, 1.5]</code>；<code>SceneEnvironment</code> 生成并释放 PMREM 环境反射。场景只有一盏投影方向光，另有不投影的低强度补光；雾从主体之外开始，避免吞掉桌体层次。</p>
@@ -261,7 +292,7 @@
       </section>
 
       <section id="failure" data-search-title="失败路径">
-        <p class="section-index">09 · 失败路径</p>
+        <p class="section-index">10 · 失败路径</p>
         <h2>加载、翻页、保存和制作失败都保留上一份可靠事实</h2>
         <div class="table-wrap">
           <table>
@@ -276,20 +307,22 @@
               <tr><td>dirty 书写时翻页、切回阅读或关闭</td><td>意图被组件拦截，live status 提示先收笔</td><td>当前右页、模式与局部草稿</td></tr>
               <tr><td>空文本、超长或任意日期写入失败</td><td>禁用/拒绝收笔并显示错误，恢复 writing</td><td><code>JournalBook</code> 的 <code>draftDate</code> 与草稿</td></tr>
               <tr><td>字体偏好无效、当前构建不可用或存储访问失败</td><td><code>readContentFontPreference()</code> 回退纸页宋体；写入失败不阻断当前页面切换</td><td>正文、铭牌纯文本、保存流程与 IndexedDB 数据</td></tr>
+              <tr><td>音频偏好损坏、版本未知或存储不可用</td><td><code>readAudioPreferences()</code> 回退音乐关闭/30%、音效开启/60%；写入失败不阻断当前动作</td><td>正文、贴纸、场景状态和 IndexedDB 数据</td></tr>
+              <tr><td>浏览器拒绝播放或音频资源失败</td><td><code>AudioController</code> 捕获同步异常与 Promise rejection；动作和状态机照常完成</td><td>本子、翻页、抽屉与用户偏好</td></tr>
               <tr><td>铭牌字体加载期间再次切换或卸载</td><td><code>NotebookObject</code> 取消过期异步结果，不把旧字体 Mesh 加回场景</td><td>当前字体状态和最后一份有效铭牌投影</td></tr>
               <tr><td>贴纸创建事务失败</td><td>不加入内存集合并显示错误</td><td>不会留下部分 source/definition/render/instance</td></tr>
               <tr><td>贴纸移动提交失败</td><td>显示错误并重新加载持久化位置</td><td>最后一次成功位置</td></tr>
               <tr><td>WebGL 初始化失败</td><td>显示“打开本子”和“旧痕迹”DOM 降级入口；旧痕迹跳过抽屉动画</td><td>双页 DOM、历史摘要与 IndexedDB 日记链路</td></tr>
               <tr><td>模型卸载或 StrictMode 重挂载</td><td>工厂释放自有 geometry；共享材质库释放 16 张纹理和材质；环境释放 PMREM</td><td>可序列化业务状态与 IndexedDB 数据</td></tr>
               <tr><td>模型超过预算</td><td>工厂测试失败；上限为 45 draw calls、80,000 triangles、16 textures 和一盏投影光</td><td>critical feature 不以静默删减换取通过</td></tr>
-              <tr><td>reduced-motion</td><td>日期翻页的大角度旋转改为 120ms 淡出；开本 5 张临时页片显式隐藏；中央抽屉直接落到稳定端点</td><td>相同游标提交、打开终态和边界语义</td></tr>
+              <tr><td>reduced-motion</td><td>日期翻页的大角度旋转改为 120ms 淡出；开本 5 张临时页片显式隐藏；中央抽屉直接落到稳定端点；已批准的动作音效仍播放并可由音效开关关闭</td><td>相同游标提交、打开终态、声音偏好和边界语义</td></tr>
             </tbody>
           </table>
         </div>
       </section>
 
       <section id="example" data-search-title="完整双页示例">
-        <p class="section-index">10 · 示例</p>
+        <p class="section-index">11 · 示例</p>
         <h2>正文页、贴纸-only 页和今天怎样组成一本本子</h2>
         <p>假设 IndexedDB 中有 8 月 5 日正文、8 月 7 日只有一张日记贴纸，而今天是 8 月 9 日且尚未保存。日期查询合并后得到三个页面，不生成 8 月 6 日或 8 月 8 日的无限空白纸。</p>
         <div class="code-block">
@@ -317,11 +350,16 @@ edit historical text:
       </section>
 
       <section id="source-map" data-search-title="源码地图与阅读顺序">
-        <p class="section-index">11 · 源码地图</p>
+        <p class="section-index">12 · 源码地图</p>
         <h2>先读状态协议，再沿 repository 和两种投影向下</h2>
         <div class="source-map">
-          <div><code><a href="../../src/app/App.tsx">src/app/App.tsx</a></code><span><code>ProductApp</code> 组合桌面、旧痕迹与日记工作流，拥有全局内容字体并向日记与场景下传；idle 阶段挂载 <code>Time type="hud"</code></span></div>
-          <div><code><a href="../../src/app/App.test.tsx">src/app/App.test.tsx</a></code><span>验证 HUD、右上工具顺序、全局字体偏好恢复以及日记/场景共享同一字体 ID</span></div>
+          <div><code><a href="../../src/app/App.tsx">src/app/App.tsx</a></code><span><code>ProductApp</code> 组合桌面、旧痕迹与日记工作流，拥有全局内容字体和音频偏好；idle 阶段挂载 <code>Time type="hud"</code></span></div>
+          <div><code><a href="../../src/app/App.test.tsx">src/app/App.test.tsx</a></code><span>验证 HUD、右上工具顺序、全局字体、音频设置持久化以及日记/场景共享内容字体</span></div>
+          <div><code><a href="../../src/audio/audio-preferences.ts">src/audio/audio-preferences.ts</a></code><span>版本化音乐/音效偏好、默认值、音量归一化、JSON 与存储失败回退</span></div>
+          <div><code><a href="../../src/audio/audio-controller.ts">src/audio/audio-controller.ts</a></code><span>五条本地资源映射、每语义单播放器、延迟重播、静音检查、失败降级与释放</span></div>
+          <div><code><a href="../../src/audio/AudioRuntime.tsx">src/audio/AudioRuntime.tsx</a></code><span>观察本子、日期翻页和抽屉成功状态边沿，并按关本动画终点计算延迟</span></div>
+          <div><code><a href="../../src/features/settings/AudioSettingsControl.tsx">AudioSettingsControl.tsx</a></code><span>右上角入口、音乐/音效独立开关、音量滑杆、百分比、点击外部与 Escape 关闭</span></div>
+          <div><code><a href="../../public/audio/SOURCE.md">public/audio/SOURCE.md</a></code><span>原始输入、处理参数、输出 SHA-256 与公开再分发许可待补证边界</span></div>
           <div><code><a href="../../src/state/app-store.ts">src/state/app-store.ts</a></code><span>旧痕迹开合/载入状态机、一次性日记目标、<code>loadJournalPages</code>、翻页、保存与贴纸工作流</span></div>
           <div><code><a href="../../src/features/history/PastTracesPanel.tsx">PastTracesPanel.tsx</a></code><span>按月份分组的 DOM 历史索引、空/错/载入状态、日期选择、Escape 与关闭语义</span></div>
           <div><code><a href="../../src/domain/past-trace.ts">src/domain/past-trace.ts</a></code><span>合并正文与日记贴纸计数，过滤今天/未来并生成轻量历史摘要</span></div>
@@ -362,9 +400,9 @@ edit historical text:
       </section>
 
       <section id="verification" data-search-title="验证证据与未覆盖边界">
-        <p class="section-index">12 · 验证</p>
+        <p class="section-index">13 · 验证</p>
         <h2>自动证据、模型规格和双视口 UI 检查均已通过</h2>
-        <p>当前 98 项自动测试覆盖既有日期、保存、翻页、贴纸和迁移行为，也覆盖旧痕迹链路、本子 5 页错峰进度、实例数量、稳定端点、反向可逆和 reduced-motion 隐藏。ESLint、TypeScript/Vite production build、文档引用和差异空白检查均通过；生产构建继续只报告既有大 chunk 警告。<code>ego-browser</code> 已在 1440 × 900 与 390 × 844 捕捉开本早、中、晚帧，确认临时页片依次越过中央装订轴、最终交接无残留、单 Canvas 且无横向溢出；模拟 reduced-motion 后首次轮询即进入稳定日记，没有可观察的开本页片阶段。本地 HTML 的搜索成功/空态、上下键与 Enter/Escape、斜杠聚焦、锚点与活动目录、键盘复制、术语卡、移动目录和唯一文档首页入口也通过。</p>
+        <p>当前 111 项自动测试覆盖既有日期、保存、翻页、贴纸和迁移行为，也覆盖音频偏好容错、StrictMode 清理恢复、播放器重用/释放、五类成功状态边沿、独立开关与音量持久化。ESLint、TypeScript/Vite production build、文档引用、音频解码和差异空白检查均通过；生产构建继续只报告既有大 chunk 警告。<code>ego-browser</code> 在 1440 × 900 与 390 × 844 验证右上角设置卡无横向溢出或 HUD/工具列重叠，音乐 40%/音效 45% 刷新恢复；真实 Chromium <code>play()</code> 探针确认开本、关本、日期翻页和抽屉开/关五条本地 MP3 均 resolved，关闭音效后关本仍完成且没有播放调用。本地 HTML 的声音章节搜索成功/空态、ArrowDown/Enter/Escape、锚点、活动目录、复制、术语焦点、移动目录、唯一文档首页入口和直接文件跳转也通过。</p>
         <div class="table-wrap">
           <table>
             <thead><tr><th>能力</th><th>当前状态</th><th>证据边界</th></tr></thead>
@@ -380,6 +418,7 @@ edit historical text:
               <tr><td>临时场景颜色编辑器</td><td><span class="status status-review">待验收</span></td><td>九项表面独立实时改色、重置、复制和刷新恢复已通过 1440 × 900 与 390 × 844；桌腿/桌框高辨识测试色证明材质分离，保持单 Canvas</td></tr>
               <tr><td>通用 DOM 与贴纸工作台重写</td><td><span class="status status-review">待验收</span></td><td><code>animal-island-ui@1.5.1</code> 经 <code>src/ui/</code> 接入；旧控件样式和旧工作台背景已删除，桌面、日记、文字/图片贴纸制作与抠图关键流程在桌面/移动端通过</td></tr>
               <tr><td>左上角 Animal Island 时间 HUD</td><td><span class="status status-review">待验收</span></td><td><code>ProductApp</code> 直接使用 <code>Time type="hud"</code>；针对性测试及 1440 × 900、390 × 844 浏览器检查确认旧记录状态已删除、无重叠与页面横向溢出</td></tr>
+              <tr><td>动作音效与双通道设置</td><td><span class="status status-review">已完成</span></td><td>DD-20260824-001 已完成五条本地 MP3、状态边沿、偏好容错、开关/滑杆、延迟关本声、StrictMode 恢复和播放器释放；111 项全量测试、lint、build、文档引用、桌面/移动布局、五条真实播放调用、静音动作和刷新恢复均通过。用户已授权创建提交并接受本期结果；背景音乐文件留待后续任务，外部音效素材公开再分发许可仍待补证</td></tr>
               <tr><td>桌面/移动产品与本地 HTML 交互</td><td><span class="status status-review">已验证</span></td><td><code>ego-browser</code> 已覆盖 1440 × 900、390 × 844、DPR 2 与 reduced-motion；单 Canvas、无页面横向溢出</td></tr>
             </tbody>
           </table>
@@ -390,7 +429,7 @@ edit historical text:
         </div>
       </section>
 
-  <footer>Dear Desk 当前系统架构 · 基于可运行源码、自动测试与 DD-20260824-005 实施结果 · 2026-08-24</footer>
+  <footer>Dear Desk 当前系统架构 · 基于可运行源码、自动测试与 DD-20260824-001 实施结果 · 2026-08-25</footer>
     </main>
   </div>
 

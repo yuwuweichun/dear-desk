@@ -146,11 +146,163 @@ textarea:focus-visible {
 .scene-tool-stack {
   position: absolute;
   z-index: 8;
-  top: 28px;
+  top: 86px;
   right: 28px;
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+.audio-settings-control {
+  position: absolute;
+  z-index: 70;
+  top: 28px;
+  right: 28px;
+  width: 48px;
+  height: 48px;
+}
+
+.audio-settings-button.dd-icon-button {
+  width: 48px;
+  min-width: 48px;
+  height: 48px;
+  padding: 0;
+  box-shadow: 0 5px 0 rgba(61, 52, 40, 0.2);
+}
+
+.audio-settings-panel {
+  position: absolute;
+  z-index: 72;
+  top: 0;
+  right: calc(100% + 10px);
+  width: 292px;
+  overflow: hidden;
+  border: 2px solid #d4c9b4;
+  border-radius: 8px;
+  background: #fffdf6;
+  color: #4d4234;
+  box-shadow: 0 6px 0 rgba(61, 52, 40, 0.18), 0 18px 34px rgba(31, 24, 18, 0.2);
+}
+
+.audio-settings-panel > header {
+  min-height: 58px;
+  display: grid;
+  align-content: center;
+  gap: 1px;
+  padding: 8px 14px;
+  border-bottom: 1px solid #ddd4c5;
+}
+
+.audio-settings-panel > header span {
+  color: #817562;
+  font-size: 11px;
+}
+
+.audio-settings-panel > header strong {
+  font-size: 16px;
+}
+
+.audio-channel-control {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border-bottom: 1px solid #e2dbcf;
+}
+
+.audio-channel-control:last-child {
+  border-bottom: 0;
+}
+
+.audio-channel-control__header,
+.audio-channel-control__label,
+.audio-channel-control__volume {
+  display: flex;
+  align-items: center;
+}
+
+.audio-channel-control__header {
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.audio-channel-control__label {
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.audio-channel-control__volume {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 42px;
+  gap: 10px;
+}
+
+.audio-channel-control__volume input[type="range"] {
+  width: 100%;
+  accent-color: var(--moss);
+}
+
+.audio-channel-control__volume input[type="range"]:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
+}
+
+.audio-channel-control__volume output {
+  color: #756a59;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.audio-channel-toggle {
+  position: relative;
+  width: 42px;
+  height: 24px;
+  flex: 0 0 auto;
+  cursor: pointer;
+}
+
+.audio-channel-toggle input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.audio-channel-toggle__track {
+  position: absolute;
+  inset: 0;
+  border: 2px solid #b7ad9d;
+  border-radius: 12px;
+  background: #e6e0d6;
+  transition: background-color 140ms ease, border-color 140ms ease;
+}
+
+.audio-channel-toggle__track::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #fffdf6;
+  box-shadow: 0 1px 2px rgba(31, 24, 18, 0.28);
+  transition: transform 140ms ease;
+}
+
+.audio-channel-toggle input:checked + .audio-channel-toggle__track {
+  border-color: var(--moss-dark);
+  background: var(--moss);
+}
+
+.audio-channel-toggle input:checked + .audio-channel-toggle__track::after {
+  transform: translateX(18px);
+}
+
+.audio-channel-toggle input:focus-visible + .audio-channel-toggle__track {
+  outline: 2px solid var(--brass);
+  outline-offset: 3px;
 }
 
 .scene-tool-stack .dd-icon-button {
@@ -1483,8 +1635,19 @@ textarea:focus-visible {
 
 @media (max-width: 700px) {
   .scene-tool-stack {
+    top: 76px;
+    right: 16px;
+  }
+
+  .audio-settings-control {
     top: 18px;
     right: 16px;
+  }
+
+  .audio-settings-panel {
+    top: 80px;
+    right: calc(100% + 10px);
+    width: min(292px, calc(100vw - 32px));
   }
 
   .scene-color-editor {

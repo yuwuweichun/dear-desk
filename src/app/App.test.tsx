@@ -2,6 +2,7 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import type { DailyEntryRepository, LocalDate } from '../domain/daily-entry'
+import { AUDIO_PREFERENCES_STORAGE_KEY } from '../audio/audio-preferences'
 import { CONTENT_FONT_STORAGE_KEY } from '../domain/journal-font'
 import type { NotebookCoverSettingsRepository } from '../domain/notebook-cover-settings'
 import { createAppStore } from '../state/app-store'
@@ -257,5 +258,34 @@ describe('App global content font', () => {
       name: '更换内容字体，当前随峰体',
     })).toBeInTheDocument()
     expect(screen.getByTestId('desk-scene')).toHaveAttribute('data-content-font', 'suifeng')
+  })
+})
+
+describe('App audio settings', () => {
+  it('keeps the upper-right control available while the notebook is open and persists preferences', () => {
+    const store = createAppStore(createRepository(), date)
+    render(
+      <AppStoreProvider store={store}>
+        <App />
+      </AppStoreProvider>,
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: '音频设置' }))
+    fireEvent.click(screen.getByRole('switch', { name: '音乐开关' }))
+    fireEvent.change(screen.getByRole('slider', { name: '音乐音量' }), {
+      target: { value: '40' },
+    })
+    fireEvent.change(screen.getByRole('slider', { name: '音效音量' }), {
+      target: { value: '55' },
+    })
+
+    expect(JSON.parse(window.localStorage.getItem(AUDIO_PREFERENCES_STORAGE_KEY) ?? '')).toEqual({
+      version: 1,
+      music: { enabled: true, volume: 0.4 },
+      sfx: { enabled: true, volume: 0.55 },
+    })
+
+    act(() => store.setState({ notebookPhase: 'editing' }))
+    expect(screen.getByRole('button', { name: '音频设置' })).toBeInTheDocument()
   })
 })

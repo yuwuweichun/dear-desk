@@ -2,6 +2,13 @@ import { Time } from 'animal-island-ui'
 import { Archive, BookOpen, Camera, CameraOff, Pencil, Sticker, X } from 'lucide-react'
 import { lazy, Suspense, useEffect, useState } from 'react'
 
+import { createAudioController } from '../audio/audio-controller'
+import {
+  readAudioPreferences,
+  writeAudioPreferences,
+  type AudioPreferences,
+} from '../audio/audio-preferences'
+import { AudioRuntime } from '../audio/AudioRuntime'
 import {
   readContentFontPreference,
   writeContentFontPreference,
@@ -10,6 +17,7 @@ import {
 import { JournalPanel } from '../features/journal/JournalPanel'
 import { PastTracesPanel } from '../features/history/PastTracesPanel'
 import { ContentFontControl } from '../features/settings/ContentFontControl'
+import { AudioSettingsControl } from '../features/settings/AudioSettingsControl'
 import { StickerControls } from '../features/stickers/StickerControls'
 import { StickerStudio } from '../features/stickers/StickerStudio'
 import { DeskScene } from '../scene/DeskScene'
@@ -74,6 +82,9 @@ function ProductApp() {
   const [nameplateValidationError, setNameplateValidationError] = useState<string | null>(null)
   const [contentFont, setContentFont] = useState<ContentFontId>(() =>
     readContentFontPreference(window.localStorage))
+  const [audioPreferences, setAudioPreferences] = useState(() =>
+    readAudioPreferences(window.localStorage))
+  const [audioController] = useState(() => createAudioController(audioPreferences))
   const cycleDeskCameraPreset = useAppStore(
     (state) => state.cycleDeskCameraPreset,
   )
@@ -91,6 +102,7 @@ function ProductApp() {
   const notebookCoverErrorMessage = useAppStore((state) => state.notebookCoverErrorMessage)
   const saveNotebookCoverLabel = useAppStore((state) => state.saveNotebookCoverLabel)
   const notebookPhase = useAppStore((state) => state.notebookPhase)
+  const journalTurnPhase = useAppStore((state) => state.journalTurnPhase)
   const pastTracesPhase = useAppStore((state) => state.pastTracesPhase)
   const requestNotebookOpen = useAppStore((state) => state.requestNotebookOpen)
   const openStickerStudio = useAppStore((state) => state.openStickerStudio)
@@ -111,6 +123,12 @@ function ProductApp() {
   }, [loadNotebookCoverSettings, loadStickers, loadToday])
 
   useEffect(() => {
+    audioController.setPreferences(audioPreferences)
+  }, [audioController, audioPreferences])
+
+  useEffect(() => () => audioController.dispose(), [audioController])
+
+  useEffect(() => {
     const settleWhenHidden = () => {
       if (document.visibilityState === 'hidden') settleNotebookTransition()
     }
@@ -123,6 +141,15 @@ function ProductApp() {
     pastTracesPhase === 'closed' &&
     stickerWorkflow === 'idle' &&
     !selectedStickerId
+  const showAudioSettings =
+    stickerWorkflow !== 'composing' &&
+    !showColorEditor &&
+    !showNameplateEditor
+
+  const updateAudioPreferences = (preferences: AudioPreferences) => {
+    setAudioPreferences(preferences)
+    writeAudioPreferences(window.localStorage, preferences)
+  }
 
   const cameraPresetLabels = {
     far: '远处',
@@ -145,6 +172,12 @@ function ProductApp() {
       data-past-traces-phase={pastTracesPhase}
       data-sticker-workflow={stickerWorkflow}
     >
+      <AudioRuntime
+        controller={audioController}
+        journalTurnPhase={journalTurnPhase}
+        notebookPhase={notebookPhase}
+        pastTracesPhase={pastTracesPhase}
+      />
       {stickerWorkflow === 'composing' ? (
         <StickerStudio />
       ) : (
@@ -158,6 +191,13 @@ function ProductApp() {
       )}
 
       {showDeskActions ? <Time className="desk-time-hud" type="hud" /> : null}
+
+      {showAudioSettings ? (
+        <AudioSettingsControl
+          onChange={updateAudioPreferences}
+          preferences={audioPreferences}
+        />
+      ) : null}
 
       {showDeskActions ? (
         <div className="desk-actions">
