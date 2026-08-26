@@ -8,12 +8,15 @@ import {
 import { AudioSettingsControl } from './AudioSettingsControl'
 
 function TestHost() {
+  const [open, setOpen] = useState(false)
   const [preferences, setPreferences] = useState<AudioPreferences>(
     DEFAULT_AUDIO_PREFERENCES,
   )
   return (
     <AudioSettingsControl
       onChange={setPreferences}
+      onOpenChange={setOpen}
+      open={open}
       preferences={preferences}
     />
   )

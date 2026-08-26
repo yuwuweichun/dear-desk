@@ -1,6 +1,6 @@
 import { Time } from 'animal-island-ui'
 import { Archive, BookOpen, Camera, CameraOff, Pencil, Sticker, X } from 'lucide-react'
-import { lazy, Suspense, useEffect, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useState } from 'react'
 
 import { createAudioController } from '../audio/audio-controller'
 import {
@@ -33,8 +33,22 @@ import {
   MAX_NOTEBOOK_LABEL_LENGTH,
   normalizeNotebookLabel,
 } from '../domain/notebook-cover-settings'
+import type {
+  SceneColorPreset,
+  SceneColorPresetRepository,
+} from '../domain/scene-color-preset'
+import type { CaptureScenePreview } from '../scene/capture-scene-preview'
 
 type ModelReviewKind = 'desk' | 'mat' | 'notebook'
+type OpenSettingsPanel = 'audio' | 'colors' | 'font' | null
+
+const emptySceneColorPresetRepository: SceneColorPresetRepository = {
+  list: async () => [],
+  create: async () => {
+    throw new Error('颜色预设存储暂时不可用。')
+  },
+  delete: async () => undefined,
+}
 
 const DevModelReviewScene = import.meta.env.DEV
   ? lazy(async () => {
@@ -72,11 +86,19 @@ function SceneFallback() {
   )
 }
 
-function ProductApp() {
+interface ProductAppProps {
+  sceneColorPresetRepository: SceneColorPresetRepository
+}
+
+function ProductApp({ sceneColorPresetRepository }: ProductAppProps) {
   const [sceneColors, setSceneColors] = useState(() => getSceneColorConfig(
     getScenePalette(resolveScenePaletteVersion(window.location.search, import.meta.env.DEV)),
   ))
-  const [showColorEditor, setShowColorEditor] = useState(false)
+  const [openSettingsPanel, setOpenSettingsPanel] = useState<OpenSettingsPanel>(null)
+  const [sceneColorPresets, setSceneColorPresets] = useState<SceneColorPreset[]>([])
+  const [sceneColorPresetsLoading, setSceneColorPresetsLoading] = useState(true)
+  const [sceneColorPresetsError, setSceneColorPresetsError] = useState<string | null>(null)
+  const [captureScene, setCaptureScene] = useState<CaptureScenePreview | null>(null)
   const [showNameplateEditor, setShowNameplateEditor] = useState(false)
   const [nameplateDraft, setNameplateDraft] = useState('')
   const [nameplateValidationError, setNameplateValidationError] = useState<string | null>(null)
@@ -123,6 +145,48 @@ function ProductApp() {
   }, [loadNotebookCoverSettings, loadStickers, loadToday])
 
   useEffect(() => {
+    let active = true
+    void sceneColorPresetRepository.list()
+      .then((presets) => {
+        if (active) setSceneColorPresets(presets)
+      })
+      .catch(() => {
+        if (active) setSceneColorPresetsError('颜色预设暂时无法读取。')
+      })
+      .finally(() => {
+        if (active) setSceneColorPresetsLoading(false)
+      })
+    return () => {
+      active = false
+    }
+  }, [sceneColorPresetRepository])
+
+  const handleCaptureReady = useCallback((capture: CaptureScenePreview | null) => {
+    setCaptureScene(() => capture)
+  }, [])
+
+  const saveSceneColorPreset = async (name: string) => {
+    let preview
+    let previewCaptured = false
+    if (captureScene) {
+      try {
+        preview = await captureScene()
+        previewCaptured = true
+      } catch {
+        preview = undefined
+      }
+    }
+    const preset = await sceneColorPresetRepository.create(name, sceneColors, preview)
+    setSceneColorPresets((presets) => [preset, ...presets])
+    return { preset, previewCaptured }
+  }
+
+  const deleteSceneColorPreset = async (id: string) => {
+    await sceneColorPresetRepository.delete(id)
+    setSceneColorPresets((presets) => presets.filter((preset) => preset.id !== id))
+  }
+
+  useEffect(() => {
     audioController.setPreferences(audioPreferences)
   }, [audioController, audioPreferences])
 
@@ -143,8 +207,8 @@ function ProductApp() {
     !selectedStickerId
   const showAudioSettings =
     stickerWorkflow !== 'composing' &&
-    !showColorEditor &&
     !showNameplateEditor
+  const showColorEditor = openSettingsPanel === 'colors'
 
   const updateAudioPreferences = (preferences: AudioPreferences) => {
     setAudioPreferences(preferences)
@@ -186,6 +250,7 @@ function ProductApp() {
             colors={sceneColors}
             contentFont={contentFont}
             fallback={<SceneFallback />}
+            onCaptureReady={handleCaptureReady}
           />
         </div>
       )}
@@ -195,6 +260,8 @@ function ProductApp() {
       {showAudioSettings ? (
         <AudioSettingsControl
           onChange={updateAudioPreferences}
+          onOpenChange={(open) => setOpenSettingsPanel(open ? 'audio' : null)}
+          open={openSettingsPanel === 'audio'}
           preferences={audioPreferences}
         />
       ) : null}
@@ -216,7 +283,7 @@ function ProductApp() {
             className="notebook-button"
             icon={<BookOpen aria-hidden="true" size={19} strokeWidth={1.8} />}
             onClick={() => {
-              setShowColorEditor(false)
+              setOpenSettingsPanel(null)
               requestNotebookOpen()
             }}
             variant="primary"
@@ -227,7 +294,7 @@ function ProductApp() {
             className="past-traces-button"
             icon={<Archive aria-hidden="true" size={19} strokeWidth={1.8} />}
             onClick={() => {
-              setShowColorEditor(false)
+              setOpenSettingsPanel(null)
               setShowNameplateEditor(false)
               requestPastTracesOpen()
             }}
@@ -241,7 +308,7 @@ function ProductApp() {
             disabled={notebookCoverStatus === 'loading' || notebookCoverStatus === 'saving'}
             icon={<Pencil aria-hidden="true" size={18} strokeWidth={1.9} />}
             onClick={() => {
-              setShowColorEditor(false)
+              setOpenSettingsPanel(null)
               setNameplateDraft(notebookCoverSettings?.label ?? '')
               setNameplateValidationError(null)
               setShowNameplateEditor(true)
@@ -254,7 +321,7 @@ function ProductApp() {
             className="sticker-workbench-button"
             icon={<Sticker aria-hidden="true" size={19} strokeWidth={1.8} />}
             onClick={() => {
-              setShowColorEditor(false)
+              setOpenSettingsPanel(null)
               openStickerStudio()
             }}
             variant="secondary"
@@ -341,45 +408,54 @@ function ProductApp() {
       ) : null}
 
       {showDeskActions ? (
-        showColorEditor ? (
-          <SceneColorEditor
-            colors={sceneColors}
-            onChange={setSceneColors}
-            onClose={() => setShowColorEditor(false)}
-            onReset={() => setSceneColors(getSceneColorConfig())}
-          />
-        ) : (
-          <div className="scene-tool-stack">
+        <div className="scene-tool-stack">
+          <div className="scene-color-control">
             <SceneColorEditorButton
+              expanded={showColorEditor}
               onClick={() => {
                 disableFreeCamera()
-                setShowColorEditor(true)
+                setOpenSettingsPanel((panel) => panel === 'colors' ? null : 'colors')
               }}
             />
-            <ContentFontControl
-              font={contentFont}
-              onChange={(font) => {
-                setContentFont(font)
-                writeContentFontPreference(window.localStorage, font)
-              }}
-            />
-            <IconButton
-              aria-pressed={freeCameraEnabled}
-              className="free-camera-button"
-              disabled={deskCameraTransitioning}
-              label={freeCameraEnabled ? '关闭自由视角' : '开启自由视角'}
-              onClick={toggleFreeCamera}
-              showTitle={false}
-              variant="secondary"
-            >
-              {freeCameraEnabled ? (
-                <Camera aria-hidden="true" size={20} strokeWidth={1.8} />
-              ) : (
-                <CameraOff aria-hidden="true" size={20} strokeWidth={1.8} />
-              )}
-            </IconButton>
+            {showColorEditor ? (
+              <SceneColorEditor
+                colors={sceneColors}
+                loadingPresets={sceneColorPresetsLoading}
+                onChange={setSceneColors}
+                onClose={() => setOpenSettingsPanel(null)}
+                onDeletePreset={deleteSceneColorPreset}
+                onReset={() => setSceneColors(getSceneColorConfig())}
+                onSavePreset={saveSceneColorPreset}
+                presets={sceneColorPresets}
+                presetsError={sceneColorPresetsError}
+              />
+            ) : null}
           </div>
-        )
+          <ContentFontControl
+            font={contentFont}
+            onChange={(font) => {
+              setContentFont(font)
+              writeContentFontPreference(window.localStorage, font)
+            }}
+            onOpenChange={(open) => setOpenSettingsPanel(open ? 'font' : null)}
+            open={openSettingsPanel === 'font'}
+          />
+          <IconButton
+            aria-pressed={freeCameraEnabled}
+            className="free-camera-button"
+            disabled={deskCameraTransitioning}
+            label={freeCameraEnabled ? '关闭自由视角' : '开启自由视角'}
+            onClick={toggleFreeCamera}
+            showTitle={false}
+            variant="secondary"
+          >
+            {freeCameraEnabled ? (
+              <Camera aria-hidden="true" size={20} strokeWidth={1.8} />
+            ) : (
+              <CameraOff aria-hidden="true" size={20} strokeWidth={1.8} />
+            )}
+          </IconButton>
+        </div>
       ) : null}
 
       {notebookPhase === 'editing' ? <JournalPanel contentFont={contentFont} /> : null}
@@ -407,7 +483,13 @@ const getDevModelReview = () => {
   }
 }
 
-export function App() {
+interface AppProps {
+  sceneColorPresetRepository?: SceneColorPresetRepository
+}
+
+export function App({
+  sceneColorPresetRepository = emptySceneColorPresetRepository,
+}: AppProps = {}) {
   const review = getDevModelReview()
   if (review && DevModelReviewScene) {
     return (
@@ -416,5 +498,5 @@ export function App() {
       </Suspense>
     )
   }
-  return <ProductApp />
+  return <ProductApp sceneColorPresetRepository={sceneColorPresetRepository} />
 }

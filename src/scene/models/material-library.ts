@@ -1,7 +1,11 @@
 import * as THREE from 'three'
 
-export const SCENE_MATERIAL_VERSION = 'V2.0' as const
-export const DEFAULT_SCENE_PALETTE_VERSION = 'v2' as const
+import type { SceneColorConfig } from '../../domain/scene-color-preset'
+
+export type { SceneColorConfig } from '../../domain/scene-color-preset'
+
+export const SCENE_MATERIAL_VERSION = 'V2.1' as const
+export const DEFAULT_SCENE_PALETTE_VERSION = 'v11' as const
 
 export const SCENE_PALETTE_PRESETS = {
   v1: {
@@ -84,6 +88,14 @@ export const SCENE_PALETTE_PRESETS = {
     woodDark: '#49372b',
     woodPanel: '#a67e5d',
   },
+  v11: {
+    background: '#d5dad8',
+    mint: '#3e3b29',
+    mintDark: '#2d2c1e',
+    wood: '#73411f',
+    woodDark: '#593219',
+    woodPanel: '#70401f',
+  },
 } as const
 
 export type ScenePaletteVersion = keyof typeof SCENE_PALETTE_PRESETS
@@ -101,18 +113,6 @@ const SCENE_PALETTE_FIXED = {
 } as const
 
 export type ScenePalette = ScenePalettePreset & typeof SCENE_PALETTE_FIXED
-
-export interface SceneColorConfig {
-  background: string
-  deskFrame: string
-  deskInset: string
-  deskLegs: string
-  deskTop: string
-  matBinding: string
-  matField: string
-  notebookCover: string
-  notebookJoint: string
-}
 
 export const getScenePalette = (version: ScenePaletteVersion): ScenePalette => ({
   ...SCENE_PALETTE_FIXED,

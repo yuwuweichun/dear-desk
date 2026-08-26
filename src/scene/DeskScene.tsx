@@ -35,6 +35,10 @@ import {
   getNotebookTransitionDuration,
   type AnimatedNotebookPhase,
 } from './notebook-transition'
+import {
+  captureScenePreview,
+  type CaptureScenePreview,
+} from './capture-scene-preview'
 
 extend({
   AmbientLight: THREE.AmbientLight,
@@ -648,11 +652,19 @@ interface DeskSceneProps {
   colors: SceneColorConfig
   contentFont: ContentFontId
   fallback: ReactNode
+  onCaptureReady?: (capture: CaptureScenePreview | null) => void
 }
 
-export function DeskScene({ colors, contentFont, fallback }: DeskSceneProps) {
+export function DeskScene({
+  colors,
+  contentFont,
+  fallback,
+  onCaptureReady,
+}: DeskSceneProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const captureRef = useRef<CaptureScenePreview | null>(null)
+  const onCaptureReadyRef = useRef(onCaptureReady)
   const rootRef = useRef<ReconcilerRoot<HTMLCanvasElement> | null>(null)
   const [unavailable, setUnavailable] = useState(false)
   const [reducedMotion, setReducedMotion] = useState(false)
@@ -711,6 +723,11 @@ export function DeskScene({ colors, contentFont, fallback }: DeskSceneProps) {
     stickers,
     stickerWorkflow,
   })
+
+  useEffect(() => {
+    onCaptureReadyRef.current = onCaptureReady
+    onCaptureReady?.(captureRef.current)
+  }, [onCaptureReady])
 
   useEffect(() => {
     const media = window.matchMedia('(prefers-reduced-motion: reduce)')
@@ -803,6 +820,11 @@ export function DeskScene({ colors, contentFont, fallback }: DeskSceneProps) {
               eventState.raycaster.setFromCamera(eventState.pointer, eventState.camera)
             },
           })
+          captureRef.current = async () => {
+            state.gl.render(state.scene, state.camera)
+            return captureScenePreview(state.gl.domElement)
+          }
+          onCaptureReadyRef.current?.(captureRef.current)
         },
       })
 
@@ -821,6 +843,8 @@ export function DeskScene({ colors, contentFont, fallback }: DeskSceneProps) {
     return () => {
       disposed = true
       resizeObserver.disconnect()
+      captureRef.current = null
+      onCaptureReadyRef.current?.(null)
       rootRef.current = null
       releaseRoot(canvas)
     }

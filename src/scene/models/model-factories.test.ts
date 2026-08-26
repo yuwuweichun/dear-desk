@@ -72,11 +72,11 @@ afterEach(() => {
 })
 
 describe('procedural scene model factories', () => {
-  it('keeps ten immutable palette candidates while v2 remains the default', () => {
+  it('keeps ten historical candidates while concept-matched v11 is the default', () => {
     expect(Object.keys(SCENE_PALETTE_PRESETS)).toEqual([
-      'v1', 'v2', 'v3', 'v4', 'v5', 'v6', 'v7', 'v8', 'v9', 'v10',
+      'v1', 'v2', 'v3', 'v4', 'v5', 'v6', 'v7', 'v8', 'v9', 'v10', 'v11',
     ])
-    expect(DEFAULT_SCENE_PALETTE_VERSION).toBe('v2')
+    expect(DEFAULT_SCENE_PALETTE_VERSION).toBe('v11')
     expect(SCENE_PALETTE_PRESETS.v1).toEqual({
       background: '#dce4e0',
       mint: '#78958a',
@@ -93,9 +93,17 @@ describe('procedural scene model factories', () => {
       woodDark: '#593219',
       woodPanel: '#70401f',
     })
+    expect(SCENE_PALETTE_PRESETS.v11).toEqual({
+      background: '#d5dad8',
+      mint: '#3e3b29',
+      mintDark: '#2d2c1e',
+      wood: '#73411f',
+      woodDark: '#593219',
+      woodPanel: '#70401f',
+    })
 
     for (const [version, preset] of Object.entries(SCENE_PALETTE_PRESETS)) {
-      expect(version).toMatch(/^v(?:[1-9]|10)$/)
+      expect(version).toMatch(/^v(?:[1-9]|1[01])$/)
       Object.values(preset).forEach((value) => expect(value).toMatch(/^#[0-9a-f]{6}$/))
       expect(getScenePalette(version as keyof typeof SCENE_PALETTE_PRESETS)).toMatchObject({
         ...preset,
@@ -106,30 +114,34 @@ describe('procedural scene model factories', () => {
       })
     }
 
-    expect(resolveScenePaletteVersion('', true)).toBe('v2')
+    expect(resolveScenePaletteVersion('', true)).toBe('v11')
     expect(resolveScenePaletteVersion('?palette=V10', true)).toBe('v10')
     expect(resolveScenePaletteVersion('?palette=v7', true)).toBe('v7')
-    expect(resolveScenePaletteVersion('?palette=v11', true)).toBe('v2')
-    expect(resolveScenePaletteVersion('?palette=v9', false)).toBe('v2')
+    expect(resolveScenePaletteVersion('?palette=V11', true)).toBe('v11')
+    expect(resolveScenePaletteVersion('?palette=v12', true)).toBe('v11')
+    expect(resolveScenePaletteVersion('?palette=v9', false)).toBe('v11')
   })
 
-  it('uses the v2 walnut and blue-gray surface roles while preserving notebook materials', () => {
+  it('uses v2.1 walnut and concept-matched moss surface roles while preserving notebook materials', () => {
     const materials = createTestMaterials()
+    const colors = getSceneColorConfig()
 
-    expect(SCENE_MATERIAL_VERSION).toBe('V2.0')
+    expect(SCENE_MATERIAL_VERSION).toBe('V2.1')
     expect(SCENE_PALETTE.background).toBe('#d5dad8')
     expect(SCENE_PALETTE.wood).toBe('#73411f')
     expect(SCENE_PALETTE.woodDark).toBe('#593219')
     expect(SCENE_PALETTE.woodPanel).toBe('#70401f')
-    expect(SCENE_PALETTE.mint).toBe('#73858a')
-    expect(SCENE_PALETTE.mintDark).toBe('#4c5e63')
+    expect(SCENE_PALETTE.mint).toBe('#3e3b29')
+    expect(SCENE_PALETTE.mintDark).toBe('#2d2c1e')
+    expect(colors.matField).toBe('#3e3b29')
+    expect(colors.matBinding).toBe('#2d2c1e')
     expect(materials.walnut.color.getHexString()).toBe('73411f')
     expect(materials.walnutDark.color.getHexString()).toBe('593219')
     expect(materials.walnutDrawer.color.getHexString()).toBe('64381b')
     expect(materials.walnutLegs.color.getHexString()).toBe('593219')
     expect(materials.walnutPanel.color.getHexString()).toBe('70401f')
-    expect(materials.cloth.color.getHexString()).toBe('73858a')
-    expect(materials.clothDark.color.getHexString()).toBe('4c5e63')
+    expect(materials.cloth.color.getHexString()).toBe('3e3b29')
+    expect(materials.clothDark.color.getHexString()).toBe('2d2c1e')
     expect(materials.notebookCover.color.getHexString()).toBe('173f35')
     expect(materials.notebookCoverDark.color.getHexString()).toBe('0e2d27')
     expect(materials.notebookCover.aoMapIntensity).toBe(0.9)

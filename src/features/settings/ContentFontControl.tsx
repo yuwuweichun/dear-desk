@@ -1,5 +1,5 @@
 import { Check, Type } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 
 import {
   CONTENT_FONT_OPTIONS,
@@ -10,10 +10,16 @@ import { IconButton } from '../../ui'
 interface ContentFontControlProps {
   font: ContentFontId
   onChange: (font: ContentFontId) => void
+  onOpenChange: (open: boolean) => void
+  open: boolean
 }
 
-export function ContentFontControl({ font, onChange }: ContentFontControlProps) {
-  const [open, setOpen] = useState(false)
+export function ContentFontControl({
+  font,
+  onChange,
+  onOpenChange,
+  open,
+}: ContentFontControlProps) {
   const controlRef = useRef<HTMLDivElement>(null)
   const currentLabel = CONTENT_FONT_OPTIONS.find((option) => option.id === font)?.label
     ?? '纸页宋体'
@@ -22,10 +28,10 @@ export function ContentFontControl({ font, onChange }: ContentFontControlProps) 
     if (!open) return
 
     const closeOnOutsidePointer = (event: PointerEvent) => {
-      if (!controlRef.current?.contains(event.target as Node)) setOpen(false)
+      if (!controlRef.current?.contains(event.target as Node)) onOpenChange(false)
     }
     const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setOpen(false)
+      if (event.key === 'Escape') onOpenChange(false)
     }
 
     document.addEventListener('pointerdown', closeOnOutsidePointer)
@@ -34,7 +40,7 @@ export function ContentFontControl({ font, onChange }: ContentFontControlProps) 
       document.removeEventListener('pointerdown', closeOnOutsidePointer)
       document.removeEventListener('keydown', closeOnEscape)
     }
-  }, [open])
+  }, [onOpenChange, open])
 
   return (
     <div className="content-font-control" ref={controlRef}>
@@ -43,7 +49,7 @@ export function ContentFontControl({ font, onChange }: ContentFontControlProps) 
         aria-haspopup="menu"
         className="content-font-button"
         label={`更换内容字体，当前${currentLabel}`}
-        onClick={() => setOpen((value) => !value)}
+        onClick={() => onOpenChange(!open)}
         showTitle={false}
         variant="secondary"
       >
@@ -59,7 +65,7 @@ export function ContentFontControl({ font, onChange }: ContentFontControlProps) 
               key={option.id}
               onClick={() => {
                 onChange(option.id)
-                setOpen(false)
+                onOpenChange(false)
               }}
               role="menuitemradio"
               type="button"

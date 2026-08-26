@@ -2,6 +2,7 @@ import Dexie, { type EntityTable } from 'dexie'
 
 import type { DailyEntry } from '../domain/daily-entry'
 import type { NotebookCoverSettings } from '../domain/notebook-cover-settings'
+import type { SceneColorPreset } from '../domain/scene-color-preset'
 import type {
   StickerDefinition,
   StickerInstance,
@@ -26,6 +27,7 @@ export class DearDeskDatabase extends Dexie {
   stickerRenderAssets!: EntityTable<StickerRenderAsset, 'id'>
   stickerSourceAssets!: EntityTable<StickerSourceAsset, 'id'>
   notebookCoverSettings!: EntityTable<NotebookCoverSettings, 'id'>
+  sceneColorPresets!: EntityTable<SceneColorPreset, 'id'>
 
   constructor(name = 'dear-desk') {
     super(name)
@@ -67,6 +69,17 @@ export class DearDeskDatabase extends Dexie {
       stickerRenderAssets: 'id, upstreamCommit',
       stickerSourceAssets: 'id, createdAt',
       notebookCoverSettings: 'id, updatedAt',
+    })
+
+    this.version(5).stores({
+      dailyEntries: 'date, updatedAt',
+      stickerDefinitions: 'id, kind, createdAt',
+      stickerInstances:
+        'id, surface, [surface+journalDate], definitionId, updatedAt',
+      stickerRenderAssets: 'id, upstreamCommit',
+      stickerSourceAssets: 'id, createdAt',
+      notebookCoverSettings: 'id, updatedAt',
+      sceneColorPresets: 'id, &name, createdAt',
     })
   }
 }

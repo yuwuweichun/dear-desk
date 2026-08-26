@@ -1,5 +1,5 @@
 import { Music2, Volume2, VolumeX, Waves } from 'lucide-react'
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useRef, type ReactNode } from 'react'
 
 import type {
   AudioChannelPreference,
@@ -9,6 +9,8 @@ import { IconButton } from '../../ui'
 
 interface AudioSettingsControlProps {
   onChange: (preferences: AudioPreferences) => void
+  onOpenChange: (open: boolean) => void
+  open: boolean
   preferences: AudioPreferences
 }
 
@@ -71,19 +73,20 @@ function AudioChannelControl({
 
 export function AudioSettingsControl({
   onChange,
+  onOpenChange,
+  open,
   preferences,
 }: AudioSettingsControlProps) {
-  const [open, setOpen] = useState(false)
   const controlRef = useRef<HTMLDivElement>(null)
   const audible = preferences.music.enabled || preferences.sfx.enabled
 
   useEffect(() => {
     if (!open) return
     const closeOnOutsidePointer = (event: PointerEvent) => {
-      if (!controlRef.current?.contains(event.target as Node)) setOpen(false)
+      if (!controlRef.current?.contains(event.target as Node)) onOpenChange(false)
     }
     const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setOpen(false)
+      if (event.key === 'Escape') onOpenChange(false)
     }
     document.addEventListener('pointerdown', closeOnOutsidePointer)
     document.addEventListener('keydown', closeOnEscape)
@@ -91,7 +94,7 @@ export function AudioSettingsControl({
       document.removeEventListener('pointerdown', closeOnOutsidePointer)
       document.removeEventListener('keydown', closeOnEscape)
     }
-  }, [open])
+  }, [onOpenChange, open])
 
   const updateChannel = (
     channel: 'music' | 'sfx',
@@ -106,7 +109,7 @@ export function AudioSettingsControl({
         aria-haspopup="dialog"
         className="audio-settings-button"
         label="音频设置"
-        onClick={() => setOpen((value) => !value)}
+        onClick={() => onOpenChange(!open)}
         showTitle={false}
         variant="secondary"
       >
