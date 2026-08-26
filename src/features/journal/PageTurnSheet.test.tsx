@@ -122,7 +122,14 @@ describe('PageTurnSheet', () => {
         ...container.querySelectorAll<HTMLElement>('.page-turn-snapshot-action'),
       ]
       expect(workbenchActions).toHaveLength(2)
-      expect(workbenchActions.every((action) => action.textContent === '贴纸工作台')).toBe(true)
+      expect(workbenchActions.every((action) => action.textContent === '前往贴纸工作台')).toBe(true)
+      expect(workbenchActions.every((action) => action.getAttribute('aria-hidden') === 'true')).toBe(true)
+      expect(workbenchActions.every((action) => {
+        const icon = action.querySelector('svg.page-turn-snapshot-action__icon')
+        return icon?.getAttribute('aria-hidden') === 'true'
+          && icon.getAttribute('viewBox') === '0 0 24 24'
+          && icon.querySelectorAll('path').length === 5
+      })).toBe(true)
     },
   )
 

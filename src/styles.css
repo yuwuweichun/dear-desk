@@ -1362,17 +1362,29 @@ textarea:focus-visible {
 
 .page-turn-snapshot-action {
   align-self: flex-start;
-  min-height: 40px;
+  min-height: 45px;
   margin-top: 14px;
   display: inline-flex;
   align-items: center;
-  padding: 0 14px;
+  gap: 8px;
+  box-sizing: border-box;
+  padding: 0 20px;
   border: 2px solid #d4c9b4;
   background: #fffbe7;
   color: #725d42;
   box-shadow: 0 3px 0 rgba(61, 52, 40, 0.16);
   font-size: 12px;
   font-weight: 800;
+}
+
+.page-turn-snapshot-action__icon {
+  flex: 0 0 auto;
+  display: block;
+}
+
+.page-turn-snapshot-action__label {
+  line-height: 1;
+  white-space: nowrap;
 }
 
 .page-turn-overlay.is-reduced-motion {
@@ -1799,6 +1811,11 @@ textarea:focus-visible {
   }
 
   .journal-sticker-workbench-button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .page-turn-snapshot-action {
     width: 100%;
     justify-content: center;
   }
