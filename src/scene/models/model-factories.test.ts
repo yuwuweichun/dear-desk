@@ -72,11 +72,11 @@ afterEach(() => {
 })
 
 describe('procedural scene model factories', () => {
-  it('keeps ten historical candidates while concept-matched v11 is the default', () => {
+  it('keeps eleven historical candidates while concept-restored v12 is the default', () => {
     expect(Object.keys(SCENE_PALETTE_PRESETS)).toEqual([
-      'v1', 'v2', 'v3', 'v4', 'v5', 'v6', 'v7', 'v8', 'v9', 'v10', 'v11',
+      'v1', 'v2', 'v3', 'v4', 'v5', 'v6', 'v7', 'v8', 'v9', 'v10', 'v11', 'v12',
     ])
-    expect(DEFAULT_SCENE_PALETTE_VERSION).toBe('v11')
+    expect(DEFAULT_SCENE_PALETTE_VERSION).toBe('v12')
     expect(SCENE_PALETTE_PRESETS.v1).toEqual({
       background: '#dce4e0',
       mint: '#78958a',
@@ -101,9 +101,17 @@ describe('procedural scene model factories', () => {
       woodDark: '#593219',
       woodPanel: '#70401f',
     })
+    expect(SCENE_PALETTE_PRESETS.v12).toEqual({
+      background: '#d5dad8',
+      mint: '#423f2c',
+      mintDark: '#303021',
+      wood: '#73411f',
+      woodDark: '#593219',
+      woodPanel: '#70401f',
+    })
 
     for (const [version, preset] of Object.entries(SCENE_PALETTE_PRESETS)) {
-      expect(version).toMatch(/^v(?:[1-9]|1[01])$/)
+      expect(version).toMatch(/^v(?:[1-9]|1[0-2])$/)
       Object.values(preset).forEach((value) => expect(value).toMatch(/^#[0-9a-f]{6}$/))
       expect(getScenePalette(version as keyof typeof SCENE_PALETTE_PRESETS)).toMatchObject({
         ...preset,
@@ -114,34 +122,35 @@ describe('procedural scene model factories', () => {
       })
     }
 
-    expect(resolveScenePaletteVersion('', true)).toBe('v11')
+    expect(resolveScenePaletteVersion('', true)).toBe('v12')
     expect(resolveScenePaletteVersion('?palette=V10', true)).toBe('v10')
     expect(resolveScenePaletteVersion('?palette=v7', true)).toBe('v7')
     expect(resolveScenePaletteVersion('?palette=V11', true)).toBe('v11')
-    expect(resolveScenePaletteVersion('?palette=v12', true)).toBe('v11')
-    expect(resolveScenePaletteVersion('?palette=v9', false)).toBe('v11')
+    expect(resolveScenePaletteVersion('?palette=v12', true)).toBe('v12')
+    expect(resolveScenePaletteVersion('?palette=v13', true)).toBe('v12')
+    expect(resolveScenePaletteVersion('?palette=v9', false)).toBe('v12')
   })
 
-  it('uses v2.1 walnut and concept-matched moss surface roles while preserving notebook materials', () => {
+  it('uses v2.2 walnut and concept-restored moss surface roles while preserving notebook materials', () => {
     const materials = createTestMaterials()
     const colors = getSceneColorConfig()
 
-    expect(SCENE_MATERIAL_VERSION).toBe('V2.1')
+    expect(SCENE_MATERIAL_VERSION).toBe('V2.2')
     expect(SCENE_PALETTE.background).toBe('#d5dad8')
     expect(SCENE_PALETTE.wood).toBe('#73411f')
     expect(SCENE_PALETTE.woodDark).toBe('#593219')
     expect(SCENE_PALETTE.woodPanel).toBe('#70401f')
-    expect(SCENE_PALETTE.mint).toBe('#3e3b29')
-    expect(SCENE_PALETTE.mintDark).toBe('#2d2c1e')
-    expect(colors.matField).toBe('#3e3b29')
-    expect(colors.matBinding).toBe('#2d2c1e')
+    expect(SCENE_PALETTE.mint).toBe('#423f2c')
+    expect(SCENE_PALETTE.mintDark).toBe('#303021')
+    expect(colors.matField).toBe('#423f2c')
+    expect(colors.matBinding).toBe('#303021')
     expect(materials.walnut.color.getHexString()).toBe('73411f')
     expect(materials.walnutDark.color.getHexString()).toBe('593219')
     expect(materials.walnutDrawer.color.getHexString()).toBe('64381b')
     expect(materials.walnutLegs.color.getHexString()).toBe('593219')
     expect(materials.walnutPanel.color.getHexString()).toBe('70401f')
-    expect(materials.cloth.color.getHexString()).toBe('3e3b29')
-    expect(materials.clothDark.color.getHexString()).toBe('2d2c1e')
+    expect(materials.cloth.color.getHexString()).toBe('423f2c')
+    expect(materials.clothDark.color.getHexString()).toBe('303021')
     expect(materials.notebookCover.color.getHexString()).toBe('173f35')
     expect(materials.notebookCoverDark.color.getHexString()).toBe('0e2d27')
     expect(materials.notebookCover.aoMapIntensity).toBe(0.9)
@@ -244,17 +253,12 @@ describe('procedural scene model factories', () => {
     }
   })
 
-  it('keeps notebook texture samples frozen while wood and cloth stay neutral', () => {
+  it('keeps notebook and paper texture samples frozen while neutral families stay achromatic', () => {
     const coordinates = [
       [0, 0],
       [5, 7],
       [8, 12],
     ] as const
-    const kraft = [
-      { albedo: [230, 225, 206], ao: 242, height: 124, roughness: 242 },
-      { albedo: [232, 226, 207], ao: 243, height: 131, roughness: 242 },
-      { albedo: [232, 226, 207], ao: 243, height: 131, roughness: 241 },
-    ]
     const paper = [
       { albedo: [255, 251, 231], ao: 246, height: 130, roughness: 237 },
       { albedo: [255, 251, 231], ao: 247, height: 128, roughness: 238 },
@@ -262,7 +266,6 @@ describe('procedural scene model factories', () => {
     ]
 
     coordinates.forEach(([x, y], index) => {
-      expect(sampleSurfaceChannels('kraft', x, y, 16)).toEqual(kraft[index])
       expect(sampleSurfaceChannels('paper', x, y, 16)).toEqual(paper[index])
 
       for (const family of ['wood', 'cloth'] as const) {
@@ -275,6 +278,20 @@ describe('procedural scene model factories', () => {
       sampleSurfaceChannels('wood', index % 16, Math.floor(index / 16), 16).albedo[0]
     )
     expect(Math.max(...woodValues) - Math.min(...woodValues)).toBeGreaterThan(20)
+  })
+
+  it('shares the notebook cloth texture set with the desk mat', () => {
+    const materials = createTestMaterials()
+    expect(materials.cloth.map?.userData.family).toBe('cloth')
+    expect(materials.cloth.bumpMap?.userData.family).toBe('cloth')
+    expect(materials.notebookCover.map?.userData.family).toBe('cloth')
+    expect(materials.notebookCover.bumpMap?.userData.family).toBe('cloth')
+    expect(materials.cloth.map).toBe(materials.notebookCover.map)
+    expect(materials.cloth.aoMap).toBe(materials.notebookCover.aoMap)
+    expect(materials.cloth.bumpMap).toBe(materials.notebookCover.bumpMap)
+    expect(materials.cloth.roughnessMap).toBe(
+      materials.notebookCover.roughnessMap,
+    )
   })
 
   it('keeps large plan radii independent from thin panel thickness', () => {
@@ -892,10 +909,10 @@ describe('procedural scene model factories', () => {
 
   it('uses independent deterministic PBR channels for every surface family', () => {
     const materials = createTestMaterials()
-    expect(materials.textureCount).toBe(16)
+    expect(materials.textureCount).toBe(12)
     expect(new Set(materials.textures).size).toBe(materials.textureCount)
 
-    for (const family of ['wood', 'cloth', 'kraft', 'paper'] as const) {
+    for (const family of ['wood', 'cloth', 'paper'] as const) {
       const textures = materials.textures.filter(
         (texture) => texture.userData.family === family,
       )
@@ -942,8 +959,16 @@ describe('procedural scene model factories', () => {
       ).toBe(4)
     }
 
+    expect(materials.cloth.map?.userData.family).toBe('cloth')
+    expect(materials.cloth.bumpMap?.userData.family).toBe('cloth')
     expect(materials.notebookCover.map?.userData.family).toBe('cloth')
     expect(materials.notebookCover.bumpMap?.userData.family).toBe('cloth')
+    expect(materials.cloth.map).toBe(materials.notebookCover.map)
+    expect(materials.cloth.aoMap).toBe(materials.notebookCover.aoMap)
+    expect(materials.cloth.bumpMap).toBe(materials.notebookCover.bumpMap)
+    expect(materials.cloth.roughnessMap).toBe(
+      materials.notebookCover.roughnessMap,
+    )
 
   })
 

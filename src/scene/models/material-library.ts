@@ -4,8 +4,8 @@ import type { SceneColorConfig } from '../../domain/scene-color-preset'
 
 export type { SceneColorConfig } from '../../domain/scene-color-preset'
 
-export const SCENE_MATERIAL_VERSION = 'V2.1' as const
-export const DEFAULT_SCENE_PALETTE_VERSION = 'v11' as const
+export const SCENE_MATERIAL_VERSION = 'V2.2' as const
+export const DEFAULT_SCENE_PALETTE_VERSION = 'v12' as const
 
 export const SCENE_PALETTE_PRESETS = {
   v1: {
@@ -96,6 +96,14 @@ export const SCENE_PALETTE_PRESETS = {
     woodDark: '#593219',
     woodPanel: '#70401f',
   },
+  v12: {
+    background: '#8FA89E',
+    mint: '#2F432D',
+    mintDark: '#283E29',
+    wood: '#73411f',
+    woodDark: '#593219',
+    woodPanel: '#70401f',
+  },
 } as const
 
 export type ScenePaletteVersion = keyof typeof SCENE_PALETTE_PRESETS
@@ -146,7 +154,7 @@ export const resolveScenePaletteVersion = (
     : DEFAULT_SCENE_PALETTE_VERSION
 }
 
-export type SurfaceFamily = 'cloth' | 'kraft' | 'paper' | 'wood'
+export type SurfaceFamily = 'cloth' | 'paper' | 'wood'
 export type SurfaceChannel = 'albedo' | 'ao' | 'height' | 'roughness'
 
 export interface SurfaceSample {
@@ -321,27 +329,6 @@ export function sampleSurfaceChannels(
     }
   }
 
-  if (family === 'kraft') {
-    const macro = periodicNoise2d(u, v, 3, 3, 131)
-    const pulp = periodicNoise2d(u, v, 17, 15, 137)
-    const longFiber = periodicNoise1d(v + u * 0.08, 83, 139)
-    const crossFiber = periodicNoise1d(u - v * 0.05, 59, 149)
-    const fiber =
-      (longFiber - 0.5) * 0.72 +
-      (crossFiber - 0.5) * 0.28
-    const value = (macro - 0.5) * 5 + (pulp - 0.5) * 3 + fiber * 3
-    return {
-      albedo: [
-        clampByte(232 + value * 0.64),
-        clampByte(226 + value * 0.56),
-        clampByte(207 + value * 0.42),
-      ],
-      ao: clampByte(244 + (macro - 0.5) * 5 - Math.abs(fiber) * 4),
-      height: clampByte(128 + fiber * 10 + (pulp - 0.5) * 5),
-      roughness: clampByte(242 - fiber * 5 + (pulp - 0.5) * 5),
-    }
-  }
-
   const macro = periodicNoise2d(u, v, 2, 2, 71)
   const cloud = periodicNoise2d(u, v, 8, 7, 73)
   const horizontalFiber = periodicNoise1d(v + u * 0.06, 61, 79)
@@ -429,12 +416,10 @@ export function createModelMaterialLibrary(
   const sceneColors = options.sceneColors ?? getSceneColorConfig(palette)
   const wood = createTextureSet('wood', size, anisotropy)
   const cloth = createTextureSet('cloth', size, anisotropy)
-  const kraft = createTextureSet('kraft', size, anisotropy)
   const paper = createTextureSet('paper', size, anisotropy)
   const textures = [
     ...Object.values(wood),
     ...Object.values(cloth),
-    ...Object.values(kraft),
     ...Object.values(paper),
   ]
 

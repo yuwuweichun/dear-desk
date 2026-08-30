@@ -22,7 +22,7 @@
         <kbd aria-hidden="true">/</kbd>
         <div id="search-results" class="search-results" role="listbox" aria-label="搜索结果" hidden></div>
       </div>
-      <span class="top-meta">CURRENT · 2026-08-26</span>
+      <span class="top-meta">CURRENT · 2026-08-30</span>
       <button class="toc-toggle" type="button" aria-controls="sidebar" aria-expanded="false">目录</button>
     </div>
   </header>
@@ -131,14 +131,14 @@
        -> userData.setOpenProgress(t)    // rise -> center spread + 5-sheet flutter -> settle
   -> unmount
        -> model.userData.dispose()       // factory-owned geometry
-       -> materials.dispose()            // shared material + 16 textures
+       -> materials.dispose()            // shared material + 12 textures
        -> SceneEnvironment cleanup       // PMREM + RoomEnvironment</code></pre>
         </div>
         <p>本子工厂保留稳定根位置、透明命中盒和封面铰链；所有可见部件现在统一挂在中央展示锚点 <code>centered-opening-presentation</code> 下。它内部的桌面书脊铰链 <code>tabletop-spine-hinge</code> 位于长边装订轴，立起时绕这条轴旋转，轴本身不离开桌面；书口因此向上，而不是让整块封面朝镜头抬起。<code>getNotebookPresentationState</code> 先把进度映射为立起，再映射为左右摊开和落定。展开阶段的公共书脊角度严格使用 <code>1 - spreadProgress</code>：右半册世界角度从 <code>π/2</code> 到 <code>0</code>，左半册在相同公共角度上叠加 <code>π × spreadProgress</code>，因此任意时刻两侧离开直立位置的角位移绝对值相同。展示锚点同时补偿书脊横向位置，所以直立书脊和最终页芯中心共享桌面中线。完全闭合与书脊贴桌立起时，单一 <code>continuous-case-shell</code> 网格负责前封面、连续圆背和后封面；装饰性的 <code>book-joints</code> 已删除。<code>spreadProgress</code> 一旦大于零，连续壳体就退出，<code>front-cover-board</code> 与 <code>back-cover-board</code> 同帧接替；两块封面的中线补偿从 <code>0</code> 随展开进度连续插值到各自的 <code>0.2</code>，所以闭合圆背端部不会在纸面中线冒出，也不会在动画末端跳变。<code>setOpenProgress</code> 同时更新两侧页堆、书脊倾角和中心补偿；<code>getNotebookPageFlutterState</code> 在摊开中后段为 5 张纸页生成错峰局部进度，单个 <code>opening-page-flutter</code> 实例网格共享几何与纸张材质，却让每张页片独立抬升并从中央装订轴翻向左侧。旧版 <code>rapid-page-flip-pool</code> 的约 9 次循环扫页仍保持删除；当前 5 张页片各自只翻一次，并在闭合与全开端点隐藏。全开末段把左页 pivot 降到右页高度并精确转到 <code>π</code>；动画阶段的左右独立顶页和临时页片全部退出，左右页堆与各自页口层直接作为 3D 打开终态。<code>NotebookObject</code> 只传入既有状态机进度，并在 reduced-motion 下显式禁止临时页片；关闭沿同一时间轴逆放。<code>notebookPhase === 'editing'</code> 时隐藏 3D 本子并挂载 DOM 日记，development 与 production 使用同一交接行为。</p>
-        <p>桌垫的可见织物模型与透明 placement hit surface 分离，所以材质和滚边几何不承担贴纸事件。重复织线、页缘、页线与铆钉使用实例化几何；材质库以确定性 1024px 程序纹理为 wood、cloth、kraft、paper 四个 family 各提供 albedo、AO、height 和 roughness，共 16 张纹理。当前 <code>SCENE_MATERIAL_VERSION</code> 为 <code>V2.1</code>；<code>SCENE_PALETTE_PRESETS</code> 保留已全部否决的 V1-V10 历史角色色，并新增只改变桌垫角色色的 V11。默认 <code>SCENE_PALETTE</code> 解析为 V11：工作面 <code>#3e3b29</code>，垫体与包边 <code>#2d2c1e</code>，背景和木材继续复用 V2 值。开发环境可用 <code>?palette=v1..v11</code> 决定调色器初始值，production、无参数和无效参数均回到 V11；查询参数与当前实时试色仍不进入 store、IndexedDB 或 localStorage，只有用户明确命名保存的颜色快照进入预设仓储。</p>
-        <p><code>ProductApp</code> 以组件级 <code>SceneColorConfig</code> 持有九项当前 HEX，并把它传给 <code>SceneColorEditor</code> 与 <code>DeskScene</code>。面板以“颜色 / 预设”Tab 分开九项字段和命名卡片：内置 V11 卡片读取随包 <code>default-v11.webp</code>，自定义卡片从 <code>SceneColorPresetRepository</code> 读取完整九色与可选 WebP/PNG Blob。新预览为 640 × 360，已有 320 × 180 Blob 无需迁移并继续显示；卡片采用双列图片布局，不再渲染九色色条。点击卡片仍只调用 <code>setSceneColors</code>；继续手调后若九项不再完整匹配，选中态自动退出。刷新会恢复预设列表和 Blob，但当前场景仍从 V11 开始，不恢复上次选择。</p>
+        <p>桌垫的可见织物模型与透明 placement hit surface 分离，所以材质和滚边几何不承担贴纸事件。重复织线、页缘、页线与铆钉使用实例化几何；材质库以确定性 1024px 程序纹理为 wood、cloth、paper 三个 family 各提供 albedo、AO、height 和 roughness，共 12 张纹理。桌垫与本子封面直接共享 cloth family 的四个纹理对象：3×3 低频起伏、17×15 纱线噪声和方向性经纬 ridge 生成中性灰度倍率及 PBR 通道；桌垫主色与该倍率相乘后产生同色系织物细节，不需要在选色器拖动时重建纹理。两者仍由独立颜色、roughness、bumpScale、anisotropy 和 sheen 参数形成不同材质响应。当前 <code>SCENE_MATERIAL_VERSION</code> 为 <code>V2.2</code>；<code>SCENE_PALETTE_PRESETS</code> 保留 V1-V11 历史角色色，并新增概念图校准后的 V12。默认 <code>SCENE_PALETTE</code> 解析为 V12：工作面 <code>#423f2c</code>，垫体与包边 <code>#303021</code>，背景和木材继续复用 V2 值。开发环境可用 <code>?palette=v1..v12</code> 决定调色器初始值，production、无参数和无效参数均回到 V12；查询参数与当前实时试色仍不进入 store、IndexedDB 或 localStorage，只有用户明确命名保存的颜色快照进入预设仓储。</p>
+        <p><code>ProductApp</code> 以组件级 <code>SceneColorConfig</code> 持有九项当前 HEX，并把它传给 <code>SceneColorEditor</code> 与 <code>DeskScene</code>。面板以“颜色 / 预设”Tab 分开九项字段和命名卡片：点击内置默认卡片、重置或刷新均应用 V12 九色；当前固定图片仍读取历史 <code>default-v11.webp</code>，这是缺少项目指定 <code>ego-browser</code> 时保留的静态预览滞后，不能作为 V12 材质证据。自定义卡片从 <code>SceneColorPresetRepository</code> 读取完整九色与可选 WebP/PNG Blob。新预览为 640 × 360，已有 320 × 180 Blob 无需迁移并继续显示；卡片采用双列图片布局，不再渲染九色色条。点击卡片仍只调用 <code>setSceneColors</code>；继续手调后若九项不再完整匹配，选中态自动退出。刷新会恢复预设列表和 Blob，但当前场景从 V12 开始，不恢复上次选择。</p>
         <p><code>DeskScene</code> 在唯一 R3F renderer 建立后把截图命令交给 <code>ProductApp</code>。保存预设时 renderer 显式绘制当前 scene/camera，再把 WebGL canvas 同步复制到 640 × 360 离屏 2D canvas，优先编码 WebP、回退 PNG；它不启用持续 <code>preserveDrawingBuffer</code>，不创建第二个 WebGL Canvas，也不读写数据库。截图失败时 repository 仍保存颜色，卡片显示中性图片占位。Blob 加载后由卡片建立 object URL，并在列表替换、删除或卸载时撤销。</p>
-        <p><code>scene-color-control</code> 在常驻的 <code>scene-tool-stack</code> 中同时拥有调色板按钮和颜色面板；面板以按钮为定位锚点向左展开，不再替换工具栈或隐藏独立音频入口。桌面与窄屏都为右侧按钮列预留宽度，预设卡片在正文中以两列排列，超出可用高度后只在面板正文滚动。音频、颜色和字体入口共享 <code>ProductApp</code> 的 <code>openSettingsPanel: 'audio' | 'colors' | 'font' | null</code>，因此最多渲染一个向左面板。材质库只创建一次 16 张程序纹理；后续输入通过 <code>applySceneColors()</code> 原位更新九个材质颜色，背景/fog 由 R3F prop 同步，不重建纹理、相机或 Canvas。桌面、桌框与围板、收分桌腿、抽屉面、桌垫工作面、垫体/包边、本子外壳和书脊/接缝各有明确材质所有权；抽屉面从 <code>deskInset</code> 派生较深木色，纸张、贴纸、PBR 与灯光不进入调色配置。</p>
+        <p><code>scene-color-control</code> 在常驻的 <code>scene-tool-stack</code> 中同时拥有调色板按钮和颜色面板；面板以按钮为定位锚点向左展开，不再替换工具栈或隐藏独立音频入口。桌面与窄屏都为右侧按钮列预留宽度，预设卡片在正文中以两列排列，超出可用高度后只在面板正文滚动。音频、颜色和字体入口共享 <code>ProductApp</code> 的 <code>openSettingsPanel: 'audio' | 'colors' | 'font' | null</code>，因此最多渲染一个向左面板。材质库只创建一次 12 张程序纹理；后续输入通过 <code>applySceneColors()</code> 原位更新九个材质颜色，背景/fog 由 R3F prop 同步，不重建纹理、相机或 Canvas。桌垫和本子共享 cloth 纹理 family，但仍各自复用工作面/包边或封面/书脊材质对象，并通过独立材质参数响应光照；桌面、桌框与围板、收分桌腿、抽屉面、桌垫工作面、垫体/包边、本子外壳和书脊/接缝各有明确颜色所有权。抽屉面从 <code>deskInset</code> 派生较深木色，纸张、贴纸、PBR 与灯光不进入调色配置。</p>
       </section>
 
       <section id="journal-flow" data-search-title="双页日记链路">
@@ -317,7 +317,7 @@ AudioRuntime observes edges once
               <tr><td>贴纸创建事务失败</td><td>不加入内存集合并显示错误</td><td>不会留下部分 source/definition/render/instance</td></tr>
               <tr><td>贴纸移动提交失败</td><td>显示错误并重新加载持久化位置</td><td>最后一次成功位置</td></tr>
               <tr><td>WebGL 初始化失败</td><td>显示“打开本子”和“旧痕迹”DOM 降级入口；旧痕迹跳过抽屉动画</td><td>双页 DOM、历史摘要与 IndexedDB 日记链路</td></tr>
-              <tr><td>模型卸载或 StrictMode 重挂载</td><td>工厂释放自有 geometry；共享材质库释放 16 张纹理和材质；环境释放 PMREM</td><td>可序列化业务状态与 IndexedDB 数据</td></tr>
+              <tr><td>模型卸载或 StrictMode 重挂载</td><td>工厂释放自有 geometry；共享材质库释放 12 张纹理和材质；环境释放 PMREM</td><td>可序列化业务状态与 IndexedDB 数据</td></tr>
               <tr><td>模型超过预算</td><td>工厂测试失败；上限为 45 draw calls、80,000 triangles、16 textures 和一盏投影光</td><td>critical feature 不以静默删减换取通过</td></tr>
               <tr><td>reduced-motion</td><td>日期翻页的大角度旋转改为 120ms 淡出；开本 5 张临时页片显式隐藏；中央抽屉直接落到稳定端点；已批准的动作音效仍播放并可由音效开关关闭</td><td>相同游标提交、打开终态、声音偏好和边界语义</td></tr>
             </tbody>
@@ -390,10 +390,10 @@ edit historical text:
           <div><code><a href="../../src/scene/DeskScene.tsx">src/scene/DeskScene.tsx</a></code><span>R3F root、中央抽屉命中/动画、全局字体下传、相机转场、当前 scene/camera 截图命令、桌面 placement 与单 Canvas 生命周期</span></div>
           <div><code><a href="../../src/scene/capture-scene-preview.ts">src/scene/capture-scene-preview.ts</a></code><span>WebGL 画面中央裁切、640 × 360 2D canvas 缩放、WebP 优先与 PNG 回退</span></div>
           <div><code><a href="../../src/scene/SceneColorEditor.tsx">src/scene/SceneColorEditor.tsx</a></code><span>颜色/预设 Tab、九项色块/HEX、双列默认与 Blob 图片卡片、中性失败占位、命名保存、删除、重置和复制反馈</span></div>
-          <div><code><a href="../../public/assets/scene-color-presets/default-v11.webp">public/assets/scene-color-presets/default-v11.webp</a></code><span>固定远处机位、纯 3D 场景的 640 × 360 V11 内置预设图</span></div>
+          <div><code><a href="../../public/assets/scene-color-presets/default-v11.webp">public/assets/scene-color-presets/default-v11.webp</a></code><span>仍在默认卡片显示的历史 640 × 360 V11 固定图；点击卡片实际应用 V12，图片不作为当前材质证据</span></div>
           <div><code><a href="../../src/scene/scene-color.ts">src/scene/scene-color.ts</a></code><span>完整六位 HEX 校验与可复制配置序列化</span></div>
           <div><code><a href="../../src/scene/models/model-specs.ts">models/model-specs.ts</a></code><span><code>MODEL_LIMITS</code> 与三对象可序列化尺寸规格</span></div>
-          <div><code><a href="../../src/scene/models/material-library.ts">models/material-library.ts</a></code><span>从领域层复用 <code>SceneColorConfig</code>、<code>applySceneColors</code>、独立桌腿材质、默认 V11 解析与 wood/cloth/kraft/paper 的 16 张 PBR 通道</span></div>
+          <div><code><a href="../../src/scene/models/material-library.ts">models/material-library.ts</a></code><span>从领域层复用 <code>SceneColorConfig</code>、<code>applySceneColors</code>、默认 V12 解析与 wood/cloth/paper 的 12 张 PBR 通道；桌垫与本子共享 cloth 四通道纹理对象</span></div>
           <div><code><a href="../../src/scene/models/create-desk-model.ts">models/create-desk-model.ts</a></code><span><code>createDeskModel</code>、<code>setDeskDrawerProgress</code>、三抽屉、收分桌腿、实例化黄铜旋钮、附件/action 与释放入口</span></div>
           <div><code><a href="../../src/scene/models/create-desk-mat-model.ts">models/create-desk-mat-model.ts</a></code><span><code>createDeskMatModel</code>、平面圆角、滚边与实例化织线</span></div>
           <div><code><a href="../../src/scene/models/create-notebook-model.ts">models/create-notebook-model.ts</a></code><span><code>createNotebookModel</code>、中央展示锚点、<code>setOpenProgress</code>、5 页实例化转场、闭合连续壳体、全开封面板与同高页堆</span></div>
@@ -410,7 +410,7 @@ edit historical text:
       <section id="verification" data-search-title="验证证据与未覆盖边界">
         <p class="section-index">13 · 验证</p>
         <h2>自动证据、模型规格和双视口 UI 检查均已通过</h2>
-        <p>当前 120 项自动测试覆盖既有日期、保存、翻页、贴纸和迁移行为，也覆盖场景颜色预设名称/九色校验、IndexedDB v4→v5 升级、Blob CRUD、640 × 360 WebP/PNG 截图、双列无色条卡片/中性占位/object URL、应用级保存/切换/删除，以及音频偏好与播放器生命周期。ESLint、TypeScript/Vite production build、文档引用和差异空白检查均通过；生产构建继续只报告既有大 chunk 警告。<code>ego-browser</code> 在 1440 × 900 与 390 × 844 验证 640 × 360 默认图和新 Blob、320 × 180 旧 Blob 兼容、双向切色、刷新恢复、删除持久化、双列布局、无页面横向溢出和单 Canvas；此前声音、字体、本子与抽屉的浏览器证据边界继续由各自任务记录保留。</p>
+        <p>当前 121 项自动测试覆盖既有日期、保存、翻页、贴纸和迁移行为，也覆盖 V12 默认解析、V11 历史兼容、桌垫与本子共享 cloth 四通道对象、12 张实际纹理及完整释放，以及场景颜色预设名称/九色校验、IndexedDB v4→v5 升级、Blob CRUD、640 × 360 WebP/PNG 截图、双列无色条卡片/中性占位/object URL、应用级保存/切换/删除和音频偏好与播放器生命周期。ESLint、TypeScript/Vite production build、文档引用和差异空白检查均通过；生产构建继续只报告既有大 chunk 警告。历史任务曾用 <code>ego-browser</code> 在 1440 × 900 与 390 × 844 验证 V11 固定图、自定义 Blob、双向切色、刷新恢复、删除持久化、双列布局、无页面横向溢出和单 Canvas；当前会话没有可用的 ego-browser，因此这些历史证据不能替代 V12 的桌面/移动视觉验收。</p>
         <div class="table-wrap">
           <table>
             <thead><tr><th>能力</th><th>当前状态</th><th>证据边界</th></tr></thead>
@@ -424,10 +424,11 @@ edit historical text:
               <tr><td>日记页眉字体与状态精简</td><td><span class="status status-review">已完成</span></td><td>DD-20260823-006 已让实时页、标题输入和四张翻页快照的日期/页标题继承内容字体，并删除“尚未留下”“当前日期”“旧日记录”；90 项测试、lint、build、桌面/移动实时与翻页中间态、偏好刷新恢复均通过，并已由用户验收</td></tr>
               <tr><td>程序化桌子、桌垫与本子</td><td><span class="status status-review">待验收</span></td><td>本子以书脊贴桌立起、左右半册镜像摊开和逆向关闭；DD-20260824-005 在摊开中后段增加 5 张各翻一次的实例化临时页片，稳定端点与 reduced-motion 隐藏，不改变同高页堆终态。98 项全量测试、lint、build、文档引用以及桌面/移动中间帧、关闭恢复、reduced-motion、单 Canvas 和无横向溢出检查均通过，本次页片动画已由用户验收。桌子程序化近似的既有 silhouette IoU 仍为 <code>0.6311</code>，因此更大的整体模型视觉范围继续等待用户验收</td></tr>
               <tr><td>场景颜色编辑与命名预设</td><td><span class="status status-review">已完成</span></td><td>九项实时改色、左展与设置面板互斥保持不变；颜色/预设 Tab 提供 640 × 360 V11 固定图和新建 Blob、双列无色条图片卡片及中性失败占位，已有 320 × 180 Blob 兼容。点击完整切色，刷新恢复列表但不自动应用，并支持删除。29 个测试文件/120 项测试、构建、文档检查以及 1440 × 900 / 390 × 844 Blob 保存/恢复、双向切色、删除持久化、无横向溢出和单 Canvas 验收通过，用户已验收</td></tr>
+              <tr><td>桌垫概念图程序材质</td><td><span class="status status-review">待验收</span></td><td>DD-20260830-001 保留 V12 默认色，并按用户验收修订让桌垫与本子共享 cloth 四通道；实际纹理从 16 张降至 12 张，16 张资源上限不变。29 个测试文件/121 项测试、lint、production build 与文档引用检查通过；ego-browser 不可用，桌面/移动视觉、任意主色与 V12 固定预览需手动复核</td></tr>
               <tr><td>通用 DOM 与贴纸工作台重写</td><td><span class="status status-review">待验收</span></td><td><code>animal-island-ui@1.5.1</code> 经 <code>src/ui/</code> 接入；旧控件样式和旧工作台背景已删除，桌面、日记、文字/图片贴纸制作与抠图关键流程在桌面/移动端通过</td></tr>
               <tr><td>左上角 Animal Island 时间 HUD</td><td><span class="status status-review">待验收</span></td><td><code>ProductApp</code> 直接使用 <code>Time type="hud"</code>；针对性测试及 1440 × 900、390 × 844 浏览器检查确认旧记录状态已删除、无重叠与页面横向溢出</td></tr>
               <tr><td>动作音效与双通道设置</td><td><span class="status status-review">已完成</span></td><td>DD-20260824-001 已完成五条本地 MP3、状态边沿、偏好容错、开关/滑杆、延迟关本声、StrictMode 恢复和播放器释放；111 项全量测试、lint、build、文档引用、桌面/移动布局、五条真实播放调用、静音动作和刷新恢复均通过。用户已授权创建提交并接受本期结果；背景音乐文件留待后续任务，外部音效素材公开再分发许可仍待补证</td></tr>
-              <tr><td>桌面/移动产品与本地 HTML 交互</td><td><span class="status status-review">已验证</span></td><td><code>ego-browser</code> 已覆盖 1440 × 900、390 × 844、DPR 2 与 reduced-motion；单 Canvas、无页面横向溢出</td></tr>
+              <tr><td>桌面/移动产品与本地 HTML 交互</td><td><span class="status status-review">历史已验证</span></td><td><code>ego-browser</code> 历史证据已覆盖 1440 × 900、390 × 844、DPR 2、reduced-motion、单 Canvas 与无页面横向溢出；DD-20260830-001 的 V12 桌垫和本次 HTML 增量尚未执行浏览器复核</td></tr>
             </tbody>
           </table>
         </div>
@@ -437,7 +438,7 @@ edit historical text:
         </div>
       </section>
 
-  <footer>Dear Desk 当前系统架构 · 基于可运行源码、自动测试与 DD-20260825-003 实施结果 · 2026-08-26</footer>
+  <footer>Dear Desk 当前系统架构 · 基于可运行源码、自动测试与 DD-20260830-001 实施结果 · 2026-08-30</footer>
     </main>
   </div>
 

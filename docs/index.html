@@ -22,7 +22,7 @@
         <kbd aria-hidden="true">/</kbd>
         <div id="search-results" class="search-results" role="listbox" aria-label="搜索结果" hidden></div>
       </div>
-      <span class="top-meta">2026-08-26 · 场景颜色命名预设已完成</span>
+      <span class="top-meta">2026-08-30 · 桌垫程序材质待验收</span>
       <button class="toc-toggle" type="button" aria-controls="sidebar" aria-expanded="false">目录</button>
     </div>
   </header>
@@ -48,7 +48,7 @@
         <p class="lead">这里汇总当前产品范围、系统架构、每项任务的方案与实施结果。代码改动必须先有可审阅方案，完成后再把真实结果回写到同一份记录。</p>
         <div class="callout">
           <strong>当前结论</strong>
-          <p>DD-20260825-003 已在场景颜色面板增加“颜色 / 预设”Tab：用户可命名保存完整九色和保存当下机位的新建 640 × 360 WebP/PNG 场景 Blob；预设现在以一行两张的紧凑图片卡片展示，不再附带九色色条，点击可切色或独立删除。列表首项提供 640 × 360 固定 V11 默认图；已有 320 × 180 Blob 继续兼容，IndexedDB v5 跨刷新保留自定义卡片，但启动仍回到 V11。29 个测试文件/120 项测试及桌面、移动真实浏览器流程已通过，用户已验收。</p>
+          <p>DD-20260830-001 已把当前 V11 单色降为历史现状，并按概念图新增 V12：工作面基础色为 <code>#423F2C</code>，垫体与包边为 <code>#303021</code>。根据用户验收修订，桌垫与本子封面现在直接共享 cloth 四通道织纹，通过各自颜色和 PBR 参数保持不同材质响应；材质库实际纹理从 16 张降至 12 张，用户改色时不重建纹理。29 个测试文件/121 项测试、生产构建与文档检查通过；项目指定的 ego-browser 不可用，桌面/移动视觉与 V12 固定预览仍需用户手动验收，默认卡片暂时继续显示历史 V11 缩略图。</p>
         </div>
       </header>
 
@@ -79,7 +79,8 @@
               <tr><td>开放场景颜色编辑</td><td><span class="status status-review">已完成</span></td><td>DD-20260813-005 已实现九项实时调色、桌腿/桌框材质分离、重置和复制 JSON，并已完成验收。</td></tr>
               <tr><td>场景颜色面板布局统一</td><td><span class="status status-review">已完成</span></td><td>DD-20260825-001 已完成按钮左侧展开，并把音频、颜色和字体收敛为应用级单一面板状态；112 项测试及桌面/移动逐步互斥复验通过，用户已验收。</td></tr>
               <tr><td>桌垫默认色概念对齐</td><td><span class="status status-review">已完成</span></td><td>DD-20260825-002 已新增 V11，将默认桌垫从蓝灰改为概念图方向的橄榄苔绿；112 项测试和桌面/移动复验通过，V1-V10 历史值及其他场景角色色保持不变，用户已验收。</td></tr>
-              <tr><td>场景颜色命名预设</td><td><span class="status status-review">已完成</span></td><td>DD-20260825-003 已实现颜色/预设 Tab、640 × 360 固定 V11 图与新建场景 Blob、双列紧凑图片卡片、命名九色快照、切色和删除；图下色条已移除，已有 320 × 180 Blob 继续兼容。IndexedDB v5 跨刷新保存列表，启动色仍为 V11。120 项测试及桌面/移动持久化流程通过，用户已验收。</td></tr>
+              <tr><td>桌垫概念图程序材质</td><td><span class="status status-review">待验收</span></td><td>DD-20260830-001 保留 V12 默认工作面/包边 #423F2C / #303021，并按验收修订让桌垫与本子共享 cloth 四通道；实际纹理数降为 12。121 项测试、构建与文档检查通过，ego-browser 不可用导致桌面/移动视觉和 V12 固定预览待手动复核。</td></tr>
+              <tr><td>场景颜色命名预设</td><td><span class="status status-review">已完成</span></td><td>DD-20260825-003 已实现颜色/预设 Tab、640 × 360 固定 V11 图与新建场景 Blob、双列紧凑图片卡片、命名九色快照、切色和删除；图下色条已移除，已有 320 × 180 Blob 继续兼容。IndexedDB v5 跨刷新保存列表；该任务当时的启动色为 V11，当前启动、重置和默认卡片应用值已由 DD-20260830-001 切换为 V12。120 项历史测试及桌面/移动持久化流程通过，用户已验收。</td></tr>
               <tr><td>日记阅读与书写模式</td><td><span class="status status-review">已完成</span></td><td>DD-20260809-004 已实现双页阅读/书写模式、历史编辑与 dirty 离开保护，并已完成验收。</td></tr>
               <tr><td>当前分支</td><td><code>main</code></td><td>DD-20260824-002、003、004 及两份已取消历史记录由本次提交纳入 Git 历史；音频方案记录仍作为并行工作保留在工作区。</td></tr>
             </tbody>
@@ -134,6 +135,7 @@
               <tr><td><a href="./changes/2026-08-25-001-align-scene-color-panel-with-tool-stack.md">统一场景颜色面板布局</a></td><td>查看按钮左侧锚定、响应式宽度、首次验证，以及音频/颜色/字体全局互斥的验收修订。</td><td>已完成</td></tr>
               <tr><td><a href="./changes/2026-08-25-002-align-default-desk-mat-color-with-concept.md">对齐桌垫默认颜色与概念图</a></td><td>查看 V11 默认调色、V2 历史值保留、概念图色值证据和桌面/移动验证。</td><td>已完成</td></tr>
               <tr><td><a href="./changes/2026-08-25-003-save-scene-color-presets.md">保存并切换场景颜色预设</a></td><td>查看颜色/预设 Tab、命名九色快照、场景 Blob、V11 固定图、IndexedDB v5 与双视口持久化验证。</td><td>已完成</td></tr>
+              <tr><td><a href="./changes/2026-08-30-001-procedural-desk-mat-color-texture.md">桌垫主色驱动的程序化颜色纹理</a></td><td>查看概念图取样、V12 默认色、桌垫与本子共享 cloth 的验收修订、纹理所有权、测试结果和未覆盖的手动视觉验收。</td><td>待验收</td></tr>
               <tr><td><a href="./changes/2026-08-09-004-journal-reading-writing-modes.md">日记阅读与书写模式</a></td><td>查看左页留白、右页单日期、历史可编辑、本子外两级模式控件和未保存保护。</td><td>已完成</td></tr>
               <tr><td><a href="./changes/2026-08-21-003-font-license-and-task-closeout.md">OFL 字体与任务状态收尾</a></td><td>查看历史字体事实、许可证边界、验收通过任务和取消/替代记录。</td><td>已替代</td></tr>
               <tr><td><a href="./changes/2026-08-21-004-remove-dev-font-add-zhi-mang-xing.md">志莽行书字体替换</a></td><td>查看云峰晶晶体移除、志莽行书 OFL 资源、旧偏好回退和离线加载验证。</td><td>已完成</td></tr>
@@ -198,7 +200,7 @@
         <h2>当前应用已经形成程序化桌面、双页日记与双 surface 贴纸链路</h2>
         <p>React 应用通过 Zustand 协调今天、历史页面游标、本子状态机和贴纸工作流；四个 Dexie repository 分别把正文、贴纸资源与 placement、铭牌设置、命名场景颜色与预览 Blob 保存到 IndexedDB v5。WebGL 任意时刻只有一个活跃 Canvas：桌面阶段由 R3F 拥有，制作阶段切换给固定 commit 的 Sticker Forge；颜色预览只把当前帧复制到离屏 2D canvas。</p>
         <p>日记链路是“正文日期 + 日记贴纸日期 + 今天 -> 排序页序 -> 右页游标 -> 独立按钮意图 -> 目标预读 -> 当前/目标四页只读快照 -> <code>page-flip</code> 折页 -> 完成后提交游标”。书写链路是“阅读 -> 编辑 -> 书写 -> <code>saveJournalEntry(rightDate, draft)</code> -> 收笔”；历史正文可编辑，但历史浏览仍与始终指向今天的 <code>selectedDate</code> 分离。</p>
-        <p>桌面渲染由三个 plain Three.js <code>Group</code> 工厂和共享 1024px 程序 PBR 材质库组成。可序列化 spec 是源码事实，<code>userData.sculptRuntime</code> 只在 Canvas 生命周期内暴露节点、socket 和 collider；Mesh、Material 与 Texture 不进入 Zustand 或 IndexedDB。桌垫可见模型和 placement 命中面分离，应用任意时刻仍只有一个活跃 WebGL Canvas。</p>
+        <p>桌面渲染由三个 plain Three.js <code>Group</code> 工厂和共享 1024px 程序 PBR 材质库组成。V2.2 材质库为 wood、cloth、paper 三个 family 生成 12 张纹理；V12 桌垫与本子封面直接共享 cloth 的中性 albedo、AO、height 和 roughness，再以独立主色和 PBR 参数区分视觉响应。可序列化 spec 是源码事实，<code>userData.sculptRuntime</code> 只在 Canvas 生命周期内暴露节点、socket 和 collider；Mesh、Material 与 Texture 不进入 Zustand 或 IndexedDB。桌垫可见模型和 placement 命中面分离，应用任意时刻仍只有一个活跃 WebGL Canvas。</p>
         <p>通用 DOM 控件统一从 <code>src/ui/</code> 导入，由适配层隔离 <code>animal-island-ui@1.5.1</code> 并补齐原生 disabled/ARIA 语义。第二轮不再恢复旧视觉：日期状态、桌面入口、日记外置命令和贴纸工具保留组件库的浅色胶囊与按压反馈；贴纸工作台整体改为浅薄荷点阵制作空间、暖白预览框和圆角控制面板。常驻品牌/“本地”顶栏已删除，桌面与工作台从视口顶端开始。日记纸页、textarea、文件上传语义、色板、滑杆、Forge mount、贴纸命中和抠图 Canvas 仍属于领域界面。该依赖按用户确认的非商业用途使用，署名与许可证边界记录在 <code>THIRD_PARTY_NOTICES.md</code>。</p>
         <div class="source-map">
           <div><code>src/main.tsx</code><span>组合 repository、store 与 React 根</span></div>
@@ -215,7 +217,7 @@
       </section>
 
       <footer>
-        Dear Desk 项目文档 · 当前内容依据仓库实际文件整理 · 更新于 2026-08-26
+        Dear Desk 项目文档 · 当前内容依据仓库实际文件整理 · 更新于 2026-08-30
       </footer>
     </main>
   </div>
