@@ -1,0 +1,1 @@
+{"model":"simple-study-room-shell","parts":[{"name":"root","kind":"part","module":"room-shell"},{"name":"floor","kind":"part","module":"wood-floor"},{"name":"walls","kind":"part","module":"four-wall-shell"},{"name":"window","kind":"part","module":"west-four-pane-window"}],"unnamedMeshes":0,"integralMeshes":0}

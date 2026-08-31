@@ -113,3 +113,33 @@ export const NOTEBOOK_MODEL_SPEC = {
     width: 0.32,
   },
 } as const
+
+export const STUDY_ROOM_MODEL_SPEC = {
+  floorTopY: -5.025,
+  wallTopY: 12.975,
+  ceilingInset: 0.02,
+  wallThickness: 0.12,
+  interior: { width: 42, depth: 33 },
+  window: {
+    centerZ: -7.8,
+    bottomY: -1.45,
+    topY: 11.2,
+    width: 10.3,
+    frameDepth: 0.42,
+    frameWidth: 0.28,
+    sillDepth: 1.05,
+    sillHeight: 0.22,
+    sillOverhang: 0.68,
+    apronHeight: 0.22,
+    mullionWidth: 0.18,
+  },
+  baseboard: { capHeight: 0.12, capInset: 0.18, height: 0.94, depth: 0.26, inset: 0.13 },
+  plankCount: 38,
+  plankGap: 0.04,
+  plankThickness: 0.04,
+  textureResolution: 512,
+  textureRepeat: {
+    floor: [1, 2.5] as const,
+    wall: [4, 3] as const,
+  },
+} as const

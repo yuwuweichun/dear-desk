@@ -5,6 +5,7 @@ import * as THREE from 'three'
 import { createDeskMatModel } from './models/create-desk-mat-model'
 import { createDeskModel } from './models/create-desk-model'
 import { createNotebookModel } from './models/create-notebook-model'
+import { createStudyRoomShellModel } from './models/create-study-room-shell-model'
 import {
   createModelMaterialLibrary,
   type ModelMaterialLibrary,
@@ -24,7 +25,7 @@ extend({
   PlaneGeometry: THREE.PlaneGeometry,
 })
 
-export type ModelReviewKind = 'desk' | 'mat' | 'notebook'
+export type ModelReviewKind = 'desk' | 'mat' | 'notebook' | 'room'
 
 interface ModelReviewSceneProps {
   light?: string | null
@@ -120,12 +121,25 @@ const REVIEW_VIEWS = {
       up: [0, 0, -1],
     },
   },
+  room: {
+    'concept-perspective': {
+      fov: 34,
+      position: [14.5, 0.5, 16],
+      target: [-9.3, -2.2, -8.5],
+    },
+    'opposite-corner': {
+      fov: 43,
+      position: [-15.5, 1.8, -16.5],
+      target: [8.5, -0.7, 8.5],
+    },
+  },
 } as const satisfies Record<ModelReviewKind, Record<string, CameraPose>>
 
 const DEFAULT_VIEWS: Record<ModelReviewKind, string> = {
   desk: 'front-three-quarter',
   mat: 'top',
   notebook: 'closed-three-quarter',
+  room: 'concept-perspective',
 }
 
 const LIGHT_SETTINGS: Record<
@@ -205,7 +219,7 @@ const applyCameraPose = (
   camera.lookAt(...pose.target)
   camera.fov = pose.fov
   camera.near = 0.1
-  camera.far = 60
+  camera.far = 100
   camera.updateProjectionMatrix()
   camera.updateMatrixWorld(true)
 }
@@ -232,12 +246,14 @@ function createReviewModel(
   pass: ModelBuildPass,
   notebookState: NotebookReviewState,
 ) {
-  const options = { castShadow: true, pass, receiveShadow: true }
+  const options = { castShadow: model !== 'room', pass, receiveShadow: true }
   const subject = model === 'desk'
     ? createDeskModel(materials, options)
     : model === 'mat'
       ? createDeskMatModel(materials, options)
-      : createNotebookModel(materials, options)
+      : model === 'notebook'
+        ? createNotebookModel(materials, options)
+        : createStudyRoomShellModel(options)
 
   if (model === 'notebook') {
     const setOpenProgress = subject.userData.setOpenProgress
@@ -283,18 +299,23 @@ function ReviewSubject({
   return subject ? <primitive object={subject} dispose={null} /> : null
 }
 
-function ReviewLighting({ light }: { light: ReviewLight }) {
+function ReviewLighting({ light, model }: { light: ReviewLight; model: ModelReviewKind }) {
   const settings = LIGHT_SETTINGS[light]
+  const room = model === 'room'
 
   return (
     <>
       <hemisphereLight
-        args={[settings.fillColor, '#07100b', settings.fillIntensity]}
+        args={[
+          room ? '#d7dacb' : settings.fillColor,
+          room ? '#6b5745' : '#07100b',
+          room ? 0.3 : settings.fillIntensity,
+        ]}
       />
       <directionalLight
         castShadow
-        color={settings.keyColor}
-        intensity={settings.keyIntensity}
+        color={room ? '#eef0dc' : settings.keyColor}
+        intensity={room ? 0.44 : settings.keyIntensity}
         position={[...settings.keyPosition]}
         shadow-bias={-0.00016}
         shadow-camera-bottom={-10}
@@ -309,7 +330,7 @@ function ReviewLighting({ light }: { light: ReviewLight }) {
       />
       <directionalLight
         color="#9eb6a8"
-        intensity={light === 'neutral' ? 0.12 : 0.16}
+        intensity={room ? 0.12 : light === 'neutral' ? 0.12 : 0.16}
         position={[7, 5, -6]}
       />
     </>
@@ -327,12 +348,12 @@ function ReviewWorld({
 }) {
   return (
     <>
-      <color attach="background" args={['#111111']} />
+      <color attach="background" args={[model === 'room' ? '#dbe4d6' : '#111111']} />
       <SceneEnvironment
         intensity={LIGHT_SETTINGS[configuration.light].environmentIntensity}
       />
       <ReviewCamera pose={configuration.pose} />
-      <ReviewLighting light={configuration.light} />
+      <ReviewLighting light={configuration.light} model={model} />
       <ReviewSubject
         model={model}
         notebookState={configuration.notebookState}
@@ -366,7 +387,7 @@ export function ModelReviewScene({
     >
       <Canvas
         aria-label={`${model} 模型审查画布`}
-        camera={{ far: 60, fov: configuration.pose.fov, near: 0.1 }}
+        camera={{ far: 100, fov: configuration.pose.fov, near: 0.1 }}
         dpr={[1, 1.5]}
         gl={{ antialias: true, alpha: false, powerPreference: 'high-performance' }}
         onCreated={({ gl }) => {

@@ -1,0 +1,1617 @@
+{
+  "schemaVersion": 1,
+  "kind": "img2threejs.material-analysis",
+  "referenceId": "simple-study-room-shell-reference-pack",
+  "manifest": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-regions.json",
+  "registry": "/mnt/c/Users/18379/.codex/skills/img2threejs/docs/materials/material-reference.json",
+  "targetThreshold": 0.7,
+  "notObservedMaterials": [],
+  "unresolvedNotObservedMaterials": [],
+  "regions": [
+    {
+      "componentId": "walls",
+      "regionId": "wall-paint",
+      "materialSpecId": "wall-paint",
+      "hypothesis": {
+        "componentId": "walls",
+        "regionId": "wall-paint",
+        "materialId": null,
+        "family": "paint",
+        "subtype": "painted-plaster",
+        "finish": "matte",
+        "aliases": [],
+        "confidence": 0.85,
+        "source": "vision"
+      },
+      "assignment": {
+        "materialId": null,
+        "status": "unknown",
+        "source": "vision",
+        "confidence": 0.0,
+        "method": "unresolved",
+        "alternatives": [],
+        "evidence": {
+          "crop": {
+            "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/00-wall-paint.png",
+            "bbox": {
+              "x": 700,
+              "y": 80,
+              "width": 700,
+              "height": 500
+            },
+            "sourceWidth": 1672,
+            "sourceHeight": 941,
+            "loaderWarnings": [],
+            "coverage": 0.2225
+          },
+          "pbr": {
+            "ok": true,
+            "verdict": "pass",
+            "confidence": 0.85,
+            "estimatedFidelity": 0.85,
+            "targetThreshold": 0.7,
+            "materialId": "wall-paint",
+            "sourceImage": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/00-wall-paint.png",
+            "outDir": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-00-wall-paint",
+            "palette": [
+              "#464638",
+              "#3E3E30",
+              "#4D4D3F",
+              "#565446",
+              "#323125"
+            ],
+            "maps": {
+              "albedo": {
+                "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-00-wall-paint/wall-paint_albedo.png",
+                "url": "wall-paint_albedo.png",
+                "channel": "albedo",
+                "source": "reference-pixel-extraction"
+              },
+              "roughness": {
+                "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-00-wall-paint/wall-paint_roughness.png",
+                "url": "wall-paint_roughness.png",
+                "channel": "roughness",
+                "source": "reference-pixel-extraction"
+              },
+              "height": {
+                "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-00-wall-paint/wall-paint_height.png",
+                "url": "wall-paint_height.png",
+                "channel": "height",
+                "source": "reference-pixel-extraction"
+              },
+              "normal": {
+                "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-00-wall-paint/wall-paint_normal.png",
+                "url": "wall-paint_normal.png",
+                "channel": "normal",
+                "source": "reference-pixel-extraction"
+              },
+              "ao": {
+                "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-00-wall-paint/wall-paint_ao.png",
+                "url": "wall-paint_ao.png",
+                "channel": "ao",
+                "source": "reference-pixel-extraction"
+              }
+            },
+            "diagnostics": {
+              "sourceWidth": 700,
+              "sourceHeight": 500,
+              "mapSize": 512,
+              "cropBBoxPixels": {
+                "x": 0,
+                "y": 0,
+                "width": 348,
+                "height": 500
+              },
+              "mask": {
+                "backgroundColor": "#6A685C",
+                "backgroundNoise": 67.565,
+                "transparentPixelFraction": 0.0,
+                "foregroundCoverage": 0.2264
+              },
+              "mapStats": {
+                "valueRange": 0.137,
+                "heightP90Gradient": 0.03973,
+                "roughnessBase": 0.687,
+                "roughnessVariation": 0.054,
+                "normalStrength": 0.203,
+                "blurRadius": 10
+              },
+              "palette": [
+                "#464638",
+                "#3E3E30",
+                "#4D4D3F",
+                "#565446",
+                "#323125"
+              ]
+            },
+            "warnings": [
+              "low value range weakens height/roughness inference"
+            ],
+            "limitation": "single-image PBR extraction is an estimate; 70%+ extraction confidence still needs render screenshot review"
+          },
+          "texture": {
+            "finishClass": "worn-composite",
+            "recipe": {
+              "metalness": 0.0,
+              "roughness": 0.9,
+              "clearcoat": 0.0,
+              "clearcoatRoughness": 0.0,
+              "transmission": 0.0,
+              "ior": 1.5,
+              "envMapIntensity": 0.5,
+              "anisotropy": 0.0,
+              "procedural": "mottle"
+            },
+            "palette": [
+              "#454537",
+              "#464537",
+              "#595A4C",
+              "#717368",
+              "#7E8075"
+            ],
+            "paletteHueRisk": [],
+            "gradientAxis": "horizontal",
+            "stats": {
+              "meanLum": 91.2,
+              "meanSaturation": 0.157,
+              "gradientStrength": 0.284,
+              "mottle": 0.006,
+              "streakRatio": 1.18,
+              "hueSpread": 0.008,
+              "specularFraction": 0.0
+            }
+          }
+        }
+      },
+      "observations": [
+        "near-neutral colour response",
+        "strong image-space gradient; verify it is material pattern, not lighting",
+        "single-image PBR inference requires controlled render validation"
+      ],
+      "crop": {
+        "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/00-wall-paint.png",
+        "bbox": {
+          "x": 700,
+          "y": 80,
+          "width": 700,
+          "height": 500
+        },
+        "sourceWidth": 1672,
+        "sourceHeight": 941,
+        "loaderWarnings": [],
+        "coverage": 0.2225
+      },
+      "textureAnalysis": {
+        "finishClass": "worn-composite",
+        "recipe": {
+          "metalness": 0.0,
+          "roughness": 0.9,
+          "clearcoat": 0.0,
+          "clearcoatRoughness": 0.0,
+          "transmission": 0.0,
+          "ior": 1.5,
+          "envMapIntensity": 0.5,
+          "anisotropy": 0.0,
+          "procedural": "mottle"
+        },
+        "palette": [
+          "#454537",
+          "#464537",
+          "#595A4C",
+          "#717368",
+          "#7E8075"
+        ],
+        "paletteHueRisk": [],
+        "gradientAxis": "horizontal",
+        "stats": {
+          "meanLum": 91.2,
+          "meanSaturation": 0.157,
+          "gradientStrength": 0.284,
+          "mottle": 0.006,
+          "streakRatio": 1.18,
+          "hueSpread": 0.008,
+          "specularFraction": 0.0
+        }
+      },
+      "pbrReport": {
+        "ok": true,
+        "verdict": "pass",
+        "confidence": 0.85,
+        "estimatedFidelity": 0.85,
+        "targetThreshold": 0.7,
+        "materialId": "wall-paint",
+        "sourceImage": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/00-wall-paint.png",
+        "outDir": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-00-wall-paint",
+        "palette": [
+          "#464638",
+          "#3E3E30",
+          "#4D4D3F",
+          "#565446",
+          "#323125"
+        ],
+        "maps": {
+          "albedo": {
+            "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-00-wall-paint/wall-paint_albedo.png",
+            "url": "wall-paint_albedo.png",
+            "channel": "albedo",
+            "source": "reference-pixel-extraction"
+          },
+          "roughness": {
+            "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-00-wall-paint/wall-paint_roughness.png",
+            "url": "wall-paint_roughness.png",
+            "channel": "roughness",
+            "source": "reference-pixel-extraction"
+          },
+          "height": {
+            "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-00-wall-paint/wall-paint_height.png",
+            "url": "wall-paint_height.png",
+            "channel": "height",
+            "source": "reference-pixel-extraction"
+          },
+          "normal": {
+            "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-00-wall-paint/wall-paint_normal.png",
+            "url": "wall-paint_normal.png",
+            "channel": "normal",
+            "source": "reference-pixel-extraction"
+          },
+          "ao": {
+            "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-00-wall-paint/wall-paint_ao.png",
+            "url": "wall-paint_ao.png",
+            "channel": "ao",
+            "source": "reference-pixel-extraction"
+          }
+        },
+        "diagnostics": {
+          "sourceWidth": 700,
+          "sourceHeight": 500,
+          "mapSize": 512,
+          "cropBBoxPixels": {
+            "x": 0,
+            "y": 0,
+            "width": 348,
+            "height": 500
+          },
+          "mask": {
+            "backgroundColor": "#6A685C",
+            "backgroundNoise": 67.565,
+            "transparentPixelFraction": 0.0,
+            "foregroundCoverage": 0.2264
+          },
+          "mapStats": {
+            "valueRange": 0.137,
+            "heightP90Gradient": 0.03973,
+            "roughnessBase": 0.687,
+            "roughnessVariation": 0.054,
+            "normalStrength": 0.203,
+            "blurRadius": 10
+          },
+          "palette": [
+            "#464638",
+            "#3E3E30",
+            "#4D4D3F",
+            "#565446",
+            "#323125"
+          ]
+        },
+        "warnings": [
+          "low value range weakens height/roughness inference"
+        ],
+        "limitation": "single-image PBR extraction is an estimate; 70%+ extraction confidence still needs render screenshot review"
+      },
+      "referencePbr": {
+        "version": "1.0",
+        "sourceImage": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/00-wall-paint.png",
+        "extractor": "stage1_intake/extract_pbr_evidence.py",
+        "method": "single-image pixel evidence with de-lighting estimate; not photogrammetry",
+        "usable": true,
+        "verdict": "pass",
+        "confidence": 0.85,
+        "estimatedFidelity": 0.85,
+        "targetThreshold": 0.7,
+        "hardLimit": "A single image cannot uniquely recover true albedo/roughness/normal/AO; maps are reference-derived estimates.",
+        "maps": {
+          "albedo": {
+            "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-00-wall-paint/wall-paint_albedo.png",
+            "url": "wall-paint_albedo.png",
+            "channel": "albedo",
+            "source": "reference-pixel-extraction"
+          },
+          "roughness": {
+            "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-00-wall-paint/wall-paint_roughness.png",
+            "url": "wall-paint_roughness.png",
+            "channel": "roughness",
+            "source": "reference-pixel-extraction"
+          },
+          "height": {
+            "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-00-wall-paint/wall-paint_height.png",
+            "url": "wall-paint_height.png",
+            "channel": "height",
+            "source": "reference-pixel-extraction"
+          },
+          "normal": {
+            "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-00-wall-paint/wall-paint_normal.png",
+            "url": "wall-paint_normal.png",
+            "channel": "normal",
+            "source": "reference-pixel-extraction"
+          },
+          "ao": {
+            "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-00-wall-paint/wall-paint_ao.png",
+            "url": "wall-paint_ao.png",
+            "channel": "ao",
+            "source": "reference-pixel-extraction"
+          }
+        },
+        "diagnostics": {
+          "sourceWidth": 700,
+          "sourceHeight": 500,
+          "mapSize": 512,
+          "cropBBoxPixels": {
+            "x": 0,
+            "y": 0,
+            "width": 348,
+            "height": 500
+          },
+          "mask": {
+            "backgroundColor": "#6A685C",
+            "backgroundNoise": 67.565,
+            "transparentPixelFraction": 0.0,
+            "foregroundCoverage": 0.2264
+          },
+          "mapStats": {
+            "valueRange": 0.137,
+            "heightP90Gradient": 0.03973,
+            "roughnessBase": 0.687,
+            "roughnessVariation": 0.054,
+            "normalStrength": 0.203,
+            "blurRadius": 10
+          },
+          "palette": [
+            "#464638",
+            "#3E3E30",
+            "#4D4D3F",
+            "#565446",
+            "#323125"
+          ]
+        },
+        "warnings": [
+          "low value range weakens height/roughness inference"
+        ]
+      },
+      "maps": {
+        "albedo": {
+          "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-00-wall-paint/wall-paint_albedo.png",
+          "url": "wall-paint_albedo.png",
+          "channel": "albedo",
+          "source": "reference-pixel-extraction"
+        },
+        "roughness": {
+          "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-00-wall-paint/wall-paint_roughness.png",
+          "url": "wall-paint_roughness.png",
+          "channel": "roughness",
+          "source": "reference-pixel-extraction"
+        },
+        "height": {
+          "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-00-wall-paint/wall-paint_height.png",
+          "url": "wall-paint_height.png",
+          "channel": "height",
+          "source": "reference-pixel-extraction"
+        },
+        "normal": {
+          "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-00-wall-paint/wall-paint_normal.png",
+          "url": "wall-paint_normal.png",
+          "channel": "normal",
+          "source": "reference-pixel-extraction"
+        },
+        "ao": {
+          "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-00-wall-paint/wall-paint_ao.png",
+          "url": "wall-paint_ao.png",
+          "channel": "ao",
+          "source": "reference-pixel-extraction"
+        }
+      }
+    },
+    {
+      "componentId": "floor",
+      "regionId": "floor-wood",
+      "materialSpecId": "floor-wood",
+      "hypothesis": {
+        "componentId": "floor",
+        "regionId": "floor-wood",
+        "materialId": null,
+        "family": "wood",
+        "subtype": "flooring",
+        "finish": "satin",
+        "aliases": [],
+        "confidence": 0.908,
+        "source": "vision"
+      },
+      "assignment": {
+        "materialId": null,
+        "status": "request-input",
+        "source": "vision",
+        "confidence": 0.0,
+        "method": "unresolved",
+        "alternatives": [
+          "wood.unfinished",
+          "wood.varnished"
+        ],
+        "evidence": {
+          "crop": {
+            "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/01-floor-wood.png",
+            "bbox": {
+              "x": 420,
+              "y": 520,
+              "width": 1000,
+              "height": 380
+            },
+            "sourceWidth": 1672,
+            "sourceHeight": 941,
+            "loaderWarnings": [],
+            "coverage": 0.2415
+          },
+          "pbr": {
+            "ok": true,
+            "verdict": "pass",
+            "confidence": 0.908,
+            "estimatedFidelity": 0.908,
+            "targetThreshold": 0.7,
+            "materialId": "floor-wood",
+            "sourceImage": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/01-floor-wood.png",
+            "outDir": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-01-floor-wood",
+            "palette": [
+              "#784F30",
+              "#A6724B",
+              "#595546",
+              "#4C3622",
+              "#CCA180"
+            ],
+            "maps": {
+              "albedo": {
+                "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-01-floor-wood/floor-wood_albedo.png",
+                "url": "floor-wood_albedo.png",
+                "channel": "albedo",
+                "source": "reference-pixel-extraction"
+              },
+              "roughness": {
+                "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-01-floor-wood/floor-wood_roughness.png",
+                "url": "floor-wood_roughness.png",
+                "channel": "roughness",
+                "source": "reference-pixel-extraction"
+              },
+              "height": {
+                "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-01-floor-wood/floor-wood_height.png",
+                "url": "floor-wood_height.png",
+                "channel": "height",
+                "source": "reference-pixel-extraction"
+              },
+              "normal": {
+                "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-01-floor-wood/floor-wood_normal.png",
+                "url": "floor-wood_normal.png",
+                "channel": "normal",
+                "source": "reference-pixel-extraction"
+              },
+              "ao": {
+                "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-01-floor-wood/floor-wood_ao.png",
+                "url": "floor-wood_ao.png",
+                "channel": "ao",
+                "source": "reference-pixel-extraction"
+              }
+            },
+            "diagnostics": {
+              "sourceWidth": 1000,
+              "sourceHeight": 380,
+              "mapSize": 512,
+              "cropBBoxPixels": {
+                "x": 0,
+                "y": 0,
+                "width": 1000,
+                "height": 380
+              },
+              "mask": {
+                "backgroundColor": "#88897E",
+                "backgroundNoise": 162.644,
+                "transparentPixelFraction": 0.0,
+                "foregroundCoverage": 0.7209
+              },
+              "mapStats": {
+                "valueRange": 0.4652,
+                "heightP90Gradient": 0.03738,
+                "roughnessBase": 0.7,
+                "roughnessVariation": 0.073,
+                "normalStrength": 0.2,
+                "blurRadius": 10
+              },
+              "palette": [
+                "#784F30",
+                "#A6724B",
+                "#595546",
+                "#4C3622",
+                "#CCA180"
+              ]
+            },
+            "warnings": [],
+            "limitation": "single-image PBR extraction is an estimate; 70%+ extraction confidence still needs render screenshot review"
+          },
+          "texture": {
+            "finishClass": "painted-metal",
+            "recipe": {
+              "metalness": 0.0,
+              "roughness": 0.5,
+              "clearcoat": 1.0,
+              "clearcoatRoughness": 0.05,
+              "transmission": 0.0,
+              "ior": 1.5,
+              "envMapIntensity": 1.0,
+              "anisotropy": 0.0,
+              "procedural": "flat-clearcoat"
+            },
+            "palette": [
+              "#A49588",
+              "#846649",
+              "#7D6146",
+              "#806C58",
+              "#746655"
+            ],
+            "paletteHueRisk": [],
+            "gradientAxis": "horizontal",
+            "stats": {
+              "meanLum": 111.8,
+              "meanSaturation": 0.361,
+              "gradientStrength": 0.242,
+              "mottle": 0.027,
+              "streakRatio": 1.0,
+              "hueSpread": 0.004,
+              "specularFraction": 0.006
+            }
+          }
+        }
+      },
+      "observations": [
+        "chromatic base-colour response",
+        "strong image-space gradient; verify it is material pattern, not lighting",
+        "single-image PBR inference requires controlled render validation"
+      ],
+      "crop": {
+        "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/01-floor-wood.png",
+        "bbox": {
+          "x": 420,
+          "y": 520,
+          "width": 1000,
+          "height": 380
+        },
+        "sourceWidth": 1672,
+        "sourceHeight": 941,
+        "loaderWarnings": [],
+        "coverage": 0.2415
+      },
+      "textureAnalysis": {
+        "finishClass": "painted-metal",
+        "recipe": {
+          "metalness": 0.0,
+          "roughness": 0.5,
+          "clearcoat": 1.0,
+          "clearcoatRoughness": 0.05,
+          "transmission": 0.0,
+          "ior": 1.5,
+          "envMapIntensity": 1.0,
+          "anisotropy": 0.0,
+          "procedural": "flat-clearcoat"
+        },
+        "palette": [
+          "#A49588",
+          "#846649",
+          "#7D6146",
+          "#806C58",
+          "#746655"
+        ],
+        "paletteHueRisk": [],
+        "gradientAxis": "horizontal",
+        "stats": {
+          "meanLum": 111.8,
+          "meanSaturation": 0.361,
+          "gradientStrength": 0.242,
+          "mottle": 0.027,
+          "streakRatio": 1.0,
+          "hueSpread": 0.004,
+          "specularFraction": 0.006
+        }
+      },
+      "pbrReport": {
+        "ok": true,
+        "verdict": "pass",
+        "confidence": 0.908,
+        "estimatedFidelity": 0.908,
+        "targetThreshold": 0.7,
+        "materialId": "floor-wood",
+        "sourceImage": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/01-floor-wood.png",
+        "outDir": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-01-floor-wood",
+        "palette": [
+          "#784F30",
+          "#A6724B",
+          "#595546",
+          "#4C3622",
+          "#CCA180"
+        ],
+        "maps": {
+          "albedo": {
+            "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-01-floor-wood/floor-wood_albedo.png",
+            "url": "floor-wood_albedo.png",
+            "channel": "albedo",
+            "source": "reference-pixel-extraction"
+          },
+          "roughness": {
+            "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-01-floor-wood/floor-wood_roughness.png",
+            "url": "floor-wood_roughness.png",
+            "channel": "roughness",
+            "source": "reference-pixel-extraction"
+          },
+          "height": {
+            "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-01-floor-wood/floor-wood_height.png",
+            "url": "floor-wood_height.png",
+            "channel": "height",
+            "source": "reference-pixel-extraction"
+          },
+          "normal": {
+            "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-01-floor-wood/floor-wood_normal.png",
+            "url": "floor-wood_normal.png",
+            "channel": "normal",
+            "source": "reference-pixel-extraction"
+          },
+          "ao": {
+            "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-01-floor-wood/floor-wood_ao.png",
+            "url": "floor-wood_ao.png",
+            "channel": "ao",
+            "source": "reference-pixel-extraction"
+          }
+        },
+        "diagnostics": {
+          "sourceWidth": 1000,
+          "sourceHeight": 380,
+          "mapSize": 512,
+          "cropBBoxPixels": {
+            "x": 0,
+            "y": 0,
+            "width": 1000,
+            "height": 380
+          },
+          "mask": {
+            "backgroundColor": "#88897E",
+            "backgroundNoise": 162.644,
+            "transparentPixelFraction": 0.0,
+            "foregroundCoverage": 0.7209
+          },
+          "mapStats": {
+            "valueRange": 0.4652,
+            "heightP90Gradient": 0.03738,
+            "roughnessBase": 0.7,
+            "roughnessVariation": 0.073,
+            "normalStrength": 0.2,
+            "blurRadius": 10
+          },
+          "palette": [
+            "#784F30",
+            "#A6724B",
+            "#595546",
+            "#4C3622",
+            "#CCA180"
+          ]
+        },
+        "warnings": [],
+        "limitation": "single-image PBR extraction is an estimate; 70%+ extraction confidence still needs render screenshot review"
+      },
+      "referencePbr": {
+        "version": "1.0",
+        "sourceImage": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/01-floor-wood.png",
+        "extractor": "stage1_intake/extract_pbr_evidence.py",
+        "method": "single-image pixel evidence with de-lighting estimate; not photogrammetry",
+        "usable": true,
+        "verdict": "pass",
+        "confidence": 0.908,
+        "estimatedFidelity": 0.908,
+        "targetThreshold": 0.7,
+        "hardLimit": "A single image cannot uniquely recover true albedo/roughness/normal/AO; maps are reference-derived estimates.",
+        "maps": {
+          "albedo": {
+            "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-01-floor-wood/floor-wood_albedo.png",
+            "url": "floor-wood_albedo.png",
+            "channel": "albedo",
+            "source": "reference-pixel-extraction"
+          },
+          "roughness": {
+            "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-01-floor-wood/floor-wood_roughness.png",
+            "url": "floor-wood_roughness.png",
+            "channel": "roughness",
+            "source": "reference-pixel-extraction"
+          },
+          "height": {
+            "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-01-floor-wood/floor-wood_height.png",
+            "url": "floor-wood_height.png",
+            "channel": "height",
+            "source": "reference-pixel-extraction"
+          },
+          "normal": {
+            "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-01-floor-wood/floor-wood_normal.png",
+            "url": "floor-wood_normal.png",
+            "channel": "normal",
+            "source": "reference-pixel-extraction"
+          },
+          "ao": {
+            "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-01-floor-wood/floor-wood_ao.png",
+            "url": "floor-wood_ao.png",
+            "channel": "ao",
+            "source": "reference-pixel-extraction"
+          }
+        },
+        "diagnostics": {
+          "sourceWidth": 1000,
+          "sourceHeight": 380,
+          "mapSize": 512,
+          "cropBBoxPixels": {
+            "x": 0,
+            "y": 0,
+            "width": 1000,
+            "height": 380
+          },
+          "mask": {
+            "backgroundColor": "#88897E",
+            "backgroundNoise": 162.644,
+            "transparentPixelFraction": 0.0,
+            "foregroundCoverage": 0.7209
+          },
+          "mapStats": {
+            "valueRange": 0.4652,
+            "heightP90Gradient": 0.03738,
+            "roughnessBase": 0.7,
+            "roughnessVariation": 0.073,
+            "normalStrength": 0.2,
+            "blurRadius": 10
+          },
+          "palette": [
+            "#784F30",
+            "#A6724B",
+            "#595546",
+            "#4C3622",
+            "#CCA180"
+          ]
+        },
+        "warnings": []
+      },
+      "maps": {
+        "albedo": {
+          "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-01-floor-wood/floor-wood_albedo.png",
+          "url": "floor-wood_albedo.png",
+          "channel": "albedo",
+          "source": "reference-pixel-extraction"
+        },
+        "roughness": {
+          "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-01-floor-wood/floor-wood_roughness.png",
+          "url": "floor-wood_roughness.png",
+          "channel": "roughness",
+          "source": "reference-pixel-extraction"
+        },
+        "height": {
+          "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-01-floor-wood/floor-wood_height.png",
+          "url": "floor-wood_height.png",
+          "channel": "height",
+          "source": "reference-pixel-extraction"
+        },
+        "normal": {
+          "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-01-floor-wood/floor-wood_normal.png",
+          "url": "floor-wood_normal.png",
+          "channel": "normal",
+          "source": "reference-pixel-extraction"
+        },
+        "ao": {
+          "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-01-floor-wood/floor-wood_ao.png",
+          "url": "floor-wood_ao.png",
+          "channel": "ao",
+          "source": "reference-pixel-extraction"
+        }
+      }
+    },
+    {
+      "componentId": "window",
+      "regionId": "window-frame",
+      "materialSpecId": "window-frame",
+      "hypothesis": {
+        "componentId": "window",
+        "regionId": "window-frame",
+        "materialId": null,
+        "family": "wood",
+        "subtype": "painted-wood",
+        "finish": "matte",
+        "aliases": [],
+        "confidence": 0.93,
+        "source": "vision"
+      },
+      "assignment": {
+        "materialId": null,
+        "status": "request-input",
+        "source": "vision",
+        "confidence": 0.0,
+        "method": "unresolved",
+        "alternatives": [
+          "wood.unfinished",
+          "wood.varnished"
+        ],
+        "evidence": {
+          "crop": {
+            "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/02-window-frame.png",
+            "bbox": {
+              "x": 320,
+              "y": 230,
+              "width": 820,
+              "height": 700
+            },
+            "sourceWidth": 1448,
+            "sourceHeight": 1086,
+            "loaderWarnings": [],
+            "coverage": 0.365
+          },
+          "pbr": {
+            "ok": true,
+            "verdict": "pass",
+            "confidence": 0.93,
+            "estimatedFidelity": 0.93,
+            "targetThreshold": 0.7,
+            "materialId": "window-frame",
+            "sourceImage": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/02-window-frame.png",
+            "outDir": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-02-window-frame",
+            "palette": [
+              "#F9FAFC",
+              "#746F5E",
+              "#E4EEF6",
+              "#A09181",
+              "#C5BFB8"
+            ],
+            "maps": {
+              "albedo": {
+                "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-02-window-frame/window-frame_albedo.png",
+                "url": "window-frame_albedo.png",
+                "channel": "albedo",
+                "source": "reference-pixel-extraction"
+              },
+              "roughness": {
+                "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-02-window-frame/window-frame_roughness.png",
+                "url": "window-frame_roughness.png",
+                "channel": "roughness",
+                "source": "reference-pixel-extraction"
+              },
+              "height": {
+                "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-02-window-frame/window-frame_height.png",
+                "url": "window-frame_height.png",
+                "channel": "height",
+                "source": "reference-pixel-extraction"
+              },
+              "normal": {
+                "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-02-window-frame/window-frame_normal.png",
+                "url": "window-frame_normal.png",
+                "channel": "normal",
+                "source": "reference-pixel-extraction"
+              },
+              "ao": {
+                "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-02-window-frame/window-frame_ao.png",
+                "url": "window-frame_ao.png",
+                "channel": "ao",
+                "source": "reference-pixel-extraction"
+              }
+            },
+            "diagnostics": {
+              "sourceWidth": 820,
+              "sourceHeight": 700,
+              "mapSize": 512,
+              "cropBBoxPixels": {
+                "x": 0,
+                "y": 0,
+                "width": 820,
+                "height": 700
+              },
+              "mask": {
+                "backgroundColor": "#8B7E6E",
+                "backgroundNoise": 26.646,
+                "transparentPixelFraction": 0.0,
+                "foregroundCoverage": 0.532
+              },
+              "mapStats": {
+                "valueRange": 0.5659,
+                "heightP90Gradient": 0.09732,
+                "roughnessBase": 0.698,
+                "roughnessVariation": 0.185,
+                "normalStrength": 0.27,
+                "blurRadius": 10
+              },
+              "palette": [
+                "#F9FAFC",
+                "#746F5E",
+                "#E4EEF6",
+                "#A09181",
+                "#C5BFB8"
+              ]
+            },
+            "warnings": [],
+            "limitation": "single-image PBR extraction is an estimate; 70%+ extraction confidence still needs render screenshot review"
+          },
+          "texture": {
+            "finishClass": "brushed-steel",
+            "recipe": {
+              "metalness": 1.0,
+              "roughness": 0.35,
+              "clearcoat": 0.0,
+              "clearcoatRoughness": 0.0,
+              "transmission": 0.0,
+              "ior": 1.5,
+              "envMapIntensity": 1.0,
+              "anisotropy": 1.0,
+              "procedural": "brushed"
+            },
+            "palette": [
+              "#747364",
+              "#737061",
+              "#A69D8F",
+              "#9A8C7E",
+              "#747264"
+            ],
+            "paletteHueRisk": [],
+            "gradientAxis": "horizontal",
+            "stats": {
+              "meanLum": 156.3,
+              "meanSaturation": 0.12,
+              "gradientStrength": 0.396,
+              "mottle": 0.03,
+              "streakRatio": 1.58,
+              "hueSpread": 0.004,
+              "specularFraction": 0.214
+            }
+          }
+        }
+      },
+      "observations": [
+        "near-neutral colour response",
+        "strong image-space gradient; verify it is material pattern, not lighting",
+        "single-image PBR inference requires controlled render validation"
+      ],
+      "crop": {
+        "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/02-window-frame.png",
+        "bbox": {
+          "x": 320,
+          "y": 230,
+          "width": 820,
+          "height": 700
+        },
+        "sourceWidth": 1448,
+        "sourceHeight": 1086,
+        "loaderWarnings": [],
+        "coverage": 0.365
+      },
+      "textureAnalysis": {
+        "finishClass": "brushed-steel",
+        "recipe": {
+          "metalness": 1.0,
+          "roughness": 0.35,
+          "clearcoat": 0.0,
+          "clearcoatRoughness": 0.0,
+          "transmission": 0.0,
+          "ior": 1.5,
+          "envMapIntensity": 1.0,
+          "anisotropy": 1.0,
+          "procedural": "brushed"
+        },
+        "palette": [
+          "#747364",
+          "#737061",
+          "#A69D8F",
+          "#9A8C7E",
+          "#747264"
+        ],
+        "paletteHueRisk": [],
+        "gradientAxis": "horizontal",
+        "stats": {
+          "meanLum": 156.3,
+          "meanSaturation": 0.12,
+          "gradientStrength": 0.396,
+          "mottle": 0.03,
+          "streakRatio": 1.58,
+          "hueSpread": 0.004,
+          "specularFraction": 0.214
+        }
+      },
+      "pbrReport": {
+        "ok": true,
+        "verdict": "pass",
+        "confidence": 0.93,
+        "estimatedFidelity": 0.93,
+        "targetThreshold": 0.7,
+        "materialId": "window-frame",
+        "sourceImage": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/02-window-frame.png",
+        "outDir": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-02-window-frame",
+        "palette": [
+          "#F9FAFC",
+          "#746F5E",
+          "#E4EEF6",
+          "#A09181",
+          "#C5BFB8"
+        ],
+        "maps": {
+          "albedo": {
+            "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-02-window-frame/window-frame_albedo.png",
+            "url": "window-frame_albedo.png",
+            "channel": "albedo",
+            "source": "reference-pixel-extraction"
+          },
+          "roughness": {
+            "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-02-window-frame/window-frame_roughness.png",
+            "url": "window-frame_roughness.png",
+            "channel": "roughness",
+            "source": "reference-pixel-extraction"
+          },
+          "height": {
+            "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-02-window-frame/window-frame_height.png",
+            "url": "window-frame_height.png",
+            "channel": "height",
+            "source": "reference-pixel-extraction"
+          },
+          "normal": {
+            "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-02-window-frame/window-frame_normal.png",
+            "url": "window-frame_normal.png",
+            "channel": "normal",
+            "source": "reference-pixel-extraction"
+          },
+          "ao": {
+            "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-02-window-frame/window-frame_ao.png",
+            "url": "window-frame_ao.png",
+            "channel": "ao",
+            "source": "reference-pixel-extraction"
+          }
+        },
+        "diagnostics": {
+          "sourceWidth": 820,
+          "sourceHeight": 700,
+          "mapSize": 512,
+          "cropBBoxPixels": {
+            "x": 0,
+            "y": 0,
+            "width": 820,
+            "height": 700
+          },
+          "mask": {
+            "backgroundColor": "#8B7E6E",
+            "backgroundNoise": 26.646,
+            "transparentPixelFraction": 0.0,
+            "foregroundCoverage": 0.532
+          },
+          "mapStats": {
+            "valueRange": 0.5659,
+            "heightP90Gradient": 0.09732,
+            "roughnessBase": 0.698,
+            "roughnessVariation": 0.185,
+            "normalStrength": 0.27,
+            "blurRadius": 10
+          },
+          "palette": [
+            "#F9FAFC",
+            "#746F5E",
+            "#E4EEF6",
+            "#A09181",
+            "#C5BFB8"
+          ]
+        },
+        "warnings": [],
+        "limitation": "single-image PBR extraction is an estimate; 70%+ extraction confidence still needs render screenshot review"
+      },
+      "referencePbr": {
+        "version": "1.0",
+        "sourceImage": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/02-window-frame.png",
+        "extractor": "stage1_intake/extract_pbr_evidence.py",
+        "method": "single-image pixel evidence with de-lighting estimate; not photogrammetry",
+        "usable": true,
+        "verdict": "pass",
+        "confidence": 0.93,
+        "estimatedFidelity": 0.93,
+        "targetThreshold": 0.7,
+        "hardLimit": "A single image cannot uniquely recover true albedo/roughness/normal/AO; maps are reference-derived estimates.",
+        "maps": {
+          "albedo": {
+            "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-02-window-frame/window-frame_albedo.png",
+            "url": "window-frame_albedo.png",
+            "channel": "albedo",
+            "source": "reference-pixel-extraction"
+          },
+          "roughness": {
+            "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-02-window-frame/window-frame_roughness.png",
+            "url": "window-frame_roughness.png",
+            "channel": "roughness",
+            "source": "reference-pixel-extraction"
+          },
+          "height": {
+            "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-02-window-frame/window-frame_height.png",
+            "url": "window-frame_height.png",
+            "channel": "height",
+            "source": "reference-pixel-extraction"
+          },
+          "normal": {
+            "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-02-window-frame/window-frame_normal.png",
+            "url": "window-frame_normal.png",
+            "channel": "normal",
+            "source": "reference-pixel-extraction"
+          },
+          "ao": {
+            "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-02-window-frame/window-frame_ao.png",
+            "url": "window-frame_ao.png",
+            "channel": "ao",
+            "source": "reference-pixel-extraction"
+          }
+        },
+        "diagnostics": {
+          "sourceWidth": 820,
+          "sourceHeight": 700,
+          "mapSize": 512,
+          "cropBBoxPixels": {
+            "x": 0,
+            "y": 0,
+            "width": 820,
+            "height": 700
+          },
+          "mask": {
+            "backgroundColor": "#8B7E6E",
+            "backgroundNoise": 26.646,
+            "transparentPixelFraction": 0.0,
+            "foregroundCoverage": 0.532
+          },
+          "mapStats": {
+            "valueRange": 0.5659,
+            "heightP90Gradient": 0.09732,
+            "roughnessBase": 0.698,
+            "roughnessVariation": 0.185,
+            "normalStrength": 0.27,
+            "blurRadius": 10
+          },
+          "palette": [
+            "#F9FAFC",
+            "#746F5E",
+            "#E4EEF6",
+            "#A09181",
+            "#C5BFB8"
+          ]
+        },
+        "warnings": []
+      },
+      "maps": {
+        "albedo": {
+          "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-02-window-frame/window-frame_albedo.png",
+          "url": "window-frame_albedo.png",
+          "channel": "albedo",
+          "source": "reference-pixel-extraction"
+        },
+        "roughness": {
+          "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-02-window-frame/window-frame_roughness.png",
+          "url": "window-frame_roughness.png",
+          "channel": "roughness",
+          "source": "reference-pixel-extraction"
+        },
+        "height": {
+          "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-02-window-frame/window-frame_height.png",
+          "url": "window-frame_height.png",
+          "channel": "height",
+          "source": "reference-pixel-extraction"
+        },
+        "normal": {
+          "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-02-window-frame/window-frame_normal.png",
+          "url": "window-frame_normal.png",
+          "channel": "normal",
+          "source": "reference-pixel-extraction"
+        },
+        "ao": {
+          "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-02-window-frame/window-frame_ao.png",
+          "url": "window-frame_ao.png",
+          "channel": "ao",
+          "source": "reference-pixel-extraction"
+        }
+      }
+    },
+    {
+      "componentId": "window",
+      "regionId": "window-glass",
+      "materialSpecId": "window-glass",
+      "hypothesis": {
+        "componentId": "window",
+        "regionId": "window-glass",
+        "materialId": null,
+        "family": "glass",
+        "subtype": "window-glass",
+        "finish": "soft-gloss",
+        "aliases": [],
+        "confidence": 0.926,
+        "source": "vision"
+      },
+      "assignment": {
+        "materialId": null,
+        "status": "request-input",
+        "source": "vision",
+        "confidence": 0.0,
+        "method": "unresolved",
+        "alternatives": [
+          "glass.clear",
+          "glass.frosted"
+        ],
+        "evidence": {
+          "crop": {
+            "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/03-window-glass.png",
+            "bbox": {
+              "x": 450,
+              "y": 310,
+              "width": 560,
+              "height": 480
+            },
+            "sourceWidth": 1448,
+            "sourceHeight": 1086,
+            "loaderWarnings": [],
+            "coverage": 0.1709
+          },
+          "pbr": {
+            "ok": true,
+            "verdict": "pass",
+            "confidence": 0.926,
+            "estimatedFidelity": 0.926,
+            "targetThreshold": 0.7,
+            "materialId": "window-glass",
+            "sourceImage": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/03-window-glass.png",
+            "outDir": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-03-window-glass",
+            "palette": [
+              "#FBFBFD",
+              "#958878",
+              "#ECF4FA",
+              "#BEB8AF",
+              "#D7D4CF"
+            ],
+            "maps": {
+              "albedo": {
+                "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-03-window-glass/window-glass_albedo.png",
+                "url": "window-glass_albedo.png",
+                "channel": "albedo",
+                "source": "reference-pixel-extraction"
+              },
+              "roughness": {
+                "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-03-window-glass/window-glass_roughness.png",
+                "url": "window-glass_roughness.png",
+                "channel": "roughness",
+                "source": "reference-pixel-extraction"
+              },
+              "height": {
+                "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-03-window-glass/window-glass_height.png",
+                "url": "window-glass_height.png",
+                "channel": "height",
+                "source": "reference-pixel-extraction"
+              },
+              "normal": {
+                "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-03-window-glass/window-glass_normal.png",
+                "url": "window-glass_normal.png",
+                "channel": "normal",
+                "source": "reference-pixel-extraction"
+              },
+              "ao": {
+                "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-03-window-glass/window-glass_ao.png",
+                "url": "window-glass_ao.png",
+                "channel": "ao",
+                "source": "reference-pixel-extraction"
+              }
+            },
+            "diagnostics": {
+              "sourceWidth": 560,
+              "sourceHeight": 480,
+              "mapSize": 512,
+              "cropBBoxPixels": {
+                "x": 0,
+                "y": 0,
+                "width": 560,
+                "height": 480
+              },
+              "mask": {
+                "backgroundColor": "#79786B",
+                "backgroundNoise": 11.533,
+                "transparentPixelFraction": 0.0,
+                "foregroundCoverage": 0.7577
+              },
+              "mapStats": {
+                "valueRange": 0.544,
+                "heightP90Gradient": 0.11935,
+                "roughnessBase": 0.712,
+                "roughnessVariation": 0.193,
+                "normalStrength": 0.296,
+                "blurRadius": 10
+              },
+              "palette": [
+                "#FBFBFD",
+                "#958878",
+                "#ECF4FA",
+                "#BEB8AF",
+                "#D7D4CF"
+              ]
+            },
+            "warnings": [],
+            "limitation": "single-image PBR extraction is an estimate; 70%+ extraction confidence still needs render screenshot review"
+          },
+          "texture": {
+            "finishClass": "brushed-steel",
+            "recipe": {
+              "metalness": 1.0,
+              "roughness": 0.35,
+              "clearcoat": 0.0,
+              "clearcoatRoughness": 0.0,
+              "transmission": 0.0,
+              "ior": 1.5,
+              "envMapIntensity": 1.0,
+              "anisotropy": 1.0,
+              "procedural": "brushed"
+            },
+            "palette": [
+              "#7A7869",
+              "#EAEBEC",
+              "#B2A89C",
+              "#DDDBD8",
+              "#797768"
+            ],
+            "paletteHueRisk": [],
+            "gradientAxis": "horizontal",
+            "stats": {
+              "meanLum": 187.5,
+              "meanSaturation": 0.09,
+              "gradientStrength": 0.488,
+              "mottle": 0.03,
+              "streakRatio": 1.38,
+              "hueSpread": 0.003,
+              "specularFraction": 0.406
+            }
+          }
+        }
+      },
+      "observations": [
+        "near-neutral colour response",
+        "strong image-space gradient; verify it is material pattern, not lighting",
+        "single-image PBR inference requires controlled render validation"
+      ],
+      "crop": {
+        "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/03-window-glass.png",
+        "bbox": {
+          "x": 450,
+          "y": 310,
+          "width": 560,
+          "height": 480
+        },
+        "sourceWidth": 1448,
+        "sourceHeight": 1086,
+        "loaderWarnings": [],
+        "coverage": 0.1709
+      },
+      "textureAnalysis": {
+        "finishClass": "brushed-steel",
+        "recipe": {
+          "metalness": 1.0,
+          "roughness": 0.35,
+          "clearcoat": 0.0,
+          "clearcoatRoughness": 0.0,
+          "transmission": 0.0,
+          "ior": 1.5,
+          "envMapIntensity": 1.0,
+          "anisotropy": 1.0,
+          "procedural": "brushed"
+        },
+        "palette": [
+          "#7A7869",
+          "#EAEBEC",
+          "#B2A89C",
+          "#DDDBD8",
+          "#797768"
+        ],
+        "paletteHueRisk": [],
+        "gradientAxis": "horizontal",
+        "stats": {
+          "meanLum": 187.5,
+          "meanSaturation": 0.09,
+          "gradientStrength": 0.488,
+          "mottle": 0.03,
+          "streakRatio": 1.38,
+          "hueSpread": 0.003,
+          "specularFraction": 0.406
+        }
+      },
+      "pbrReport": {
+        "ok": true,
+        "verdict": "pass",
+        "confidence": 0.926,
+        "estimatedFidelity": 0.926,
+        "targetThreshold": 0.7,
+        "materialId": "window-glass",
+        "sourceImage": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/03-window-glass.png",
+        "outDir": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-03-window-glass",
+        "palette": [
+          "#FBFBFD",
+          "#958878",
+          "#ECF4FA",
+          "#BEB8AF",
+          "#D7D4CF"
+        ],
+        "maps": {
+          "albedo": {
+            "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-03-window-glass/window-glass_albedo.png",
+            "url": "window-glass_albedo.png",
+            "channel": "albedo",
+            "source": "reference-pixel-extraction"
+          },
+          "roughness": {
+            "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-03-window-glass/window-glass_roughness.png",
+            "url": "window-glass_roughness.png",
+            "channel": "roughness",
+            "source": "reference-pixel-extraction"
+          },
+          "height": {
+            "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-03-window-glass/window-glass_height.png",
+            "url": "window-glass_height.png",
+            "channel": "height",
+            "source": "reference-pixel-extraction"
+          },
+          "normal": {
+            "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-03-window-glass/window-glass_normal.png",
+            "url": "window-glass_normal.png",
+            "channel": "normal",
+            "source": "reference-pixel-extraction"
+          },
+          "ao": {
+            "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-03-window-glass/window-glass_ao.png",
+            "url": "window-glass_ao.png",
+            "channel": "ao",
+            "source": "reference-pixel-extraction"
+          }
+        },
+        "diagnostics": {
+          "sourceWidth": 560,
+          "sourceHeight": 480,
+          "mapSize": 512,
+          "cropBBoxPixels": {
+            "x": 0,
+            "y": 0,
+            "width": 560,
+            "height": 480
+          },
+          "mask": {
+            "backgroundColor": "#79786B",
+            "backgroundNoise": 11.533,
+            "transparentPixelFraction": 0.0,
+            "foregroundCoverage": 0.7577
+          },
+          "mapStats": {
+            "valueRange": 0.544,
+            "heightP90Gradient": 0.11935,
+            "roughnessBase": 0.712,
+            "roughnessVariation": 0.193,
+            "normalStrength": 0.296,
+            "blurRadius": 10
+          },
+          "palette": [
+            "#FBFBFD",
+            "#958878",
+            "#ECF4FA",
+            "#BEB8AF",
+            "#D7D4CF"
+          ]
+        },
+        "warnings": [],
+        "limitation": "single-image PBR extraction is an estimate; 70%+ extraction confidence still needs render screenshot review"
+      },
+      "referencePbr": {
+        "version": "1.0",
+        "sourceImage": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/03-window-glass.png",
+        "extractor": "stage1_intake/extract_pbr_evidence.py",
+        "method": "single-image pixel evidence with de-lighting estimate; not photogrammetry",
+        "usable": true,
+        "verdict": "pass",
+        "confidence": 0.926,
+        "estimatedFidelity": 0.926,
+        "targetThreshold": 0.7,
+        "hardLimit": "A single image cannot uniquely recover true albedo/roughness/normal/AO; maps are reference-derived estimates.",
+        "maps": {
+          "albedo": {
+            "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-03-window-glass/window-glass_albedo.png",
+            "url": "window-glass_albedo.png",
+            "channel": "albedo",
+            "source": "reference-pixel-extraction"
+          },
+          "roughness": {
+            "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-03-window-glass/window-glass_roughness.png",
+            "url": "window-glass_roughness.png",
+            "channel": "roughness",
+            "source": "reference-pixel-extraction"
+          },
+          "height": {
+            "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-03-window-glass/window-glass_height.png",
+            "url": "window-glass_height.png",
+            "channel": "height",
+            "source": "reference-pixel-extraction"
+          },
+          "normal": {
+            "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-03-window-glass/window-glass_normal.png",
+            "url": "window-glass_normal.png",
+            "channel": "normal",
+            "source": "reference-pixel-extraction"
+          },
+          "ao": {
+            "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-03-window-glass/window-glass_ao.png",
+            "url": "window-glass_ao.png",
+            "channel": "ao",
+            "source": "reference-pixel-extraction"
+          }
+        },
+        "diagnostics": {
+          "sourceWidth": 560,
+          "sourceHeight": 480,
+          "mapSize": 512,
+          "cropBBoxPixels": {
+            "x": 0,
+            "y": 0,
+            "width": 560,
+            "height": 480
+          },
+          "mask": {
+            "backgroundColor": "#79786B",
+            "backgroundNoise": 11.533,
+            "transparentPixelFraction": 0.0,
+            "foregroundCoverage": 0.7577
+          },
+          "mapStats": {
+            "valueRange": 0.544,
+            "heightP90Gradient": 0.11935,
+            "roughnessBase": 0.712,
+            "roughnessVariation": 0.193,
+            "normalStrength": 0.296,
+            "blurRadius": 10
+          },
+          "palette": [
+            "#FBFBFD",
+            "#958878",
+            "#ECF4FA",
+            "#BEB8AF",
+            "#D7D4CF"
+          ]
+        },
+        "warnings": []
+      },
+      "maps": {
+        "albedo": {
+          "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-03-window-glass/window-glass_albedo.png",
+          "url": "window-glass_albedo.png",
+          "channel": "albedo",
+          "source": "reference-pixel-extraction"
+        },
+        "roughness": {
+          "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-03-window-glass/window-glass_roughness.png",
+          "url": "window-glass_roughness.png",
+          "channel": "roughness",
+          "source": "reference-pixel-extraction"
+        },
+        "height": {
+          "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-03-window-glass/window-glass_height.png",
+          "url": "window-glass_height.png",
+          "channel": "height",
+          "source": "reference-pixel-extraction"
+        },
+        "normal": {
+          "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-03-window-glass/window-glass_normal.png",
+          "url": "window-glass_normal.png",
+          "channel": "normal",
+          "source": "reference-pixel-extraction"
+        },
+        "ao": {
+          "path": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-evidence/pbr-03-window-glass/window-glass_ao.png",
+          "url": "window-glass_ao.png",
+          "channel": "ao",
+          "source": "reference-pixel-extraction"
+        }
+      }
+    }
+  ],
+  "status": "probe",
+  "limitations": [
+    "PBR extraction is reference-derived inference, not inverse rendering.",
+    "A crop must be checked against the component visible footprint before accepting material scores."
+  ],
+  "artifact": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/material-analysis.json"
+}

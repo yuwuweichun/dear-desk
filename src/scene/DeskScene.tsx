@@ -15,6 +15,7 @@ import type {
 } from '../state/app-store'
 import { NotebookObject } from './NotebookObject'
 import { createDeskMatModel } from './models/create-desk-mat-model'
+import { createStudyRoomShellModel } from './models/create-study-room-shell-model'
 import {
   createDeskModel,
   setDeskDrawerProgress,
@@ -46,7 +47,6 @@ extend({
   Color: THREE.Color,
   CylinderGeometry: THREE.CylinderGeometry,
   DirectionalLight: THREE.DirectionalLight,
-  Fog: THREE.Fog,
   Group: THREE.Group,
   HemisphereLight: THREE.HemisphereLight,
   Mesh: THREE.Mesh,
@@ -462,6 +462,24 @@ function DeskMat({ materials }: { materials: ModelMaterialLibrary }) {
   return model ? <primitive object={model} dispose={null} /> : null
 }
 
+function StudyRoomShell() {
+  const [model, setModel] = useState<THREE.Group | null>(null)
+
+  useEffect(() => {
+    const nextModel = createStudyRoomShellModel({ pass: 'optimization-pass' })
+    let disposed = false
+    queueMicrotask(() => {
+      if (!disposed) setModel(nextModel)
+    })
+    return () => {
+      disposed = true
+      disposeFactoryModel(nextModel)
+    }
+  }, [])
+
+  return model ? <primitive object={model} dispose={null} /> : null
+}
+
 interface DeskContentsProps {
   advanceNotebookPhase: (from: NotebookPhase) => void
   commitStickerPosition: (
@@ -512,8 +530,15 @@ function DeskContents({
   stickers,
   stickerWorkflow,
 }: DeskContentsProps) {
+  const { scene } = useThree()
   const [materials, setMaterials] = useState<ModelMaterialLibrary | null>(null)
   const initialColors = useRef(colors)
+
+  useEffect(() => {
+    // The canvas root is reused across scene mounts, so explicitly clear fog
+    // left behind by a previous render or a hot-reloaded scene tree.
+    Object.assign(scene, { fog: null })
+  }, [scene])
 
   useEffect(() => {
     const nextMaterials = createModelMaterialLibrary({ sceneColors: initialColors.current })
@@ -535,7 +560,6 @@ function DeskContents({
     return (
       <>
         <color attach="background" args={[colors.background]} />
-        <fog attach="fog" args={[colors.background, 28, 43]} />
       </>
     )
   }
@@ -543,7 +567,6 @@ function DeskContents({
   return (
     <>
       <color attach="background" args={[colors.background]} />
-      <fog attach="fog" args={[colors.background, 28, 43]} />
       <hemisphereLight args={['#fffbe7', '#79b8aa', 0.86]} />
       <directionalLight
         castShadow
@@ -580,6 +603,8 @@ function DeskContents({
           pastTracesPhase === 'closed'
         }
       />
+
+      <StudyRoomShell />
 
       <DeskBody
         materials={materials}
@@ -790,7 +815,7 @@ export function DeskScene({
       if (rect.width <= 0 || rect.height <= 0) return
 
       await root.configure({
-        camera: { fov: 36, near: 0.1, far: 40 },
+        camera: { fov: 36, near: 0.1, far: 100 },
         dpr: [1, 1.5],
         events,
         gl: { antialias: true, alpha: false, powerPreference: 'high-performance' },

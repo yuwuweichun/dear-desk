@@ -1,0 +1,77 @@
+{
+  "path": "/home/song/dear-desk/docs/assets/concepts/simple-study-room-shell-reference-pack/00-primary-perspective.png",
+  "type": "png",
+  "bytes": 1594476,
+  "width": 1672,
+  "height": 941,
+  "aspectRatio": 1.7768331562167907,
+  "technicalSuitability": "pass",
+  "warnings": [],
+  "note": "This is only technical image probing. Semantic object suitability still requires visual inspection."
+}
+{
+  "path": "/home/song/dear-desk/docs/assets/concepts/simple-study-room-shell-reference-pack/01-top-plan.png",
+  "type": "png",
+  "bytes": 1497015,
+  "width": 1254,
+  "height": 1254,
+  "aspectRatio": 1.0,
+  "technicalSuitability": "pass",
+  "warnings": [],
+  "note": "This is only technical image probing. Semantic object suitability still requires visual inspection."
+}
+{
+  "path": "/home/song/dear-desk/docs/assets/concepts/simple-study-room-shell-reference-pack/02-west-window-wall-elevation.png",
+  "type": "png",
+  "bytes": 1515359,
+  "width": 1448,
+  "height": 1086,
+  "aspectRatio": 1.3333333333333333,
+  "technicalSuitability": "pass",
+  "warnings": [],
+  "note": "This is only technical image probing. Semantic object suitability still requires visual inspection."
+}
+{
+  "path": "/home/song/dear-desk/docs/assets/concepts/simple-study-room-shell-reference-pack/03-north-wall-elevation.png",
+  "type": "png",
+  "bytes": 1552442,
+  "width": 1672,
+  "height": 941,
+  "aspectRatio": 1.7768331562167907,
+  "technicalSuitability": "pass",
+  "warnings": [],
+  "note": "This is only technical image probing. Semantic object suitability still requires visual inspection."
+}
+{
+  "path": "/home/song/dear-desk/docs/assets/concepts/simple-study-room-shell-reference-pack/04-east-wall-elevation.png",
+  "type": "png",
+  "bytes": 1711239,
+  "width": 1536,
+  "height": 1024,
+  "aspectRatio": 1.5,
+  "technicalSuitability": "pass",
+  "warnings": [],
+  "note": "This is only technical image probing. Semantic object suitability still requires visual inspection."
+}
+{
+  "path": "/home/song/dear-desk/docs/assets/concepts/simple-study-room-shell-reference-pack/05-south-wall-elevation.png",
+  "type": "png",
+  "bytes": 1824794,
+  "width": 1536,
+  "height": 1024,
+  "aspectRatio": 1.5,
+  "technicalSuitability": "pass",
+  "warnings": [],
+  "note": "This is only technical image probing. Semantic object suitability still requires visual inspection."
+}
+{
+  "path": "/home/song/dear-desk/docs/assets/concepts/simple-study-room-shell-reference-pack/06-opposite-corner-perspective.png",
+  "type": "png",
+  "bytes": 1558564,
+  "width": 1672,
+  "height": 941,
+  "aspectRatio": 1.7768331562167907,
+  "technicalSuitability": "pass",
+  "warnings": [],
+  "note": "This is only technical image probing. Semantic object suitability still requires visual inspection."
+}

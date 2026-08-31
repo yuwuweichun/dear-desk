@@ -39,7 +39,7 @@ import type {
 } from '../domain/scene-color-preset'
 import type { CaptureScenePreview } from '../scene/capture-scene-preview'
 
-type ModelReviewKind = 'desk' | 'mat' | 'notebook'
+type ModelReviewKind = 'desk' | 'mat' | 'notebook' | 'room'
 type OpenSettingsPanel = 'audio' | 'colors' | 'font' | null
 
 const emptySceneColorPresetRepository: SceneColorPresetRepository = {
@@ -469,7 +469,7 @@ const getDevModelReview = () => {
   if (!import.meta.env.DEV) return null
   const query = new URLSearchParams(window.location.search)
   const review = query.get('review')
-  if (review !== 'desk' && review !== 'mat' && review !== 'notebook') {
+  if (review !== 'desk' && review !== 'mat' && review !== 'notebook' && review !== 'room') {
     return null
   }
   const model: ModelReviewKind = review

@@ -17,7 +17,7 @@ const colorGroups: Array<{
   label: string
   fields: Array<{ key: keyof SceneColorConfig; label: string }>
 }> = [
-  { label: '环境', fields: [{ key: 'background', label: '背景与雾' }] },
+  { label: '环境', fields: [{ key: 'background', label: '背景' }] },
   {
     label: '桌子',
     fields: [

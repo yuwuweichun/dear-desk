@@ -1,0 +1,104 @@
+[
+  {
+    "admitted": true,
+    "reasons": [],
+    "provenance": {
+      "viewpoint": "primary-three-quarter",
+      "sourcePath": "/home/song/dear-desk/docs/assets/concepts/simple-study-room-shell-reference-pack/00-primary-perspective.png",
+      "width": 1672,
+      "height": 941,
+      "foregroundCoverage": 0.5334,
+      "largestComponentFraction": 0.9885,
+      "pHash": 16047729397811925104,
+      "duplicateOfHash": null
+    }
+  },
+  {
+    "admitted": true,
+    "reasons": [],
+    "provenance": {
+      "viewpoint": "top-plan",
+      "sourcePath": "/home/song/dear-desk/docs/assets/concepts/simple-study-room-shell-reference-pack/01-top-plan.png",
+      "width": 1254,
+      "height": 1254,
+      "foregroundCoverage": 0.7073,
+      "largestComponentFraction": 1.0,
+      "pHash": 18422237613055339264,
+      "duplicateOfHash": null
+    }
+  },
+  {
+    "admitted": true,
+    "reasons": [],
+    "provenance": {
+      "viewpoint": "west-elevation",
+      "sourcePath": "/home/song/dear-desk/docs/assets/concepts/simple-study-room-shell-reference-pack/02-west-window-wall-elevation.png",
+      "width": 1448,
+      "height": 1086,
+      "foregroundCoverage": 0.4976,
+      "largestComponentFraction": 0.9918,
+      "pHash": 18062436905507236490,
+      "duplicateOfHash": null
+    }
+  },
+  {
+    "admitted": false,
+    "reasons": [
+      "mask coherence: largest connected blob is 0.59 of foreground < 0.6 (fragmented/scattered subject — ambiguous)"
+    ],
+    "provenance": {
+      "viewpoint": "north-elevation",
+      "sourcePath": "/home/song/dear-desk/docs/assets/concepts/simple-study-room-shell-reference-pack/03-north-wall-elevation.png",
+      "width": 1672,
+      "height": 941,
+      "foregroundCoverage": 0.1422,
+      "largestComponentFraction": 0.5865,
+      "pHash": 18435201987455787232,
+      "duplicateOfHash": null
+    }
+  },
+  {
+    "admitted": true,
+    "reasons": [],
+    "provenance": {
+      "viewpoint": "east-elevation",
+      "sourcePath": "/home/song/dear-desk/docs/assets/concepts/simple-study-room-shell-reference-pack/04-east-wall-elevation.png",
+      "width": 1536,
+      "height": 1024,
+      "foregroundCoverage": 0.086,
+      "largestComponentFraction": 0.9989,
+      "pHash": 18434054407091183840,
+      "duplicateOfHash": null
+    }
+  },
+  {
+    "admitted": false,
+    "reasons": [
+      "mask coherence: largest connected blob is 0.44 of foreground < 0.6 (fragmented/scattered subject — ambiguous)"
+    ],
+    "provenance": {
+      "viewpoint": "south-elevation",
+      "sourcePath": "/home/song/dear-desk/docs/assets/concepts/simple-study-room-shell-reference-pack/05-south-wall-elevation.png",
+      "width": 1536,
+      "height": 1024,
+      "foregroundCoverage": 0.1911,
+      "largestComponentFraction": 0.4418,
+      "pHash": 18425070229261426880,
+      "duplicateOfHash": null
+    }
+  },
+  {
+    "admitted": true,
+    "reasons": [],
+    "provenance": {
+      "viewpoint": "opposite-three-quarter",
+      "sourcePath": "/home/song/dear-desk/docs/assets/concepts/simple-study-room-shell-reference-pack/06-opposite-corner-perspective.png",
+      "width": 1672,
+      "height": 941,
+      "foregroundCoverage": 0.5251,
+      "largestComponentFraction": 0.9749,
+      "pHash": 15975602534608556192,
+      "duplicateOfHash": null
+    }
+  }
+]

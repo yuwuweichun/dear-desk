@@ -1,0 +1,251 @@
+{
+  "sourceImage": "/home/song/dear-desk/docs/assets/concepts/simple-study-room-shell-reference-pack/00-primary-perspective.png",
+  "zonesDir": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/detail-inventory",
+  "detailInventory": {
+    "scanMethod": "grid-3x3",
+    "targetMinDetails": 10,
+    "details": [
+      {
+        "id": "window-opening",
+        "kind": "hole",
+        "description": "One tall rectangular opening cuts the west wall; it must change topology rather than appear as a dark decal.",
+        "region": {
+          "x": 0.10,
+          "y": 0.05,
+          "width": 0.28,
+          "height": 0.62,
+          "units": "normalized"
+        },
+        "scale": "macro, about half wall height",
+        "affects": "west wall silhouette and negative space",
+        "mapsTo": {
+          "type": "component.localFeatures",
+          "ref": "west-window-wall.window-opening"
+        },
+        "evidenceRef": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/detail-inventory/zone-r0c0.png",
+        "confidence": 0.96
+      },
+      {
+        "id": "window-reveal",
+        "kind": "ridge",
+        "description": "Deep pale reveal wraps the window opening and catches a broad highlight.",
+        "region": {
+          "x": 0.12,
+          "y": 0.08,
+          "width": 0.22,
+          "height": 0.55,
+          "units": "normalized"
+        },
+        "scale": "meso, visible recess depth",
+        "affects": "window depth and wall-frame contact",
+        "mapsTo": {
+          "type": "component.localFeatures",
+          "ref": "window-frame.recess-and-reveal"
+        },
+        "evidenceRef": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/detail-inventory/zone-r1c0.png",
+        "confidence": 0.92
+      },
+      {
+        "id": "frame-bevel",
+        "kind": "bevel",
+        "description": "Painted outer frame and sill use real narrow edge relief, not a flat plane.",
+        "region": {
+          "x": 0.12,
+          "y": 0.08,
+          "width": 0.22,
+          "height": 0.58,
+          "units": "normalized"
+        },
+        "scale": "meso edge treatment",
+        "affects": "grazing highlight around window",
+        "mapsTo": {
+          "type": "component.localFeatures",
+          "ref": "window-frame.frame-bevel"
+        },
+        "evidenceRef": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/detail-inventory/zone-r1c0.png",
+        "confidence": 0.9
+      },
+      {
+        "id": "mullion-cross",
+        "kind": "ridge",
+        "description": "One vertical and one horizontal painted-wood mullion divide the glazing into four panes.",
+        "region": {
+          "x": 0.18,
+          "y": 0.17,
+          "width": 0.10,
+          "height": 0.40,
+          "units": "normalized"
+        },
+        "scale": "meso repeated cross members",
+        "affects": "four-pane identity",
+        "mapsTo": {
+          "type": "component.localFeatures",
+          "ref": "window-frame.mullion-cross"
+        },
+        "evidenceRef": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/detail-inventory/zone-r1c0.png",
+        "confidence": 0.98
+      },
+      {
+        "id": "glass-soft-gloss",
+        "kind": "gloss",
+        "description": "Four glazing regions show low-roughness pale sky response without detailed exterior scenery.",
+        "region": {
+          "x": 0.15,
+          "y": 0.12,
+          "width": 0.17,
+          "height": 0.45,
+          "units": "normalized"
+        },
+        "scale": "meso pane regions",
+        "affects": "glass roughness and reflectance",
+        "mapsTo": {
+          "type": "material.localOverrides",
+          "ref": "window-glass.soft-sky-gloss"
+        },
+        "evidenceRef": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/detail-inventory/zone-r1c0.png",
+        "confidence": 0.88
+      },
+      {
+        "id": "wall-low-frequency-mottle",
+        "kind": "stain",
+        "description": "Wall albedo has very low-contrast broad mottling; it is paint variation, not dirt or directional lighting baked into color.",
+        "region": {
+          "x": 0.42,
+          "y": 0.10,
+          "width": 0.50,
+          "height": 0.56,
+          "units": "normalized"
+        },
+        "scale": "macro and meso frequency",
+        "affects": "wall albedo and roughness variation",
+        "mapsTo": {
+          "type": "material.localOverrides",
+          "ref": "wall-paint.low-frequency-mottle"
+        },
+        "evidenceRef": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/detail-inventory/zone-r0c2.png",
+        "confidence": 0.78
+      },
+      {
+        "id": "wall-micro-grain",
+        "kind": "ridge",
+        "description": "Fine painted-plaster grain adds shallow normal/height response under grazing light.",
+        "region": {
+          "x": 0.45,
+          "y": 0.30,
+          "width": 0.40,
+          "height": 0.30,
+          "units": "normalized"
+        },
+        "scale": "micro, sub-centimeter impression",
+        "affects": "wall height and roughness maps",
+        "mapsTo": {
+          "type": "material.localOverrides",
+          "ref": "wall-paint.micro-grain"
+        },
+        "evidenceRef": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/detail-inventory/zone-r1c2.png",
+        "confidence": 0.74
+      },
+      {
+        "id": "baseboard-top-step",
+        "kind": "ridge",
+        "description": "Pale baseboard forms a continuous raised band with a narrow top step at every wall-floor junction.",
+        "region": {
+          "x": 0.00,
+          "y": 0.63,
+          "width": 1.00,
+          "height": 0.12,
+          "units": "normalized"
+        },
+        "scale": "meso continuous perimeter band",
+        "affects": "wall-floor attachment and edge highlight",
+        "mapsTo": {
+          "type": "component.localFeatures",
+          "ref": "baseboards.top-step"
+        },
+        "evidenceRef": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/detail-inventory/zone-r2c1.png",
+        "confidence": 0.95
+      },
+      {
+        "id": "floor-plank-seams",
+        "kind": "seam",
+        "description": "Long parallel wood boards have real narrow dark gaps running along room depth.",
+        "region": {
+          "x": 0.00,
+          "y": 0.67,
+          "width": 1.00,
+          "height": 0.33,
+          "units": "normalized"
+        },
+        "scale": "meso repeated linear seams",
+        "affects": "floor geometry and AO",
+        "mapsTo": {
+          "type": "component.localFeatures",
+          "ref": "floor.plank-seams"
+        },
+        "evidenceRef": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/detail-inventory/zone-r2c1.png",
+        "confidence": 0.98
+      },
+      {
+        "id": "floor-long-grain",
+        "kind": "linework",
+        "description": "Each plank carries longitudinal multi-frequency wood grain aligned with its long axis.",
+        "region": {
+          "x": 0.10,
+          "y": 0.72,
+          "width": 0.78,
+          "height": 0.24,
+          "units": "normalized"
+        },
+        "scale": "meso and micro directional texture",
+        "affects": "floor albedo, height and roughness",
+        "mapsTo": {
+          "type": "material.localOverrides",
+          "ref": "floor-wood.longitudinal-grain"
+        },
+        "evidenceRef": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/detail-inventory/zone-r2c1.png",
+        "confidence": 0.94
+      },
+      {
+        "id": "floor-board-color-variation",
+        "kind": "stain",
+        "description": "Adjacent planks vary subtly in warm-brown value without a repeating checker pattern.",
+        "region": {
+          "x": 0.05,
+          "y": 0.68,
+          "width": 0.90,
+          "height": 0.30,
+          "units": "normalized"
+        },
+        "scale": "per-plank macro variation",
+        "affects": "instance color distribution",
+        "mapsTo": {
+          "type": "material.localOverrides",
+          "ref": "floor-wood.board-color-variation"
+        },
+        "evidenceRef": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/detail-inventory/zone-r2c2.png",
+        "confidence": 0.9
+      },
+      {
+        "id": "painted-wood-subtle-grain",
+        "kind": "linework",
+        "description": "Window frame and baseboard retain faint directional painted-wood grain beneath a satin finish.",
+        "region": {
+          "x": 0.11,
+          "y": 0.05,
+          "width": 0.26,
+          "height": 0.62,
+          "units": "normalized"
+        },
+        "scale": "micro directional texture",
+        "affects": "painted wood albedo, height and roughness",
+        "mapsTo": {
+          "type": "material.localOverrides",
+          "ref": "painted-wood.subtle-grain"
+        },
+        "evidenceRef": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/detail-inventory/zone-r0c0.png",
+        "confidence": 0.72
+      }
+    ]
+  },
+  "authoringInstruction": "Open each zone crop under zonesDir and replace every detail stub's kind, description, scale, affects, mapsTo, and confidence with what is actually observed. Add more detail entries per zone if a single zone contains multiple distinct marks; do not leave stubs unfilled or unlinked (mapsTo must reference a real component.localFeatures or material.localOverrides entry)."
+}

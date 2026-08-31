@@ -1,0 +1,3 @@
+# Material evidence and wiring
+
+`material_region_analysis.py` ran against the west window and primary wall/floor crops with the fixed seven-view pack. The command returned `status=probe` because registry assignments for the architectural material names remain unresolved, while the per-region PBR extractors produced usable reference-derived maps and confidence reports. The runtime therefore keeps an explicit procedural route: wall, floor, painted frame, baseboard and glass each own independent materials; albedo uses sRGB and roughness/height/AO remain linear. No extracted map is silently promoted to an exact texture or shared with the existing desk library.

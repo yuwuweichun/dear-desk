@@ -1,0 +1,567 @@
+{
+  "targetName": "Simple Study Room Shell",
+  "sourceImage": "docs/assets/concepts/simple-study-room-shell-reference-pack/00-primary-perspective.png",
+  "preSpecAssessment": {
+    "objectClass": {
+      "primaryType": "architectural room shell",
+      "primaryDomain": "object",
+      "formLanguage": [
+        "architectural",
+        "hard-surface",
+        "geometric"
+      ],
+      "structureKind": [
+        "compound object",
+        "layered shell",
+        "repeated modules"
+      ],
+      "motionPotential": [
+        "static prop",
+        "detachable/explodable review parts"
+      ],
+      "materialFamilies": [
+        "painted plaster",
+        "wood",
+        "painted wood",
+        "glass-like"
+      ],
+      "notes": "One isolated empty architectural assembly reconstructed as a real-time browser environment; no furniture is inferred from references."
+    },
+    "complexity": {
+      "tier": "complex",
+      "scores": {
+        "silhouetteComplexity": 1,
+        "componentCount": 2,
+        "hierarchyDepth": 2,
+        "repetitionDensity": 2,
+        "materialLayerCount": 2,
+        "localDetailDensity": 2,
+        "occlusionRisk": 2,
+        "actionReadinessNeed": 2
+      },
+      "estimatedCounts": {
+        "macroComponents": 4,
+        "mesoComponents": 12,
+        "microFeatureGroups": 10,
+        "materialLayers": 4,
+        "repetitionSystems": 2
+      },
+      "reasoning": [
+        "Simple rectangular silhouette, but near-360 coverage requires four independent inward-facing wall assemblies and stable camera-side culling.",
+        "Window opening is geometric: four wall panels, reveal/frame/sill, mullions, four glass panes and exterior backing.",
+        "Material fidelity depends on separate deterministic wall, floor and painted-frame PBR channels plus repeated plank geometry.",
+        "Existing desk coordinates and camera orbit are authoritative constraints not visible in the reference images."
+      ]
+    },
+    "specDepthDecision": {
+      "requiredDepth": "complex",
+      "minimumComponentLevels": [
+        "macro",
+        "meso",
+        "micro"
+      ],
+      "needsRepetitionSystems": true,
+      "needsMaterialLocalOverrides": true,
+      "needsMultipleReviewViews": true,
+      "needsActionReadyHierarchy": true,
+      "rationale": "Choose simple/moderate/complex/ultra-complex from observed structure, not from a hardcoded domain."
+    },
+    "unknownsToResolveBeforeImplementation": [
+      "Exact room dimensions are not measurable; derive a documented proportion from the 12 x 8 desk footprint.",
+      "Top view is not perfectly orthographic; use it only for rectangular topology.",
+      "Window elevation centers the window while perspective placement is ambiguous; choose a small northward offset and record low confidence.",
+      "No ceiling is built because the user requested only window, walls and floor.",
+      "Exterior scene and manufacturing wall thickness are undefined; use a pale backing panel and view-supporting recess only."
+    ],
+    "detailInventory": {
+      "scanMethod": "grid-3x3",
+      "targetMinDetails": 10,
+      "details": [
+        {
+          "id": "window-opening",
+          "kind": "hole",
+          "description": "One tall rectangular opening cuts the west wall; it must change topology rather than appear as a dark decal.",
+          "region": {
+            "x": 0.10,
+            "y": 0.05,
+            "width": 0.28,
+            "height": 0.62,
+            "units": "normalized"
+          },
+          "scale": "macro, about half wall height",
+          "affects": "west wall silhouette and negative space",
+          "mapsTo": {
+            "type": "component.localFeatures",
+            "ref": "west-window-wall.window-opening"
+          },
+          "evidenceRef": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/detail-inventory/zone-r0c0.png",
+          "confidence": 0.96
+        },
+        {
+          "id": "window-reveal",
+          "kind": "ridge",
+          "description": "Deep pale reveal wraps the window opening and catches a broad highlight.",
+          "region": {
+            "x": 0.12,
+            "y": 0.08,
+            "width": 0.22,
+            "height": 0.55,
+            "units": "normalized"
+          },
+          "scale": "meso, visible recess depth",
+          "affects": "window depth and wall-frame contact",
+          "mapsTo": {
+            "type": "component.localFeatures",
+            "ref": "window-frame.recess-and-reveal"
+          },
+          "evidenceRef": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/detail-inventory/zone-r1c0.png",
+          "confidence": 0.92
+        },
+        {
+          "id": "frame-bevel",
+          "kind": "bevel",
+          "description": "Painted outer frame and sill use real narrow edge relief, not a flat plane.",
+          "region": {
+            "x": 0.12,
+            "y": 0.08,
+            "width": 0.22,
+            "height": 0.58,
+            "units": "normalized"
+          },
+          "scale": "meso edge treatment",
+          "affects": "grazing highlight around window",
+          "mapsTo": {
+            "type": "component.localFeatures",
+            "ref": "window-frame.frame-bevel"
+          },
+          "evidenceRef": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/detail-inventory/zone-r1c0.png",
+          "confidence": 0.9
+        },
+        {
+          "id": "mullion-cross",
+          "kind": "ridge",
+          "description": "One vertical and one horizontal painted-wood mullion divide the glazing into four panes.",
+          "region": {
+            "x": 0.18,
+            "y": 0.17,
+            "width": 0.10,
+            "height": 0.40,
+            "units": "normalized"
+          },
+          "scale": "meso repeated cross members",
+          "affects": "four-pane identity",
+          "mapsTo": {
+            "type": "component.localFeatures",
+            "ref": "window-frame.mullion-cross"
+          },
+          "evidenceRef": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/detail-inventory/zone-r1c0.png",
+          "confidence": 0.98
+        },
+        {
+          "id": "glass-soft-gloss",
+          "kind": "gloss",
+          "description": "Four glazing regions show low-roughness pale sky response without detailed exterior scenery.",
+          "region": {
+            "x": 0.15,
+            "y": 0.12,
+            "width": 0.17,
+            "height": 0.45,
+            "units": "normalized"
+          },
+          "scale": "meso pane regions",
+          "affects": "glass roughness and reflectance",
+          "mapsTo": {
+            "type": "material.localOverrides",
+            "ref": "window-glass.soft-sky-gloss"
+          },
+          "evidenceRef": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/detail-inventory/zone-r1c0.png",
+          "confidence": 0.88
+        },
+        {
+          "id": "wall-low-frequency-mottle",
+          "kind": "stain",
+          "description": "Wall albedo has very low-contrast broad mottling; it is paint variation, not dirt or directional lighting baked into color.",
+          "region": {
+            "x": 0.42,
+            "y": 0.10,
+            "width": 0.50,
+            "height": 0.56,
+            "units": "normalized"
+          },
+          "scale": "macro and meso frequency",
+          "affects": "wall albedo and roughness variation",
+          "mapsTo": {
+            "type": "material.localOverrides",
+            "ref": "wall-paint.low-frequency-mottle"
+          },
+          "evidenceRef": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/detail-inventory/zone-r0c2.png",
+          "confidence": 0.78
+        },
+        {
+          "id": "wall-micro-grain",
+          "kind": "ridge",
+          "description": "Fine painted-plaster grain adds shallow normal/height response under grazing light.",
+          "region": {
+            "x": 0.45,
+            "y": 0.30,
+            "width": 0.40,
+            "height": 0.30,
+            "units": "normalized"
+          },
+          "scale": "micro, sub-centimeter impression",
+          "affects": "wall height and roughness maps",
+          "mapsTo": {
+            "type": "material.localOverrides",
+            "ref": "wall-paint.micro-grain"
+          },
+          "evidenceRef": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/detail-inventory/zone-r1c2.png",
+          "confidence": 0.74
+        },
+        {
+          "id": "baseboard-top-step",
+          "kind": "ridge",
+          "description": "Pale baseboard forms a continuous raised band with a narrow top step at every wall-floor junction.",
+          "region": {
+            "x": 0.00,
+            "y": 0.63,
+            "width": 1.00,
+            "height": 0.12,
+            "units": "normalized"
+          },
+          "scale": "meso continuous perimeter band",
+          "affects": "wall-floor attachment and edge highlight",
+          "mapsTo": {
+            "type": "component.localFeatures",
+            "ref": "baseboards.top-step"
+          },
+          "evidenceRef": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/detail-inventory/zone-r2c1.png",
+          "confidence": 0.95
+        },
+        {
+          "id": "floor-plank-seams",
+          "kind": "seam",
+          "description": "Long parallel wood boards have real narrow dark gaps running along room depth.",
+          "region": {
+            "x": 0.00,
+            "y": 0.67,
+            "width": 1.00,
+            "height": 0.33,
+            "units": "normalized"
+          },
+          "scale": "meso repeated linear seams",
+          "affects": "floor geometry and AO",
+          "mapsTo": {
+            "type": "component.localFeatures",
+            "ref": "floor.plank-seams"
+          },
+          "evidenceRef": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/detail-inventory/zone-r2c1.png",
+          "confidence": 0.98
+        },
+        {
+          "id": "floor-long-grain",
+          "kind": "linework",
+          "description": "Each plank carries longitudinal multi-frequency wood grain aligned with its long axis.",
+          "region": {
+            "x": 0.10,
+            "y": 0.72,
+            "width": 0.78,
+            "height": 0.24,
+            "units": "normalized"
+          },
+          "scale": "meso and micro directional texture",
+          "affects": "floor albedo, height and roughness",
+          "mapsTo": {
+            "type": "material.localOverrides",
+            "ref": "floor-wood.longitudinal-grain"
+          },
+          "evidenceRef": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/detail-inventory/zone-r2c1.png",
+          "confidence": 0.94
+        },
+        {
+          "id": "floor-board-color-variation",
+          "kind": "stain",
+          "description": "Adjacent planks vary subtly in warm-brown value without a repeating checker pattern.",
+          "region": {
+            "x": 0.05,
+            "y": 0.68,
+            "width": 0.90,
+            "height": 0.30,
+            "units": "normalized"
+          },
+          "scale": "per-plank macro variation",
+          "affects": "instance color distribution",
+          "mapsTo": {
+            "type": "material.localOverrides",
+            "ref": "floor-wood.board-color-variation"
+          },
+          "evidenceRef": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/detail-inventory/zone-r2c2.png",
+          "confidence": 0.9
+        },
+        {
+          "id": "painted-wood-subtle-grain",
+          "kind": "linework",
+          "description": "Window frame and baseboard retain faint directional painted-wood grain beneath a satin finish.",
+          "region": {
+            "x": 0.11,
+            "y": 0.05,
+            "width": 0.26,
+            "height": 0.62,
+            "units": "normalized"
+          },
+          "scale": "micro directional texture",
+          "affects": "painted wood albedo, height and roughness",
+          "mapsTo": {
+            "type": "material.localOverrides",
+            "ref": "painted-wood.subtle-grain"
+          },
+          "evidenceRef": "/home/song/dear-desk/docs/assets/model-reviews/dd-20260830-002/img2threejs/detail-inventory/zone-r0c0.png",
+          "confidence": 0.72
+        }
+      ]
+    },
+    "anatomy": {
+      "applies": false,
+      "styleHeads": 0.0,
+      "proportions": {
+        "headUnit": 0.0,
+        "torso": 0.0,
+        "legs": 0.0,
+        "shoulderWidth": 0.0,
+        "hipWidth": 0.0
+      },
+      "pose": {
+        "type": "unassessed",
+        "jointAngles": {}
+      },
+      "faceLandmarks": {
+        "eyeLine": 0.0,
+        "eyeSpacing": 0.0,
+        "noseBase": 0.0,
+        "mouthLine": 0.0,
+        "hairline": 0.0
+      },
+      "features": [],
+      "confidence": 0.0,
+      "note": "Only meaningful when objectClass.primaryDomain is character or hybrid. Set applies=true and fill from forge/stage1_intake/extract_landmarks.py. See grimoire/character/reconstruction.md and grimoire/character/likeness_maximization.md."
+    },
+    "sourceImage": "docs/assets/concepts/simple-study-room-shell-reference-pack/00-primary-perspective.png"
+  },
+  "qualityContract": {
+    "qualityBar": "complex",
+    "definitionOfDone": [
+      "The existing desk remains at world origin without scale or position changes, and the room floor top sits just below every desk-leg bottom with no visible gap or penetration.",
+      "Four independent inward-facing walls form a rectangular shell; the camera can orbit close to 360 degrees because a wall viewed from outside is back-face culled rather than blocking the desk.",
+      "Only the west wall contains one real opening with frame, sill, mullions, four glass panes and a pale exterior backing; north, east and south remain blank.",
+      "Floor planks have real seams, deterministic color variation and independent albedo/roughness/height/AO evidence; wall paint and painted wood retain readable low-amplitude relief under grazing light.",
+      "Primary, opposite-corner, side and material-close-up renders plus automated structure/resource tests pass without adding another Canvas or persistent room state."
+    ],
+    "minimumSpecDepth": {
+      "macroComponents": 4,
+      "mesoComponents": 12,
+      "microFeatureGroups": 10,
+      "materialLayers": 4,
+      "repetitionSystems": 2,
+      "reviewViewpoints": 5
+    },
+    "featureGroups": [
+      {
+        "id": "desk-room-placement",
+        "name": "Desk-to-room spatial contract",
+        "required": true,
+        "qualityCriteria": [
+          "Floor height is derived from DESK_MODEL_SPEC leg center and height.",
+          "Desk, mat, notebook and sticker hit surface coordinates remain unchanged."
+        ],
+        "evidenceRefs": [
+          "src/scene/models/model-specs.ts",
+          "00-primary-perspective",
+          "06-opposite-corner-perspective"
+        ],
+        "failureModes": [
+          "desk legs penetrate or float above floor",
+          "room integration moves existing interactive objects"
+        ]
+      },
+      {
+        "id": "rectangular-shell-orbit",
+        "name": "Rectangular shell and near-360 orbit visibility",
+        "required": true,
+        "qualityCriteria": [
+          "Four named walls bound a 4:3-like floor footprint.",
+          "Every wall uses an inward-facing one-sided surface so camera-side walls cull from outside."
+        ],
+        "evidenceRefs": [
+          "01-top-plan",
+          "00-primary-perspective",
+          "06-opposite-corner-perspective"
+        ],
+        "failureModes": [
+          "missing wall or non-rectangular corner",
+          "near wall permanently obscures desk during orbit"
+        ]
+      },
+      {
+        "id": "west-window-assembly",
+        "name": "West four-pane window assembly",
+        "required": true,
+        "qualityCriteria": [
+          "A geometric opening is surrounded by separate wall panels.",
+          "Frame, sill, one vertical mullion, one horizontal mullion and four inset panes are named parts."
+        ],
+        "evidenceRefs": [
+          "02-west-window-wall-elevation",
+          "00-primary-perspective",
+          "06-opposite-corner-perspective"
+        ],
+        "failureModes": [
+          "window is painted onto a solid wall",
+          "window appears on more than one wall",
+          "pane count or proportions differ"
+        ]
+      },
+      {
+        "id": "procedural-surface-response",
+        "name": "Independent procedural PBR surface response",
+        "required": true,
+        "qualityCriteria": [
+          "Wall, floor and painted wood generate deterministic albedo, roughness, height and AO data independently.",
+          "Albedo maps are sRGB while data maps remain linear.",
+          "Macro, meso and micro bands remain visible but lower contrast than the desk."
+        ],
+        "evidenceRefs": [
+          "00-primary-perspective",
+          "02-west-window-wall-elevation",
+          "localSpecSearch"
+        ],
+        "failureModes": [
+          "flat plastic surfaces",
+          "albedo reused as a data map",
+          "room texture contrast competes with desk"
+        ]
+      },
+      {
+        "id": "runtime-assembly",
+        "name": "Runtime part hierarchy, budgets and disposal",
+        "required": true,
+        "qualityCriteria": [
+          "Named floor, walls, baseboards and window parts are clickable/explodable from one shared part definition.",
+          "root.userData.sculptRuntime, resource metrics and dispose are present.",
+          "All owned geometry, materials and textures are released."
+        ],
+        "evidenceRefs": [
+          "src/scene/models/model-types.ts"
+        ],
+        "failureModes": [
+          "one fused anonymous mesh",
+          "resource leak",
+          "second WebGL Canvas"
+        ]
+      }
+    ],
+    "visualDeltaChecks": [
+      "desk-leg bottom to floor-top delta",
+      "primary and opposite-corner window-wall parity",
+      "four-wall rectangular topology and blank-wall opening count",
+      "floor plank direction, seam rhythm and material response",
+      "wall/frame relief under reference-matched and grazing light",
+      "near-360 camera-side wall culling"
+    ],
+    "antiShallowSpecRules": [
+      "Do not proceed to code if qualityContract.qualityBar is unassessed.",
+      "Do not proceed to code if the spec only contains a root component for a moderate or complex object.",
+      "Do not proceed to code if required featureGroups are not represented by componentTree, materials, or repetitionSystems.",
+      "Do not proceed to code if visible local features are described only in prose and not attached to components/materials/evidenceRefs.",
+      "Do not proceed past structural-pass if attached child parts lack attachment.parentSocket, localStart, localEnd, embedDepth/overlap, and gapTolerance.",
+      "Do not pass material look-dev when albedo is reused as roughness, height, normal, or AO.",
+      "Do not pass material look-dev without macro, meso, and micro surface frequency bands for close-up materials.",
+      "Do not pass reference-fidelity material look-dev from a source image without usable referencePbr maps or an explicit documented limitation.",
+      "Do not patch a spec with extracted PBR maps when extraction confidence is below the target threshold unless the user explicitly accepts lower fidelity.",
+      "Do not place adjacent separate-geometry parts below 0.02 world-unit seam overlap (source: grimoire/build/geometry_patterns.md).",
+      "Do not satisfy raised or recessed relief, fasteners, or grip structure with a map alone when the feature affects form; use geometry or displacement (source: grimoire/build/geometry_patterns.md)."
+    ]
+  },
+  "authoringInstruction": "Fill observed object class, complexity reasoning, featureGroups, visualDeltaChecks, and unknowns before generating or implementing ObjectSculptSpec.",
+  "localSpecSearch": {
+    "collection": "core_3d",
+    "query": "Simple Study Room Shell architectural room shell inward-facing wall backface culling procedural painted wall roughness bump texture wood plank floor independent albedo roughness height ao window frame glass real-time three.js",
+    "index": {
+      "status": "hit",
+      "reason": "current",
+      "fingerprint": "6857e5ab528b42ac12f4f411f862610a0bffce8e47aee3610a7603c318072fe8"
+    },
+    "matches": [
+      {
+        "record_id": "core.pbr-color-space-srgb-vs-linearnocolorspace",
+        "file_path": "docs/raw/img2threejs-skill-dataset.json",
+        "heading": null,
+        "key_path": "categories.material_pbr[11]",
+        "score": 11.109657964988,
+        "snippets": [
+          "... (cần gamma/sRGB) và các bản đồ dữ liệu toán học (phải giữ tuyến tính/không hiệu chỉnh). Recognition cues: Base color/albedo and emissive textures are the only ones that should look like natural photographic color; Normal, roughness, ..."
+        ],
+        "source_refs": [
+          {
+            "path": "docs/raw/img2threejs-skill-dataset.json",
+            "heading": null,
+            "key_path": "categories.material_pbr[11]"
+          }
+        ],
+        "evidence_refs": [
+          {
+            "kind": "source",
+            "ref": "docs/raw/img2threejs-skill-dataset.json",
+            "note": "img2threejs NotebookLM research distillation"
+          }
+        ]
+      },
+      {
+        "record_id": "core.pbr-orm-channel-packing",
+        "file_path": "docs/raw/img2threejs-skill-dataset.json",
+        "heading": null,
+        "key_path": "categories.material_pbr[10]",
+        "score": 9.150579466346,
+        "snippets": [
+          "Convention of packing AO, Roughness, and Metalness grayscale maps into the R, G, B channels of a single texture to cut texture-fetch and VRAM cost. Quy ước đóng gói ba bản đồ grayscale AO, Roughness, Metalness vào các kênh R, G, B của một ..."
+        ],
+        "source_refs": [
+          {
+            "path": "docs/raw/img2threejs-skill-dataset.json",
+            "heading": null,
+            "key_path": "categories.material_pbr[10]"
+          }
+        ],
+        "evidence_refs": [
+          {
+            "kind": "source",
+            "ref": "docs/raw/img2threejs-skill-dataset.json",
+            "note": "img2threejs NotebookLM research distillation"
+          }
+        ]
+      },
+      {
+        "record_id": "core.shader-mapping-orm-packed-texture-assignment",
+        "file_path": "docs/raw/img2threejs-skill-dataset.json",
+        "heading": null,
+        "key_path": "categories.rendering_shader_mapping[13]",
+        "score": 8.97179230469,
+        "snippets": [
+          "Assigning one R/G/B-packed texture file to three separate MeshPhysicalMaterial slots simultaneously, per the glTF ORM convention. Gán một file texture đóng gói R/G/B vào ba khe riêng biệt của MeshPhysicalMaterial cùng lúc, theo quy ước ORM của ..."
+        ],
+        "source_refs": [
+          {
+            "path": "docs/raw/img2threejs-skill-dataset.json",
+            "heading": null,
+            "key_path": "categories.rendering_shader_mapping[13]"
+          }
+        ],
+        "evidence_refs": [
+          {
+            "kind": "source",
+            "ref": "docs/raw/img2threejs-skill-dataset.json",
+            "note": "img2threejs NotebookLM research distillation"
+          }
+        ]
+      }
+    ]
+  }
+}

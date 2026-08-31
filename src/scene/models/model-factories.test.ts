@@ -4,6 +4,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createDeskMatModel } from './create-desk-mat-model'
 import { createDeskModel, setDeskDrawerProgress } from './create-desk-model'
 import { createNotebookModel } from './create-notebook-model'
+import { createStudyRoomShellModel } from './create-study-room-shell-model'
+import type { StudyRoomShellNodes } from './create-study-room-shell-model'
 import { createRoundedPlateGeometry } from './geometry'
 import {
   createModelMaterialLibrary,
@@ -23,6 +25,7 @@ import {
   DESK_MODEL_SPEC,
   MODEL_LIMITS,
   NOTEBOOK_MODEL_SPEC,
+  STUDY_ROOM_MODEL_SPEC,
 } from './model-specs'
 import {
   getSculptRuntime,
@@ -72,6 +75,52 @@ afterEach(() => {
 })
 
 describe('procedural scene model factories', () => {
+  it('builds the room shell with a real west opening and four panes', () => {
+    const room = trackRoot(createStudyRoomShellModel())
+    const runtime = getRuntime<StudyRoomShellNodes>(room)
+
+    expect(STUDY_ROOM_MODEL_SPEC.interior).toEqual({ width: 42, depth: 33 })
+    expect(STUDY_ROOM_MODEL_SPEC.wallTopY - STUDY_ROOM_MODEL_SPEC.floorTopY).toBe(18)
+    expect(STUDY_ROOM_MODEL_SPEC.window.width).toBeCloseTo(10.3)
+    expect(STUDY_ROOM_MODEL_SPEC.window.topY - STUDY_ROOM_MODEL_SPEC.window.bottomY).toBeCloseTo(12.65)
+    expect(runtime.nodes.floor.position.y).toBe(-5.025)
+    expect(runtime.nodes.ceiling.position.y).toBeCloseTo(12.955)
+    expect(runtime.nodes.cornerPosts.children).toHaveLength(4)
+    expect(runtime.nodes.westWindow.getObjectByName('study-room-window-pane-1')).toBeTruthy()
+    expect(runtime.nodes.windowBackdrop.name).toBe('study-room-window-outdoor-backdrop')
+    expect(runtime.nodes.windowSill.name).toBe('study-room-window-sill')
+    expect(runtime.nodes.windowApron.name).toBe('study-room-window-apron')
+    expect(runtime.nodes.windowSill.position.x).toBeGreaterThan(-21)
+    expect(runtime.nodes.windowGlass.children).toHaveLength(4)
+    expect(runtime.nodes.westWall.geometry.getAttribute('position').count).toBeGreaterThan(0)
+    expect((runtime.nodes.westWall.material as THREE.MeshStandardMaterial).side).toBe(THREE.DoubleSide)
+    expect(runtime.nodes.westWall.material).toBe(runtime.nodes.eastWall.material)
+    expect(runtime.nodes.eastWall.material).toBe(runtime.nodes.northWall.material)
+    expect(runtime.nodes.northWall.material).toBe(runtime.nodes.southWall.material)
+    expect(((runtime.nodes.westWall.material as THREE.MeshStandardMaterial).map as THREE.DataTexture).image.width).toBe(512)
+    expect((runtime.nodes.floor.material as THREE.MeshStandardMaterial).map?.repeat.y).toBeCloseTo(2.5)
+    expect(STUDY_ROOM_MODEL_SPEC.plankCount).toBe(38)
+    expect(STUDY_ROOM_MODEL_SPEC.baseboard.capHeight).toBeGreaterThan(0)
+    expect(runtime.nodes.floor.count).toBe(38)
+    expect((runtime.nodes.westWall.material as THREE.MeshStandardMaterial).color.getHexString()).toBe('ffffff')
+    for (const wall of [runtime.nodes.westWall, runtime.nodes.eastWall, runtime.nodes.northWall, runtime.nodes.southWall]) {
+      expect(wall.geometry.getAttribute('normal').count).toBe(4)
+    }
+    expect(room.userData.resourceMetrics.textures).toBe(5)
+    expect(room.userData.resourceMetrics.drawCalls).toBeLessThanOrEqual(29)
+  })
+
+  it('isolates room resources and makes every room surface non-interactive', () => {
+    const room = trackRoot(createStudyRoomShellModel())
+    const geometrySpies = uniqueGeometries(room).map((geometry) => vi.spyOn(geometry, 'dispose'))
+    const meshes: THREE.Object3D[] = []
+    room.traverse((object) => { if (object instanceof THREE.Mesh) meshes.push(object) })
+
+    meshes.forEach((mesh) => expect(mesh.raycast).not.toBe(THREE.Mesh.prototype.raycast))
+    ;(room.userData.dispose as () => void)()
+    geometrySpies.forEach((spy) => expect(spy).toHaveBeenCalledTimes(1))
+  })
+
   it('keeps eleven historical candidates while concept-restored v12 is the default', () => {
     expect(Object.keys(SCENE_PALETTE_PRESETS)).toEqual([
       'v1', 'v2', 'v3', 'v4', 'v5', 'v6', 'v7', 'v8', 'v9', 'v10', 'v11', 'v12',

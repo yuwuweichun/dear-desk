@@ -1,0 +1,1290 @@
+{
+  "targetName": "Simple Study Room Shell",
+  "targetId": "simple-study-room-shell",
+  "schemaVersion": "2.1",
+  "sourceImage": "docs/assets/concepts/simple-study-room-shell-reference-pack/00-primary-perspective.png",
+  "suitability": "conditional",
+  "coordinateFrame": {
+    "front": "interior-facing desk view",
+    "up": "positive Y",
+    "scaleReference": "existing desk world coordinates",
+    "roomInterior": {
+      "width": 42,
+      "depth": 33,
+      "height": 18,
+      "units": "world"
+    },
+    "floorTopY": -5.025,
+    "wallTopY": 12.975,
+    "wallThickness": 0.12,
+    "deskLegBottomY": -5.02,
+    "deskFloorDelta": 0.005
+  },
+  "silhouette": {
+    "boundingShape": "rectangular enclosed visual shell",
+    "aspectRatios": [
+      1.314,
+      0.445,
+      0.7
+    ],
+    "symmetry": "rectangular footprint with one west opening",
+    "dominantCurves": [],
+    "negativeSpaces": [
+      "west four-pane opening",
+      "ceiling isolation plane"
+    ],
+    "landmarks": [
+      "west x=-21",
+      "east x=11.5",
+      "north z=-16.5",
+      "south z=16.5",
+      "floor y=-5.025"
+    ]
+  },
+  "referenceCamera": {
+    "solved": false,
+    "fovDegrees": 40,
+    "aspect": 1,
+    "orientation": {
+      "yaw": 0,
+      "pitch": 0,
+      "roll": 0
+    },
+    "positionHint": [
+      0,
+      0,
+      3
+    ]
+  },
+  "scores": {
+    "object_isolation": 3,
+    "silhouette_readability": 3,
+    "depth_inference": 2,
+    "primitive_decomposition": 3,
+    "material_procedurality": 2,
+    "occlusion_risk": 2,
+    "interaction_fit": 3
+  },
+  "preSpecAssessment": {
+    "objectClass": {
+      "primaryType": "architectural room shell",
+      "primaryDomain": "object",
+      "formLanguage": [
+        "architectural",
+        "hard-surface",
+        "geometric"
+      ],
+      "structureKind": [
+        "compound shell",
+        "repeated modules"
+      ],
+      "materialFamilies": [
+        "painted plaster",
+        "wood",
+        "painted wood",
+        "glass"
+      ]
+    },
+    "complexity": {
+      "tier": "complex",
+      "scores": {
+        "silhouetteComplexity": 1,
+        "componentCount": 3,
+        "hierarchyDepth": 3,
+        "repetitionDensity": 2,
+        "materialLayerCount": 3,
+        "localDetailDensity": 2,
+        "occlusionRisk": 2,
+        "actionReadinessNeed": 2
+      },
+      "estimatedCounts": {
+        "macroComponents": 4,
+        "mesoComponents": 0,
+        "microFeatureGroups": 0,
+        "materialLayers": 5,
+        "repetitionSystems": 2
+      }
+    },
+    "specDepthDecision": {
+      "requiredDepth": "complex",
+      "minimumComponentLevels": [
+        "macro"
+      ],
+      "needsRepetitionSystems": true,
+      "needsMaterialLocalOverrides": true,
+      "needsMultipleReviewViews": true,
+      "needsActionReadyHierarchy": true
+    },
+    "unknownsToResolveBeforeImplementation": []
+  },
+  "qualityContract": {
+    "qualityBar": "complex",
+    "definitionOfDone": [
+      "Desk remains at original transform and floor top is -5.025.",
+      "Four inward-facing planes form the shell and camera-side wall backs cull.",
+      "West wall has a real opening, six frame rails and four panes.",
+      "Wall, floor, frame and glass use independent procedural PBR channels.",
+      "Runtime hierarchy, disposal, single Canvas and multi-angle review pass."
+    ],
+    "minimumSpecDepth": {
+      "macroComponents": 4,
+      "mesoComponents": 0,
+      "microFeatureGroups": 0,
+      "materialLayers": 4,
+      "repetitionSystems": 2,
+      "reviewViewpoints": 5
+    },
+    "featureGroups": [
+      {
+        "id": "desk-room-placement",
+        "name": "desk room placement",
+        "required": true,
+        "qualityCriteria": [
+          "floor y=-5.025",
+          "desk unchanged"
+        ],
+        "evidenceRefs": [
+          "full-object"
+        ],
+        "failureModes": [
+          "floating legs"
+        ]
+      },
+      {
+        "id": "rectangular-shell-orbit",
+        "name": "shell orbit culling",
+        "required": true,
+        "qualityCriteria": [
+          "four walls",
+          "inward normals"
+        ],
+        "evidenceRefs": [
+          "01-top-plan"
+        ],
+        "failureModes": [
+          "near wall blocks desk"
+        ]
+      },
+      {
+        "id": "west-window-assembly",
+        "name": "west four-pane window",
+        "required": true,
+        "qualityCriteria": [
+          "real opening",
+          "four panes"
+        ],
+        "evidenceRefs": [
+          "02-west-window-wall-elevation"
+        ],
+        "failureModes": [
+          "decal window"
+        ]
+      },
+      {
+        "id": "procedural-surface-response",
+        "name": "procedural PBR",
+        "required": true,
+        "qualityCriteria": [
+          "independent channels"
+        ],
+        "evidenceRefs": [
+          "00-primary-perspective"
+        ],
+        "failureModes": [
+          "flat plastic"
+        ]
+      }
+    ],
+    "visualDeltaChecks": [
+      "desk floor delta",
+      "window opening",
+      "four-wall topology",
+      "floor seams",
+      "wall relief",
+      "wall culling"
+    ],
+    "antiShallowSpecRules": [
+      "Do not fuse semantic parts.",
+      "Do not alias albedo into data maps."
+    ],
+    "mustNotDo": [
+      "Do not add a second Canvas.",
+      "Do not move existing desk objects."
+    ]
+  },
+  "qualityTargets": {
+    "qualityPriority": "reference-fidelity",
+    "targetFidelity": 0.7,
+    "reviewViewpoints": [
+      "front",
+      "three-quarter",
+      "side",
+      "opposite-corner",
+      "grazing-material"
+    ],
+    "materialPass": {
+      "minimumTextureResolution": 512,
+      "independentMapChannels": [
+        "albedo",
+        "roughness",
+        "height",
+        "normal",
+        "ambient-occlusion"
+      ],
+      "referencePbrExtraction": {
+        "requiredWhenSourceImagePresent": true,
+        "targetThreshold": 0.7
+      }
+    }
+  },
+  "lookDevTargets": {
+    "qualityPriority": "reference-fidelity",
+    "materialPass": {
+      "minimumTextureResolution": 512,
+      "independentMapChannels": [
+        "albedo",
+        "roughness",
+        "height",
+        "normal",
+        "ambient-occlusion"
+      ],
+      "referencePbrExtraction": {
+        "requiredWhenSourceImagePresent": true,
+        "targetThreshold": 0.7
+      }
+    }
+  },
+  "selfCorrectLoop": {
+    "enabled": true,
+    "screenshotPolicy": {
+      "requiredForPasses": [
+        "blockout",
+        "structural-pass",
+        "material-pass",
+        "lighting-pass"
+      ],
+      "preferredCapture": "browser"
+    },
+    "visualAcceptance": {
+      "reviewer": "ai-vision",
+      "threshold": 0.7,
+      "comparisonArtifactRequired": true,
+      "layerScoresRequired": true,
+      "featureReviewPolicy": {
+        "enabled": true,
+        "maxCriticalFeaturesPerPass": 5,
+        "maxImportantFeaturesPerPass": 3
+      },
+      "screenshotPolicy": {
+        "requiredForPasses": [
+          "blockout",
+          "structural-pass",
+          "material-pass",
+          "lighting-pass"
+        ],
+        "preferredCapture": "browser"
+      }
+    },
+    "reviewAfterPasses": [
+      "blockout",
+      "structural-pass",
+      "form-refinement",
+      "material-pass",
+      "surface-pass",
+      "lighting-pass",
+      "interaction-pass",
+      "optimization-pass"
+    ],
+    "allowedActions": [
+      "continue",
+      "refine-spec",
+      "refine-code",
+      "request-input",
+      "stop"
+    ]
+  },
+  "featureReviewTargets": [
+    {
+      "id": "room-proportion",
+      "name": "rectangular room proportion",
+      "tier": "critical",
+      "passIds": [
+        "blockout"
+      ],
+      "minimumScore": 0.8,
+      "mustPass": true,
+      "componentRefs": [
+        "root",
+        "floor",
+        "walls"
+      ],
+      "evidenceRefs": [
+        "01-top-plan"
+      ]
+    },
+    {
+      "id": "window-opening",
+      "name": "geometric four-pane opening",
+      "tier": "critical",
+      "passIds": [
+        "structural-pass",
+        "form-refinement"
+      ],
+      "minimumScore": 0.8,
+      "mustPass": true,
+      "componentRefs": [
+        "window"
+      ],
+      "evidenceRefs": [
+        "02-west-window-wall-elevation"
+      ]
+    },
+    {
+      "id": "surface-response",
+      "name": "wall floor PBR response",
+      "tier": "critical",
+      "passIds": [
+        "material-pass",
+        "surface-pass"
+      ],
+      "minimumScore": 0.75,
+      "mustPass": true,
+      "componentRefs": [
+        "floor",
+        "walls"
+      ],
+      "evidenceRefs": [
+        "full-object"
+      ]
+    }
+  ],
+  "viewEvidence": [
+    {
+      "id": "full-object",
+      "view": "primary",
+      "observations": [
+        "empty shell, west window and wood floor"
+      ],
+      "confidence": 0.86
+    },
+    {
+      "id": "01-top-plan",
+      "view": "top",
+      "observations": [
+        "rectangular footprint"
+      ],
+      "confidence": 0.78
+    },
+    {
+      "id": "02-west-window-wall-elevation",
+      "view": "west",
+      "observations": [
+        "one tall four-pane opening"
+      ],
+      "confidence": 0.92
+    },
+    {
+      "id": "03-north-wall-elevation",
+      "view": "north",
+      "observations": [
+        "blank wall"
+      ],
+      "confidence": 0.7
+    },
+    {
+      "id": "04-east-wall-elevation",
+      "view": "east",
+      "observations": [
+        "blank wall"
+      ],
+      "confidence": 0.7
+    },
+    {
+      "id": "05-south-wall-elevation",
+      "view": "south",
+      "observations": [
+        "blank wall"
+      ],
+      "confidence": 0.7
+    },
+    {
+      "id": "06-opposite-corner-perspective",
+      "view": "opposite-corner",
+      "observations": [
+        "window wall and opposite corner"
+      ],
+      "confidence": 0.82
+    }
+  ],
+  "componentTree": [
+    {
+      "id": "root",
+      "name": "room-shell",
+      "level": "macro",
+      "primitive": "box",
+      "topologyClass": "assembled-solid",
+      "topologyRationale": "Named room assembly owns the four wall and floor systems.",
+      "colorMaterialRecipe": {
+        "dominantAlbedo": "rgba(137, 146, 126, 1.0)",
+        "secondaryAlbedo": "rgba(203, 185, 145, 1.0)",
+        "materialClass": "stone",
+        "materialClassConfidence": 0.78
+      },
+      "material": "wall-paint"
+    },
+    {
+      "id": "floor",
+      "name": "wood-floor",
+      "level": "macro",
+      "primitive": "instanced-cluster",
+      "topologyClass": "assembled-solid",
+      "topologyRationale": "Thirty-eight narrow boards use shallow instanced boxes over a dark underlay so plank seams remain visible at the product camera distance.",
+      "colorMaterialRecipe": {
+        "dominantAlbedo": "rgba(122, 73, 40, 1.0)",
+        "secondaryAlbedo": "rgba(137, 83, 50, 1.0)",
+        "materialClass": "wood",
+        "materialClassConfidence": 0.94
+      },
+      "material": "floor-wood"
+    },
+    {
+      "id": "walls",
+      "name": "four-wall-shell",
+      "level": "macro",
+      "primitive": "plane-card",
+      "topologyClass": "open-shell",
+      "topologyRationale": "Wall planes are authored with inward normals and FrontSide culling.",
+      "colorMaterialRecipe": {
+        "dominantAlbedo": "rgba(137, 146, 126, 1.0)",
+        "secondaryAlbedo": "rgba(164, 168, 149, 1.0)",
+        "materialClass": "stone",
+        "materialClassConfidence": 0.86
+      },
+      "material": "wall-paint"
+    },
+    {
+      "id": "window",
+      "name": "west-four-pane-window",
+      "level": "macro",
+      "primitive": "box",
+      "topologyClass": "assembled-solid",
+      "topologyRationale": "Opening, rails and panes form one named architectural assembly.",
+      "colorMaterialRecipe": {
+        "dominantAlbedo": "rgba(209, 189, 151, 1.0)",
+        "secondaryAlbedo": "rgba(232, 218, 187, 1.0)",
+        "materialClass": "wood",
+        "materialClassConfidence": 0.9
+      },
+      "material": "window-frame"
+    }
+  ],
+  "materials": [
+    {
+      "id": "wall-paint",
+      "name": "cool sage plaster",
+      "type": "standard",
+      "textureResolution": 512,
+      "textureProjection": {
+        "mode": "uv",
+        "repeat": [
+          4,
+          3
+        ],
+        "texelDensityIntent": "stable world-space detail"
+      },
+      "albedo": {
+        "dominant": "#89927e",
+        "secondary": [
+          "#879a8e",
+          "#b8c9be"
+        ]
+      },
+      "colorVariation": {
+        "pattern": "low-frequency mottle",
+        "amplitude": 0.12
+      },
+      "surfaceFrequencyBands": [
+        {
+          "id": "macro",
+          "frequency": 2,
+          "amplitude": 0.12
+        },
+        {
+          "id": "meso",
+          "frequency": 12,
+          "amplitude": 0.05
+        },
+        {
+          "id": "micro",
+          "frequency": 56,
+          "amplitude": 0.02
+        }
+      ],
+      "roughness": {
+        "base": 0.82,
+        "variation": 0.08,
+        "map": "independent-wall-roughness"
+      },
+      "normal": {
+        "pattern": "independent-wall-height",
+        "strength": 0.18
+      },
+      "ambientOcclusion": {
+        "cavityStrength": 0.2
+      },
+      "doubleSided": true,
+      "localOverrides": [
+        {
+          "id": "low-frequency-mottle"
+        },
+        {
+          "id": "micro-grain"
+        }
+      ],
+      "referencePbr": {
+        "usable": true,
+        "source": "procedural inference",
+        "confidence": 0.7,
+        "maps": {
+          "albedo": {
+            "path": "docs/assets/model-reviews/dd-20260830-002/img2threejs/room-assessment.json"
+          },
+          "roughness": {
+            "path": "docs/assets/model-reviews/dd-20260830-002/img2threejs/room-assessment.json"
+          },
+          "height": {
+            "path": "docs/assets/model-reviews/dd-20260830-002/img2threejs/room-assessment.json"
+          },
+          "normal": {
+            "path": "docs/assets/model-reviews/dd-20260830-002/img2threejs/room-assessment.json"
+          },
+          "ao": {
+            "path": "docs/assets/model-reviews/dd-20260830-002/img2threejs/room-assessment.json"
+          }
+        }
+      }
+    },
+    {
+      "id": "floor-wood",
+      "name": "warm walnut floor",
+      "type": "standard",
+      "textureResolution": 512,
+      "textureProjection": {
+        "mode": "uv",
+        "repeat": [
+          1,
+          2.5
+        ],
+        "texelDensityIntent": "long-axis plank detail"
+      },
+      "albedo": {
+        "dominant": "#7a4928",
+        "secondary": [
+          "#8d684c",
+          "#c19a73"
+        ]
+      },
+      "colorVariation": {
+        "pattern": "plank tone variation",
+        "amplitude": 0.18
+      },
+      "surfaceFrequencyBands": [
+        {
+          "id": "macro",
+          "frequency": 3,
+          "amplitude": 0.18
+        },
+        {
+          "id": "meso",
+          "frequency": 24,
+          "amplitude": 0.12
+        },
+        {
+          "id": "micro",
+          "frequency": 80,
+          "amplitude": 0.04
+        }
+      ],
+      "roughness": {
+        "base": 0.68,
+        "variation": 0.18,
+        "map": "independent-floor-roughness"
+      },
+      "normal": {
+        "pattern": "grain-and-seam-height",
+        "strength": 0.24
+      },
+      "ambientOcclusion": {
+        "cavityStrength": 0.3
+      },
+      "localOverrides": [
+        {
+          "id": "plank-seams"
+        },
+        {
+          "id": "board-variation"
+        }
+      ],
+      "referencePbr": {
+        "usable": true,
+        "source": "procedural inference",
+        "confidence": 0.7,
+        "maps": {
+          "albedo": {
+            "path": "docs/assets/model-reviews/dd-20260830-002/img2threejs/room-assessment.json"
+          },
+          "roughness": {
+            "path": "docs/assets/model-reviews/dd-20260830-002/img2threejs/room-assessment.json"
+          },
+          "height": {
+            "path": "docs/assets/model-reviews/dd-20260830-002/img2threejs/room-assessment.json"
+          },
+          "normal": {
+            "path": "docs/assets/model-reviews/dd-20260830-002/img2threejs/room-assessment.json"
+          },
+          "ao": {
+            "path": "docs/assets/model-reviews/dd-20260830-002/img2threejs/room-assessment.json"
+          }
+        }
+      }
+    },
+    {
+      "id": "window-frame",
+      "name": "pale painted wood",
+      "type": "standard",
+      "textureResolution": 512,
+      "textureProjection": {
+        "mode": "uv",
+        "repeat": [
+          2,
+          2
+        ],
+        "texelDensityIntent": "stable rail detail"
+      },
+      "albedo": {
+        "dominant": "#d1bd97",
+        "secondary": [
+          "#c9c2b0"
+        ]
+      },
+      "colorVariation": {
+        "pattern": "paint tone variation",
+        "amplitude": 0.04
+      },
+      "surfaceFrequencyBands": [
+        {
+          "id": "macro",
+          "frequency": 2,
+          "amplitude": 0.04
+        },
+        {
+          "id": "meso",
+          "frequency": 14,
+          "amplitude": 0.03
+        },
+        {
+          "id": "micro",
+          "frequency": 58,
+          "amplitude": 0.01
+        }
+      ],
+      "roughness": {
+        "base": 0.6,
+        "variation": 0.08,
+        "map": "independent-frame-roughness"
+      },
+      "normal": {
+        "pattern": "painted-wood-height",
+        "strength": 0.1
+      },
+      "ambientOcclusion": {
+        "cavityStrength": 0.25
+      },
+      "localOverrides": [
+        {
+          "id": "frame-bevel"
+        }
+      ],
+      "referencePbr": {
+        "usable": true,
+        "source": "procedural inference",
+        "confidence": 0.7,
+        "maps": {
+          "albedo": {
+            "path": "docs/assets/model-reviews/dd-20260830-002/img2threejs/room-assessment.json"
+          },
+          "roughness": {
+            "path": "docs/assets/model-reviews/dd-20260830-002/img2threejs/room-assessment.json"
+          },
+          "height": {
+            "path": "docs/assets/model-reviews/dd-20260830-002/img2threejs/room-assessment.json"
+          },
+          "normal": {
+            "path": "docs/assets/model-reviews/dd-20260830-002/img2threejs/room-assessment.json"
+          },
+          "ao": {
+            "path": "docs/assets/model-reviews/dd-20260830-002/img2threejs/room-assessment.json"
+          }
+        }
+      }
+    },
+    {
+      "id": "baseboard",
+      "name": "pale baseboard",
+      "type": "standard",
+      "textureResolution": 512,
+      "textureProjection": {
+        "mode": "uv",
+        "repeat": [
+          2,
+          2
+        ],
+        "texelDensityIntent": "stable trim detail"
+      },
+      "albedo": {
+        "dominant": "#cbb991",
+        "secondary": [
+          "#eee7d5"
+        ]
+      },
+      "colorVariation": {
+        "pattern": "paint tone variation",
+        "amplitude": 0.03
+      },
+      "surfaceFrequencyBands": [
+        {
+          "id": "macro",
+          "frequency": 2,
+          "amplitude": 0.03
+        },
+        {
+          "id": "meso",
+          "frequency": 12,
+          "amplitude": 0.02
+        },
+        {
+          "id": "micro",
+          "frequency": 48,
+          "amplitude": 0.01
+        }
+      ],
+      "roughness": {
+        "base": 0.72,
+        "variation": 0.04,
+        "map": "independent-trim-roughness"
+      },
+      "normal": {
+        "pattern": "paint-grain-height",
+        "strength": 0.06
+      },
+      "ambientOcclusion": {
+        "cavityStrength": 0.3
+      },
+      "localOverrides": [
+        {
+          "id": "top-step"
+        }
+      ],
+      "referencePbr": {
+        "usable": true,
+        "source": "procedural inference",
+        "confidence": 0.7,
+        "maps": {
+          "albedo": {
+            "path": "docs/assets/model-reviews/dd-20260830-002/img2threejs/room-assessment.json"
+          },
+          "roughness": {
+            "path": "docs/assets/model-reviews/dd-20260830-002/img2threejs/room-assessment.json"
+          },
+          "height": {
+            "path": "docs/assets/model-reviews/dd-20260830-002/img2threejs/room-assessment.json"
+          },
+          "normal": {
+            "path": "docs/assets/model-reviews/dd-20260830-002/img2threejs/room-assessment.json"
+          },
+          "ao": {
+            "path": "docs/assets/model-reviews/dd-20260830-002/img2threejs/room-assessment.json"
+          }
+        }
+      }
+    },
+    {
+      "id": "window-glass",
+      "name": "soft sky glass",
+      "type": "physical",
+      "textureResolution": 512,
+      "textureProjection": {
+        "mode": "uv",
+        "repeat": [
+          1,
+          1
+        ],
+        "texelDensityIntent": "pane-scale response"
+      },
+      "albedo": {
+        "dominant": "#c8ded8",
+        "secondary": [
+          "#e2eee8"
+        ]
+      },
+      "colorVariation": {
+        "pattern": "soft sky variation",
+        "amplitude": 0.02
+      },
+      "surfaceFrequencyBands": [
+        {
+          "id": "macro",
+          "frequency": 2,
+          "amplitude": 0.02
+        },
+        {
+          "id": "meso",
+          "frequency": 8,
+          "amplitude": 0.01
+        },
+        {
+          "id": "micro",
+          "frequency": 32,
+          "amplitude": 0.005
+        }
+      ],
+      "roughness": {
+        "base": 0.18,
+        "variation": 0.05,
+        "map": "independent-glass-roughness"
+      },
+      "normal": {
+        "pattern": "none",
+        "strength": 0
+      },
+      "ambientOcclusion": {
+        "cavityStrength": 0.08
+      },
+      "localOverrides": [
+        {
+          "id": "soft-sky-gloss",
+          "roughness": 0.16
+        }
+      ],
+      "clearcoat": 0.25,
+      "referencePbr": {
+        "usable": true,
+        "source": "procedural inference",
+        "confidence": 0.7,
+        "maps": {
+          "albedo": {
+            "path": "docs/assets/model-reviews/dd-20260830-002/img2threejs/room-assessment.json"
+          },
+          "roughness": {
+            "path": "docs/assets/model-reviews/dd-20260830-002/img2threejs/room-assessment.json"
+          },
+          "height": {
+            "path": "docs/assets/model-reviews/dd-20260830-002/img2threejs/room-assessment.json"
+          },
+          "normal": {
+            "path": "docs/assets/model-reviews/dd-20260830-002/img2threejs/room-assessment.json"
+          },
+          "ao": {
+            "path": "docs/assets/model-reviews/dd-20260830-002/img2threejs/room-assessment.json"
+          }
+        }
+      }
+    }
+  ],
+  "repetitionSystems": [
+    {
+      "id": "floor-plank-rhythm",
+      "name": "floor plank rhythm",
+      "instances": 38,
+      "buildsGeometry": true,
+      "geometry": "instanced shallow box boards over dark seam underlay",
+      "evidenceRefs": [
+        "full-object"
+      ]
+    },
+    {
+      "id": "perimeter-trim",
+      "name": "four-sided baseboard",
+      "instances": 4,
+      "buildsGeometry": true,
+      "geometry": "instanced box rails",
+      "evidenceRefs": [
+        "01-top-plan"
+      ]
+    }
+  ],
+  "buildPasses": [
+    {
+      "id": "blockout",
+      "goal": "shell proportions",
+      "componentRefs": [
+        "root",
+        "floor",
+        "walls",
+        "window"
+      ],
+      "acceptance": [
+        "macro silhouette"
+      ]
+    },
+    {
+      "id": "structural-pass",
+      "goal": "walls and real opening",
+      "componentRefs": [
+        "walls",
+        "window"
+      ],
+      "acceptance": [
+        "four panes"
+      ]
+    },
+    {
+      "id": "form-refinement",
+      "goal": "frame and sill depth",
+      "componentRefs": [
+        "window"
+      ],
+      "acceptance": [
+        "no floating parts"
+      ]
+    },
+    {
+      "id": "material-pass",
+      "goal": "independent PBR",
+      "componentRefs": [
+        "floor",
+        "walls",
+        "window"
+      ],
+      "acceptance": [
+        "independent maps"
+      ]
+    },
+    {
+      "id": "surface-pass",
+      "goal": "seams and grain",
+      "componentRefs": [
+        "floor",
+        "walls"
+      ],
+      "acceptance": [
+        "grazing response"
+      ]
+    },
+    {
+      "id": "lighting-pass",
+      "goal": "readable shell",
+      "componentRefs": [
+        "root"
+      ],
+      "acceptance": [
+        "contact shadow"
+      ]
+    },
+    {
+      "id": "interaction-pass",
+      "goal": "runtime hierarchy",
+      "componentRefs": [
+        "root"
+      ],
+      "acceptance": [
+        "disposal"
+      ]
+    },
+    {
+      "id": "optimization-pass",
+      "goal": "runtime budget",
+      "componentRefs": [
+        "root"
+      ],
+      "acceptance": [
+        "metrics"
+      ]
+    }
+  ],
+  "sculptPipeline": {
+    "passGateMode": "locked-sequential",
+    "passOrder": [
+      "blockout",
+      "structural-pass",
+      "form-refinement",
+      "material-pass",
+      "surface-pass",
+      "lighting-pass",
+      "interaction-pass",
+      "optimization-pass"
+    ],
+    "currentPass": "blockout",
+    "completedPasses": [],
+    "lastCompletedPass": "",
+    "blockedReason": "",
+    "nextRequiredEvidence": [
+      "macro silhouette",
+      "browser render screenshot from your agent's browser/screenshot tool",
+      "single side-by-side full reference/render comparison sheet",
+      "all critical semantic feature scores at or above their thresholds",
+      "self-correction review appended with action=continue before the next pass"
+    ]
+  },
+  "visualEvidence": [
+    {
+      "timestamp": "2026-08-30T17:25:33.860914+00:00",
+      "passId": "blockout",
+      "estimatedFidelity": 0.55,
+      "aiVisionScore": null,
+      "visualAcceptanceThreshold": 0.7,
+      "layerScores": {},
+      "featureReviews": [],
+      "referenceScreenshot": "docs/assets/concepts/simple-study-room-shell-reference-pack/00-primary-perspective.png",
+      "renderScreenshot": "",
+      "comparisonImage": "",
+      "cameraView": "front",
+      "notes": "Manual browser acceptance required.",
+      "aiVisionNotes": "Not run: agent-browser executable is unavailable; do not infer visual fidelity from code-only checks."
+    },
+    {
+      "timestamp": "2026-08-31T07:26:38.109870+00:00",
+      "passId": "material-pass",
+      "estimatedFidelity": 0.76,
+      "aiVisionScore": 0.76,
+      "visualAcceptanceThreshold": 0.7,
+      "layerScores": {
+        "composition": 0.82,
+        "structure": 0.82,
+        "materials": 0.76,
+        "lighting": 0.7
+      },
+      "featureReviews": [
+        {
+          "id": "surface-response",
+          "score": 0.76,
+          "notes": "独立木板、板缝、纵向木纹、墙面低频斑驳和粗糙度响应均可见；仍低于概念图的照片级细节与窗光反射。"
+        }
+      ],
+      "referenceScreenshot": "docs/assets/concepts/simple-study-room-shell.png",
+      "renderScreenshot": "docs/assets/model-reviews/dd-20260831-006/img2threejs/room-render-final.png",
+      "comparisonImage": "docs/assets/model-reviews/dd-20260831-006/img2threejs/room-comparison-final.png",
+      "cameraView": "concept-perspective",
+      "notes": "同尺寸左右对照，并以反向角验证三维体量。",
+      "aiVisionNotes": "宏观构图和建筑部件已明显贴近参考；主要剩余差异来自实时程序化材质与离线照片级渲染的频率、反射和自然窗外景深。"
+    }
+  ],
+  "reviewHistory": [
+    {
+      "timestamp": "2026-08-30T17:25:33.860914+00:00",
+      "passId": "blockout",
+      "estimatedFidelity": 0.55,
+      "aiVisionScore": null,
+      "visualAcceptanceThreshold": 0.7,
+      "layerScores": {},
+      "featureReviews": [],
+      "action": "request-input",
+      "summary": "Code and structural gates are present, but browser screenshot and comparison sheet are unavailable in this execution backend.",
+      "matched": [
+        "Strict spec validation",
+        "room part coverage",
+        "runtime factory build"
+      ],
+      "mismatches": [
+        "No rendered visual evidence",
+        "desktop/mobile interaction unverified"
+      ],
+      "specFixes": [],
+      "codeFixes": [],
+      "evidence": [
+        "docs/assets/model-reviews/dd-20260830-002/img2threejs/browser-coverage.md",
+        "docs/assets/model-reviews/dd-20260830-002/img2threejs/part-coverage.json"
+      ],
+      "visualEvidence": {
+        "referenceScreenshot": "docs/assets/concepts/simple-study-room-shell-reference-pack/00-primary-perspective.png",
+        "renderScreenshot": "",
+        "comparisonImage": "",
+        "cameraView": "front",
+        "notes": "Manual browser acceptance required.",
+        "aiVisionNotes": "Not run: agent-browser executable is unavailable; do not infer visual fidelity from code-only checks."
+      }
+    },
+    {
+      "timestamp": "2026-08-31T07:26:38.109870+00:00",
+      "passId": "material-pass",
+      "estimatedFidelity": 0.76,
+      "aiVisionScore": 0.76,
+      "visualAcceptanceThreshold": 0.7,
+      "layerScores": {
+        "composition": 0.82,
+        "structure": 0.82,
+        "materials": 0.76,
+        "lighting": 0.7
+      },
+      "featureReviews": [
+        {
+          "id": "surface-response",
+          "score": 0.76,
+          "notes": "独立木板、板缝、纵向木纹、墙面低频斑驳和粗糙度响应均可见；仍低于概念图的照片级细节与窗光反射。"
+        }
+      ],
+      "action": "continue",
+      "summary": "第二轮从头校正后，构图、窗户比例、踢脚线层级和木板方向已接近概念图，程序化材质达到实时场景可接受线。",
+      "matched": [
+        "高窗四格结构和深窗台",
+        "双层米色踢脚线",
+        "38块纵向深棕木板与暗缝",
+        "灰绿色墙面及墙角明暗关系"
+      ],
+      "mismatches": [
+        "概念图的照片级墙面细噪声更丰富",
+        "概念图木地板具有更明显结疤和大范围窗光高光",
+        "窗外程序化低频绿景不等同真实散景"
+      ],
+      "specFixes": [],
+      "codeFixes": [],
+      "evidence": [
+        "docs/assets/model-reviews/dd-20260831-006/img2threejs/room-render-final.png",
+        "docs/assets/model-reviews/dd-20260831-006/img2threejs/room-render-opposite.png"
+      ],
+      "outOfSequence": true,
+      "reviewViewpoints": [
+        "concept-perspective",
+        "opposite-corner",
+        "thickness-axis",
+        "long-axis"
+      ],
+      "visualEvidence": {
+        "referenceScreenshot": "docs/assets/concepts/simple-study-room-shell.png",
+        "renderScreenshot": "docs/assets/model-reviews/dd-20260831-006/img2threejs/room-render-final.png",
+        "comparisonImage": "docs/assets/model-reviews/dd-20260831-006/img2threejs/room-comparison-final.png",
+        "cameraView": "concept-perspective",
+        "notes": "同尺寸左右对照，并以反向角验证三维体量。",
+        "aiVisionNotes": "宏观构图和建筑部件已明显贴近参考；主要剩余差异来自实时程序化材质与离线照片级渲染的频率、反射和自然窗外景深。"
+      }
+    }
+  ],
+  "lodPlan": [
+    {
+      "tier": "near",
+      "distance": 0,
+      "strategy": "full shell"
+    },
+    {
+      "tier": "far",
+      "distance": 30,
+      "strategy": "reduced texture detail"
+    }
+  ],
+  "performanceBudget": {
+    "qualityPriority": "reference-fidelity",
+    "targetTriangles": 250000,
+    "maxDrawCalls": 160,
+    "textureSize": 1024,
+    "fpsTarget": 30
+  },
+  "lightingFromPhoto": [
+    {
+      "id": "key",
+      "type": "key light",
+      "color": "#fff4d6",
+      "intensity": 1,
+      "description": "west window daylight"
+    },
+    {
+      "id": "fill",
+      "type": "fill light",
+      "color": "#b8d9cf",
+      "intensity": 0.28,
+      "description": "cool ambient fill"
+    },
+    {
+      "id": "environment",
+      "type": "HDRI/environment reflection",
+      "color": "#d5dad8",
+      "intensity": 0.28,
+      "description": "contact shadow; exposure; ACES tone mapping"
+    }
+  ],
+  "proceduralStrategy": [
+    "World-space shell anchored to desk.",
+    "Real west opening from wall panels.",
+    "Independent albedo roughness height and AO maps."
+  ],
+  "animationAnchors": [
+    "root pivot supports future visibility"
+  ],
+  "destructionAnchors": [
+    "window panes independent"
+  ],
+  "risks": [
+    "Exterior remains out of scope; the ceiling isolation plane only blocks renderer background and has no interaction semantics"
+  ],
+  "localSpecSearch": {
+    "collection": "core_3d",
+    "status": "hit",
+    "sourceRefs": [
+      "docs/assets/model-reviews/dd-20260830-002/img2threejs/room-assessment.json"
+    ]
+  },
+  "tier1Results": [
+    {
+      "passed": false,
+      "checks": {
+        "silhouetteIoU": 0.7333,
+        "aspectRatioDelta": 0.0,
+        "scaleDelta": 0.0,
+        "bilateralSymmetryError": 0.5356,
+        "colorDelta": {
+          "checked": 0,
+          "maxDeltaE": 0.0,
+          "perComponent": [],
+          "gated": true
+        }
+      },
+      "failures": [
+        "silhouette IoU 0.733 is below threshold 0.85"
+      ],
+      "maskWarnings": [
+        "reference: image is not clearly isolated from background; using most pixels as material evidence"
+      ],
+      "renderHash": "49101ea65f0ec306",
+      "passId": "material-pass"
+    },
+    {
+      "passed": false,
+      "checks": {
+        "silhouetteIoU": 0.7291,
+        "aspectRatioDelta": 0.0,
+        "scaleDelta": 0.0,
+        "bilateralSymmetryError": 0.534,
+        "colorDelta": {
+          "checked": 4,
+          "maxDeltaE": 14.34,
+          "perComponent": [
+            {
+              "componentId": null,
+              "deltaE": 14.34
+            },
+            {
+              "componentId": null,
+              "deltaE": 13.97
+            },
+            {
+              "componentId": null,
+              "deltaE": 14.34
+            },
+            {
+              "componentId": null,
+              "deltaE": 9.45
+            }
+          ],
+          "gated": true
+        }
+      },
+      "failures": [
+        "silhouette IoU 0.729 is below threshold 0.85"
+      ],
+      "maskWarnings": [
+        "reference: image is not clearly isolated from background; using most pixels as material evidence"
+      ],
+      "renderHash": "85b2f1b745a3aa88",
+      "passId": "material-pass"
+    }
+  ]
+}
