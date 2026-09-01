@@ -414,6 +414,15 @@ textarea:focus-visible {
   border-color: var(--animal-primary-color);
 }
 
+.free-camera-button:disabled {
+  opacity: 1;
+  background: #fffbe7;
+  border-color: #d4c9b4;
+  color: var(--animal-text-color);
+  cursor: not-allowed;
+  box-shadow: 0 5px 0 rgba(61, 52, 40, 0.2);
+}
+
 .scene-color-editor {
   position: absolute;
   z-index: 12;
@@ -431,7 +440,9 @@ textarea:focus-visible {
   color: #4d4234;
 }
 
-.scene-color-editor-button[aria-expanded="true"] {
+.scene-color-editor-button[aria-expanded="true"],
+.content-font-button[aria-expanded="true"],
+.audio-settings-button[aria-expanded="true"] {
   color: var(--animal-primary-color-active);
   background: #fffbe7;
   border-color: var(--animal-primary-color);

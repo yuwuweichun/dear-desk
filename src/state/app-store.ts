@@ -189,7 +189,7 @@ export const createAppStore = (
     notebookPhase: 'desk',
     deskCameraPreset: 'far',
     deskCameraTransitioning: false,
-    freeCameraEnabled: false,
+    freeCameraEnabled: true,
     loadStatus: 'idle',
     saveStatus: 'idle',
     errorMessage: null,

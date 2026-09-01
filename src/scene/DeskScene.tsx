@@ -289,6 +289,7 @@ function FreeOrbitCamera({ deskCameraPreset, enabled }: FreeOrbitCameraProps) {
     if (!enabled || !(camera instanceof THREE.PerspectiveCamera)) return
     const controls = new OrbitControls(camera, gl.domElement)
     const pose = getCameraPoses(size.width < 700)[deskCameraPreset]
+    applyCameraPose(camera, pose)
     controls.target.copy(pose.target)
     controls.enableDamping = true
     controls.dampingFactor = 0.08

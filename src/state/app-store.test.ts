@@ -139,6 +139,7 @@ describe('app store', () => {
       deskCameraTransitioning: false,
     })
 
+    store.setState({ freeCameraEnabled: false })
     store.getState().cycleDeskCameraPreset()
     expect(store.getState()).toMatchObject({
       deskCameraPreset: 'front',
@@ -164,12 +165,10 @@ describe('app store', () => {
   it('keeps free orbit session-only and mutually exclusive with camera workflows', () => {
     const store = createAppStore(createRepository(), date)
     expect(store.getState()).toMatchObject({
-      freeCameraEnabled: false,
+      freeCameraEnabled: true,
       deskCameraTransitioning: false,
     })
 
-    store.getState().toggleFreeCamera()
-    expect(store.getState().freeCameraEnabled).toBe(true)
     store.getState().cycleDeskCameraPreset()
     expect(store.getState().deskCameraPreset).toBe('far')
 
@@ -205,6 +204,7 @@ describe('app store', () => {
 
   it('opens directly from near and preserves the selected preset across close', () => {
     const store = createAppStore(createRepository(), date)
+    store.setState({ freeCameraEnabled: false })
     store.getState().cycleDeskCameraPreset()
     store.getState().settleDeskCameraPreset()
     store.getState().cycleDeskCameraPreset()
