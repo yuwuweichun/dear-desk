@@ -1,4 +1,4 @@
-import { Time } from 'animal-island-ui'
+import { Loading, Time } from 'animal-island-ui'
 import { Archive, BookOpen, Camera, CameraOff, Eye, EyeOff, Pencil, Sticker, X } from 'lucide-react'
 import { lazy, Suspense, useCallback, useEffect, useState } from 'react'
 
@@ -91,6 +91,12 @@ interface ProductAppProps {
 }
 
 function ProductApp({ sceneColorPresetRepository }: ProductAppProps) {
+  const [sceneReady, setSceneReady] = useState(false)
+  const [loadingDismissed, setLoadingDismissed] = useState(false)
+  const handleSceneReadyChange = useCallback((ready: boolean) => {
+    setSceneReady(ready)
+    if (!ready) setLoadingDismissed(false)
+  }, [])
   const [sceneColors, setSceneColors] = useState(() => getSceneColorConfig(
     getScenePalette(resolveScenePaletteVersion(window.location.search, import.meta.env.DEV)),
   ))
@@ -144,6 +150,14 @@ function ProductApp({ sceneColorPresetRepository }: ProductAppProps) {
     void loadStickers()
     void loadNotebookCoverSettings()
   }, [loadNotebookCoverSettings, loadStickers, loadToday])
+
+  useEffect(() => {
+    if (!sceneReady) return
+
+    const exitDuration = (Math.ceil(Math.hypot(window.innerWidth, window.innerHeight) / 2) + 50) / 1500 * 1000
+    const timer = window.setTimeout(() => setLoadingDismissed(true), exitDuration + 50)
+    return () => window.clearTimeout(timer)
+  }, [sceneReady])
 
   useEffect(() => {
     let active = true
@@ -252,10 +266,18 @@ function ProductApp({ sceneColorPresetRepository }: ProductAppProps) {
             contentFont={contentFont}
             fallback={<SceneFallback />}
             onCaptureReady={handleCaptureReady}
+            onReadyChange={handleSceneReadyChange}
             showRoomBackground={showRoomBackground}
           />
         </div>
       )}
+
+      {stickerWorkflow !== 'composing' && (!sceneReady || !loadingDismissed) ? (
+        <div aria-label="正在加载桌面" className="scene-loading-overlay" role="status">
+          <Loading active={!sceneReady} />
+          <span className="sr-only">正在加载桌面...</span>
+        </div>
+      ) : null}
 
       {showDeskActions ? <Time className="desk-time-hud" type="hud" /> : null}
 

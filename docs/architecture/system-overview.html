@@ -83,7 +83,7 @@
       <section id="runtime" data-search-title="运行时结构">
         <p class="section-index">02 · 运行时</p>
         <h2>React 组合一个 store，并保证 WebGL Canvas 单活跃</h2>
-        <p><code>src/main.tsx</code> 组合正文、贴纸、铭牌和场景颜色四个 Dexie repository 与一个 Zustand store，并依次载入 <code>animal-island-ui/style</code>、应用样式和 Dear Desk 主题覆盖。<code>App</code> 根据 <code>stickerWorkflow</code> 切换桌面与制作器：<code>composing</code> 时卸载 R3F，再让 Sticker Forge 创建自己的 Canvas；其他阶段由 <code>DeskScene</code> 持有唯一 R3F Canvas。双页日记始终是 Canvas 的 DOM sibling。</p>
+        <p><code>src/main.tsx</code> 组合正文、贴纸、铭牌和场景颜色四个 Dexie repository 与一个 Zustand store，并依次载入 <code>animal-island-ui/style</code>、应用样式和 Dear Desk 主题覆盖。<code>App</code> 根据 <code>stickerWorkflow</code> 切换桌面与制作器：<code>composing</code> 时卸载 R3F，再让 Sticker Forge 创建自己的 Canvas；其他阶段由 <code>DeskScene</code> 持有唯一 R3F Canvas。<code>ProductApp</code> 在 <code>DeskScene</code> 首次完成 root render 前渲染全屏 <code>animal-island-ui</code> <code>Loading</code> 遮罩，并通过 <code>onReadyChange</code> 接收就绪状态；失败时结束遮罩并显示已有 DOM fallback。双页日记始终是 Canvas 的 DOM sibling。</p>
         <div class="code-block">
           <div class="code-head"><span>当前运行时层级</span><button class="copy-button" type="button" data-copy-target="runtime-tree">复制</button></div>
           <pre id="runtime-tree"><code>main.tsx
@@ -317,7 +317,7 @@ AudioRuntime observes edges once
               <tr><td>铭牌字体加载期间再次切换或卸载</td><td><code>NotebookObject</code> 取消过期异步结果，不把旧字体 Mesh 加回场景</td><td>当前字体状态和最后一份有效铭牌投影</td></tr>
               <tr><td>贴纸创建事务失败</td><td>不加入内存集合并显示错误</td><td>不会留下部分 source/definition/render/instance</td></tr>
               <tr><td>贴纸移动提交失败</td><td>显示错误并重新加载持久化位置</td><td>最后一次成功位置</td></tr>
-              <tr><td>WebGL 初始化失败</td><td>显示“打开本子”和“旧痕迹”DOM 降级入口；旧痕迹跳过抽屉动画</td><td>双页 DOM、历史摘要与 IndexedDB 日记链路</td></tr>
+              <tr><td>WebGL 初始化失败</td><td>结束首屏 Loading 遮罩，显示“打开本子”和“旧痕迹”DOM 降级入口；旧痕迹跳过抽屉动画</td><td>双页 DOM、历史摘要与 IndexedDB 日记链路</td></tr>
               <tr><td>模型卸载或 StrictMode 重挂载</td><td>工厂释放自有 geometry；共享材质库释放 12 张纹理和材质；环境释放 PMREM</td><td>可序列化业务状态与 IndexedDB 数据</td></tr>
               <tr><td>模型超过预算</td><td>工厂测试失败；上限为 45 draw calls、80,000 triangles、16 textures 和一盏投影光</td><td>critical feature 不以静默删减换取通过</td></tr>
               <tr><td>reduced-motion</td><td>日期翻页的大角度旋转改为 120ms 淡出；开本 5 张临时页片显式隐藏；中央抽屉直接落到稳定端点；已批准的动作音效仍播放并可由音效开关关闭</td><td>相同游标提交、打开终态、声音偏好和边界语义</td></tr>

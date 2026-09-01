@@ -1,5 +1,5 @@
 import { createRoot, events, extend, useFrame, useThree } from '@react-three/fiber'
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import type { ReconcilerRoot } from '@react-three/fiber'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
@@ -321,6 +321,7 @@ const disposeFactoryModel = (model: THREE.Group) => {
 
 interface DeskBodyProps {
   materials: ModelMaterialLibrary
+  onReadyChange: (ready: boolean) => void
   onOpenPastTraces: () => void
   onSettlePastTraces: () => void
   pastTracesPhase: PastTracesPhase
@@ -329,6 +330,7 @@ interface DeskBodyProps {
 
 function DeskBody({
   materials,
+  onReadyChange,
   onOpenPastTraces,
   onSettlePastTraces,
   pastTracesPhase,
@@ -351,13 +353,17 @@ function DeskBody({
       easeInOutCubic(progressRef.current),
     )
     queueMicrotask(() => {
-      if (!disposed) setModel(nextModel)
+      if (!disposed) {
+        setModel(nextModel)
+        onReadyChange(true)
+      }
     })
     return () => {
       disposed = true
+      onReadyChange(false)
       disposeFactoryModel(nextModel)
     }
-  }, [materials])
+  }, [materials, onReadyChange])
 
   useEffect(() => {
     settledPhaseRef.current = null
@@ -443,7 +449,13 @@ function DeskBody({
   )
 }
 
-function DeskMat({ materials }: { materials: ModelMaterialLibrary }) {
+function DeskMat({
+  materials,
+  onReadyChange,
+}: {
+  materials: ModelMaterialLibrary
+  onReadyChange: (ready: boolean) => void
+}) {
   const [model, setModel] = useState<THREE.Group | null>(null)
 
   useEffect(() => {
@@ -452,31 +464,39 @@ function DeskMat({ materials }: { materials: ModelMaterialLibrary }) {
     })
     let disposed = false
     queueMicrotask(() => {
-      if (!disposed) setModel(nextModel)
+      if (!disposed) {
+        setModel(nextModel)
+        onReadyChange(true)
+      }
     })
     return () => {
       disposed = true
+      onReadyChange(false)
       disposeFactoryModel(nextModel)
     }
-  }, [materials])
+  }, [materials, onReadyChange])
 
   return model ? <primitive object={model} dispose={null} /> : null
 }
 
-function StudyRoomShell() {
+function StudyRoomShell({ onReadyChange }: { onReadyChange: (ready: boolean) => void }) {
   const [model, setModel] = useState<THREE.Group | null>(null)
 
   useEffect(() => {
     const nextModel = createStudyRoomShellModel({ pass: 'optimization-pass' })
     let disposed = false
     queueMicrotask(() => {
-      if (!disposed) setModel(nextModel)
+      if (!disposed) {
+        setModel(nextModel)
+        onReadyChange(true)
+      }
     })
     return () => {
       disposed = true
+      onReadyChange(false)
       disposeFactoryModel(nextModel)
     }
-  }, [])
+  }, [onReadyChange])
 
   return model ? <primitive object={model} dispose={null} /> : null
 }
@@ -494,6 +514,7 @@ interface DeskContentsProps {
   showRoomBackground: boolean
   notebookPhase: NotebookPhase
   notebookCoverLabel: string
+  onReadyChange?: (ready: boolean) => void
   pastTracesPhase: PastTracesPhase
   placePendingDeskSticker: (position: StickerPosition) => Promise<boolean>
   colors: SceneColorConfig
@@ -519,6 +540,7 @@ function DeskContents({
   showRoomBackground,
   notebookPhase,
   notebookCoverLabel,
+  onReadyChange,
   pastTracesPhase,
   placePendingDeskSticker,
   colors,
@@ -535,7 +557,25 @@ function DeskContents({
 }: DeskContentsProps) {
   const { scene } = useThree()
   const [materials, setMaterials] = useState<ModelMaterialLibrary | null>(null)
+  const [modelReady, setModelReady] = useState({ desk: false, mat: false, notebook: false, room: false })
+  const markModelReady = useCallback((model: keyof typeof modelReady, ready: boolean) => {
+    setModelReady((current) => current[model] === ready ? current : { ...current, [model]: ready })
+  }, [])
+  const markDeskReady = useCallback((ready: boolean) => markModelReady('desk', ready), [markModelReady])
+  const markMatReady = useCallback((ready: boolean) => markModelReady('mat', ready), [markModelReady])
+  const markNotebookReady = useCallback((ready: boolean) => markModelReady('notebook', ready), [markModelReady])
+  const markRoomReady = useCallback((ready: boolean) => markModelReady('room', ready), [markModelReady])
   const initialColors = useRef(colors)
+
+  useEffect(() => {
+    onReadyChange?.(
+      materials !== null &&
+      modelReady.desk &&
+      modelReady.mat &&
+      modelReady.notebook &&
+      (!showRoomBackground || modelReady.room),
+    )
+  }, [materials, modelReady, onReadyChange, showRoomBackground])
 
   useEffect(() => {
     // The canvas root is reused across scene mounts, so explicitly clear fog
@@ -607,16 +647,17 @@ function DeskContents({
         }
       />
 
-      {showRoomBackground ? <StudyRoomShell /> : null}
+      {showRoomBackground ? <StudyRoomShell onReadyChange={markRoomReady} /> : null}
 
       <DeskBody
         materials={materials}
+        onReadyChange={markDeskReady}
         onOpenPastTraces={requestPastTracesOpen}
         onSettlePastTraces={settlePastTracesTransition}
         pastTracesPhase={pastTracesPhase}
         reducedMotion={reducedMotion}
       />
-      <DeskMat materials={materials} />
+      <DeskMat materials={materials} onReadyChange={markMatReady} />
       <mesh
         name="desk-mat-hit-surface"
         position={[0, DESK_MAT_MODEL_SPEC.topY, 0.2]}
@@ -671,6 +712,7 @@ function DeskContents({
         onOpen={requestNotebookOpen}
         reducedMotion={reducedMotion}
         label={notebookCoverLabel}
+        onReadyChange={markNotebookReady}
       />
     </>
   )
@@ -681,6 +723,7 @@ interface DeskSceneProps {
   contentFont: ContentFontId
   fallback: ReactNode
   onCaptureReady?: (capture: CaptureScenePreview | null) => void
+  onReadyChange?: (ready: boolean) => void
   showRoomBackground: boolean
 }
 
@@ -689,12 +732,14 @@ export function DeskScene({
   contentFont,
   fallback,
   onCaptureReady,
+  onReadyChange,
   showRoomBackground,
 }: DeskSceneProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const captureRef = useRef<CaptureScenePreview | null>(null)
   const onCaptureReadyRef = useRef(onCaptureReady)
+  const onReadyChangeRef = useRef(onReadyChange)
   const rootRef = useRef<ReconcilerRoot<HTMLCanvasElement> | null>(null)
   const [unavailable, setUnavailable] = useState(false)
   const [reducedMotion, setReducedMotion] = useState(false)
@@ -740,6 +785,7 @@ export function DeskScene({
     showRoomBackground,
     notebookPhase,
     notebookCoverLabel,
+    onReadyChange,
     pastTracesPhase,
     placePendingDeskSticker,
     colors,
@@ -759,6 +805,10 @@ export function DeskScene({
     onCaptureReadyRef.current = onCaptureReady
     onCaptureReady?.(captureRef.current)
   }, [onCaptureReady])
+
+  useEffect(() => {
+    onReadyChangeRef.current = onReadyChange
+  }, [onReadyChange])
 
   useEffect(() => {
     const media = window.matchMedia('(prefers-reduced-motion: reduce)')
@@ -865,17 +915,22 @@ export function DeskScene({
       }
     }
 
+    const handleConfigureError = () => {
+      setUnavailable(true)
+      onReadyChangeRef.current?.(true)
+    }
     const resizeObserver = new ResizeObserver(() => {
-      void configure().catch(() => setUnavailable(true))
+      void configure().catch(handleConfigureError)
     })
     resizeObserver.observe(container)
-    void configure().catch(() => setUnavailable(true))
+    void configure().catch(handleConfigureError)
 
     return () => {
       disposed = true
       resizeObserver.disconnect()
       captureRef.current = null
       onCaptureReadyRef.current?.(null)
+      onReadyChangeRef.current?.(false)
       rootRef.current = null
       releaseRoot(canvas)
     }
@@ -892,6 +947,7 @@ export function DeskScene({
       showRoomBackground,
       notebookPhase,
       notebookCoverLabel,
+      onReadyChange,
       pastTracesPhase,
       placePendingDeskSticker,
       colors,
@@ -919,6 +975,7 @@ export function DeskScene({
     showRoomBackground,
     notebookPhase,
     notebookCoverLabel,
+    onReadyChange,
     pastTracesPhase,
     placePendingDeskSticker,
     colors,

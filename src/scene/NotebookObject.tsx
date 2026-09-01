@@ -31,6 +31,7 @@ interface NotebookObjectProps {
   notebookPhase: NotebookPhase
   onAdvance: (from: NotebookPhase) => void
   onOpen: () => void
+  onReadyChange: (ready: boolean) => void
   reducedMotion: boolean
   label: string
 }
@@ -46,6 +47,7 @@ export function NotebookObject({
   notebookPhase,
   onAdvance,
   onOpen,
+  onReadyChange,
   reducedMotion,
   label,
 }: NotebookObjectProps) {
@@ -80,15 +82,19 @@ export function NotebookObject({
     })
     let disposed = false
     queueMicrotask(() => {
-      if (!disposed) setModel(nextModel)
+      if (!disposed) {
+        setModel(nextModel)
+        onReadyChange(true)
+      }
     })
 
     return () => {
       disposed = true
+      onReadyChange(false)
       const dispose = nextModel.userData.dispose
       if (typeof dispose === 'function') dispose()
     }
-  }, [materials])
+  }, [materials, onReadyChange])
 
   useEffect(() => {
     if (!runtime) return

@@ -14,6 +14,16 @@ import { createAppStore } from '../state/app-store'
 import { AppStoreProvider } from '../state/app-store-context'
 import { App } from './App'
 
+vi.mock('animal-island-ui', async () => {
+  const actual = await vi.importActual<typeof import('animal-island-ui')>('animal-island-ui')
+  return {
+    ...actual,
+    Loading: ({ active = true }: { active?: boolean }) => (
+      active ? <div data-testid="animal-loading" /> : null
+    ),
+  }
+})
+
 vi.mock('../features/journal/JournalPanel', () => ({
   JournalPanel: ({ contentFont }: { contentFont: string }) => (
     <div data-content-font={contentFont} data-testid="journal-panel" />
@@ -30,11 +40,13 @@ vi.mock('../scene/DeskScene', () => ({
     colors,
     contentFont,
     onCaptureReady,
+    onReadyChange,
     showRoomBackground,
   }: {
     colors: SceneColorConfig
     contentFont: string
     showRoomBackground: boolean
+    onReadyChange?: (ready: boolean) => void
     onCaptureReady?: (capture: () => Promise<{
       blob: Blob
       mimeType: 'image/webp'
@@ -54,6 +66,9 @@ vi.mock('../scene/DeskScene', () => ({
         type="button"
       >
         准备场景截图
+      </button>
+      <button onClick={() => onReadyChange?.(true)} type="button">
+        场景加载完成
       </button>
     </div>
   ),
@@ -283,6 +298,25 @@ describe('App camera controls', () => {
     expect(
       screen.getByRole('button', { name: '当前远处，切换到正面' }),
     ).toBeDisabled()
+  })
+})
+
+describe('App scene loading', () => {
+  it('keeps the UI behind the loading overlay until the scene is ready', () => {
+    vi.useFakeTimers()
+    const store = createAppStore(createRepository(), date)
+
+    render(
+      <AppStoreProvider store={store}>
+        <App />
+      </AppStoreProvider>,
+    )
+
+    expect(screen.getByRole('status', { name: '正在加载桌面' })).toBeInTheDocument()
+    act(() => fireEvent.click(screen.getByRole('button', { name: '场景加载完成' })))
+    expect(screen.getByRole('status', { name: '正在加载桌面' })).toBeInTheDocument()
+    act(() => vi.advanceTimersByTime(1000))
+    expect(screen.queryByRole('status', { name: '正在加载桌面' })).not.toBeInTheDocument()
   })
 })
 
