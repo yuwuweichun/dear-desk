@@ -82,6 +82,7 @@ describe('procedural scene model factories', () => {
     expect(STUDY_ROOM_MODEL_SPEC.interior).toEqual({ width: 42, depth: 33 })
     expect(STUDY_ROOM_MODEL_SPEC.wallTopY - STUDY_ROOM_MODEL_SPEC.floorTopY).toBe(18)
     expect(STUDY_ROOM_MODEL_SPEC.window.width).toBeCloseTo(10.3)
+    expect(STUDY_ROOM_MODEL_SPEC.window.centerZ).toBe(0)
     expect(STUDY_ROOM_MODEL_SPEC.window.topY - STUDY_ROOM_MODEL_SPEC.window.bottomY).toBeCloseTo(12.65)
     expect(runtime.nodes.floor.position.y).toBe(-5.025)
     expect(runtime.nodes.ceiling.position.y).toBeCloseTo(12.955)

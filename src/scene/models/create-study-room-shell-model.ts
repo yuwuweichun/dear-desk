@@ -133,6 +133,7 @@ const createRoomMaterials = () => {
   const wall = new THREE.MeshStandardMaterial({
     color: '#ffffff', map: wallAlbedo, roughness: 0.88, roughnessMap: wallData,
     bumpMap: wallData, bumpScale: 0.012, aoMap: wallData, aoMapIntensity: 0.12,
+    emissive: '#89927e', emissiveIntensity: 0.24,
     side: THREE.DoubleSide,
   })
   wall.name = 'study-room-wall-paint'
