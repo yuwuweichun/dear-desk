@@ -152,9 +152,9 @@ describe('procedural scene model factories', () => {
       woodPanel: '#70401f',
     })
     expect(SCENE_PALETTE_PRESETS.v12).toEqual({
-      background: '#d5dad8',
-      mint: '#423f2c',
-      mintDark: '#303021',
+      background: '#8FA89E',
+      mint: '#2F432D',
+      mintDark: '#283E29',
       wood: '#73411f',
       woodDark: '#593219',
       woodPanel: '#70401f',
@@ -162,7 +162,7 @@ describe('procedural scene model factories', () => {
 
     for (const [version, preset] of Object.entries(SCENE_PALETTE_PRESETS)) {
       expect(version).toMatch(/^v(?:[1-9]|1[0-2])$/)
-      Object.values(preset).forEach((value) => expect(value).toMatch(/^#[0-9a-f]{6}$/))
+      Object.values(preset).forEach((value) => expect(value).toMatch(/^#[0-9a-f]{6}$/i))
       expect(getScenePalette(version as keyof typeof SCENE_PALETTE_PRESETS)).toMatchObject({
         ...preset,
         notebookCover: '#173f35',
@@ -186,21 +186,21 @@ describe('procedural scene model factories', () => {
     const colors = getSceneColorConfig()
 
     expect(SCENE_MATERIAL_VERSION).toBe('V2.2')
-    expect(SCENE_PALETTE.background).toBe('#d5dad8')
+    expect(SCENE_PALETTE.background).toBe('#8FA89E')
     expect(SCENE_PALETTE.wood).toBe('#73411f')
     expect(SCENE_PALETTE.woodDark).toBe('#593219')
     expect(SCENE_PALETTE.woodPanel).toBe('#70401f')
-    expect(SCENE_PALETTE.mint).toBe('#423f2c')
-    expect(SCENE_PALETTE.mintDark).toBe('#303021')
-    expect(colors.matField).toBe('#423f2c')
-    expect(colors.matBinding).toBe('#303021')
+    expect(SCENE_PALETTE.mint).toBe('#2F432D')
+    expect(SCENE_PALETTE.mintDark).toBe('#283E29')
+    expect(colors.matField).toBe('#2F432D')
+    expect(colors.matBinding).toBe('#283E29')
     expect(materials.walnut.color.getHexString()).toBe('73411f')
     expect(materials.walnutDark.color.getHexString()).toBe('593219')
     expect(materials.walnutDrawer.color.getHexString()).toBe('64381b')
     expect(materials.walnutLegs.color.getHexString()).toBe('593219')
     expect(materials.walnutPanel.color.getHexString()).toBe('70401f')
-    expect(materials.cloth.color.getHexString()).toBe('423f2c')
-    expect(materials.clothDark.color.getHexString()).toBe('303021')
+    expect(materials.cloth.color.getHexString()).toBe('2f432d')
+    expect(materials.clothDark.color.getHexString()).toBe('283e29')
     expect(materials.notebookCover.color.getHexString()).toBe('173f35')
     expect(materials.notebookCoverDark.color.getHexString()).toBe('0e2d27')
     expect(materials.notebookCover.aoMapIntensity).toBe(0.9)
@@ -294,8 +294,8 @@ describe('procedural scene model factories', () => {
       expect(materials.walnutDrawer.color.getHexString()).not.toBe(
         materials.walnutPanel.color.getHexString(),
       )
-      expect(materials.cloth.color.getHexString()).toBe(preset.mint.slice(1))
-      expect(materials.clothDark.color.getHexString()).toBe(preset.mintDark.slice(1))
+      expect(materials.cloth.color.getHexString()).toBe(preset.mint.slice(1).toLowerCase())
+      expect(materials.clothDark.color.getHexString()).toBe(preset.mintDark.slice(1).toLowerCase())
       expect(materials.notebookCover.color.getHexString()).toBe('173f35')
       expect(materials.notebookCoverDark.color.getHexString()).toBe('0e2d27')
       expect(materials.paper.color.getHexString()).toBe('f6efdc')
