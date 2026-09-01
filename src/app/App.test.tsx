@@ -30,9 +30,11 @@ vi.mock('../scene/DeskScene', () => ({
     colors,
     contentFont,
     onCaptureReady,
+    showRoomBackground,
   }: {
     colors: SceneColorConfig
     contentFont: string
+    showRoomBackground: boolean
     onCaptureReady?: (capture: () => Promise<{
       blob: Blob
       mimeType: 'image/webp'
@@ -41,6 +43,7 @@ vi.mock('../scene/DeskScene', () => ({
     <div
       data-content-font={contentFont}
       data-scene-colors={JSON.stringify(colors)}
+      data-show-room-background={showRoomBackground}
       data-testid="desk-scene"
     >
       <button
@@ -295,6 +298,38 @@ describe('App camera controls', () => {
   })
 })
 
+describe('App room background control', () => {
+  it('toggles the room background visibility state from the scene tool stack', () => {
+    const store = createAppStore(createRepository(), date)
+
+    render(
+      <AppStoreProvider store={store}>
+        <App />
+      </AppStoreProvider>,
+    )
+
+    const backgroundButton = screen.getByRole('button', { name: '隐藏房间背景' })
+    expect(backgroundButton).toHaveAttribute('aria-pressed', 'true')
+    expect(backgroundButton.querySelector('.lucide-eye')).toBeInTheDocument()
+
+    fireEvent.click(backgroundButton)
+
+    const hiddenBackgroundButton = screen.getByRole('button', { name: '显示房间背景' })
+    expect(hiddenBackgroundButton).toHaveAttribute('aria-pressed', 'false')
+    expect(hiddenBackgroundButton.querySelector('.lucide-eye-off')).toBeInTheDocument()
+    expect(screen.getByTestId('desk-scene')).toHaveAttribute(
+      'data-show-room-background',
+      'false',
+    )
+
+    fireEvent.click(hiddenBackgroundButton)
+    expect(screen.getByRole('button', { name: '隐藏房间背景' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    )
+  })
+})
+
 describe('App scene color editor', () => {
   it('keeps the controls visible while allowing only one settings panel', () => {
     const store = createAppStore(createRepository(), date)
@@ -424,6 +459,7 @@ describe('App global content font', () => {
     expect(Array.from(toolStack?.children ?? [])).toEqual([
       paletteButton.closest('.scene-color-control'),
       fontButton.closest('.content-font-control'),
+      screen.getByRole('button', { name: '隐藏房间背景' }),
       cameraButton,
     ])
 

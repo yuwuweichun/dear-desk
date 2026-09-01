@@ -6,7 +6,7 @@
 | --- | --- |
 | 状态 | 当前源码事实 |
 | 最后更新 | 2026-09-01 |
-| 对应任务 | `DD-20260830-002`, `DD-20260831-002`, `DD-20260831-006` |
+| 对应任务 | `DD-20260830-002`, `DD-20260831-002`, `DD-20260831-006`, `DD-20260901-003` |
 
 ## 1. 所有权与挂载
 
@@ -18,6 +18,8 @@
 DeskContents -> StudyRoomShell -> createStudyRoomShellModel
              -> STUDY_ROOM_MODEL_SPEC -> room geometry/materials/runtime
 ```
+
+桌面首页的 `ProductApp` 持有会话内 `showRoomBackground`（默认 `true`），经 `DeskScene` 传入 `DeskContents`。该值为 `false` 时不挂载 `StudyRoomShell`，为 `true` 时恢复挂载并由组件重新创建模型；它不进入 Zustand、IndexedDB 或 renderer 背景色。
 
 ## 2. 坐标与几何事实
 

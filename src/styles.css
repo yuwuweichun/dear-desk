@@ -396,7 +396,8 @@ textarea:focus-visible {
   font-family: "Zhi Mang Xing", "Songti SC", serif;
 }
 
-.free-camera-button[aria-pressed="true"] {
+.free-camera-button[aria-pressed="true"],
+.room-background-button[aria-pressed="true"] {
   color: var(--animal-primary-color-active);
   background: #fffbe7;
   border-color: var(--animal-primary-color);
@@ -405,7 +406,9 @@ textarea:focus-visible {
 }
 
 .free-camera-button[aria-pressed="false"]:hover:not(:disabled),
-.free-camera-button[aria-pressed="true"]:hover:not(:disabled) {
+.free-camera-button[aria-pressed="true"]:hover:not(:disabled),
+.room-background-button[aria-pressed="false"]:hover:not(:disabled),
+.room-background-button[aria-pressed="true"]:hover:not(:disabled) {
   color: var(--animal-primary-color-active);
   background: #fffbe7;
   border-color: var(--animal-primary-color);

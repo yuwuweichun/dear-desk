@@ -1,5 +1,5 @@
 import { Time } from 'animal-island-ui'
-import { Archive, BookOpen, Camera, CameraOff, Pencil, Sticker, X } from 'lucide-react'
+import { Archive, BookOpen, Camera, CameraOff, Eye, EyeOff, Pencil, Sticker, X } from 'lucide-react'
 import { lazy, Suspense, useCallback, useEffect, useState } from 'react'
 
 import { createAudioController } from '../audio/audio-controller'
@@ -99,6 +99,7 @@ function ProductApp({ sceneColorPresetRepository }: ProductAppProps) {
   const [sceneColorPresetsLoading, setSceneColorPresetsLoading] = useState(true)
   const [sceneColorPresetsError, setSceneColorPresetsError] = useState<string | null>(null)
   const [captureScene, setCaptureScene] = useState<CaptureScenePreview | null>(null)
+  const [showRoomBackground, setShowRoomBackground] = useState(true)
   const [showNameplateEditor, setShowNameplateEditor] = useState(false)
   const [nameplateDraft, setNameplateDraft] = useState('')
   const [nameplateValidationError, setNameplateValidationError] = useState<string | null>(null)
@@ -251,6 +252,7 @@ function ProductApp({ sceneColorPresetRepository }: ProductAppProps) {
             contentFont={contentFont}
             fallback={<SceneFallback />}
             onCaptureReady={handleCaptureReady}
+            showRoomBackground={showRoomBackground}
           />
         </div>
       )}
@@ -440,6 +442,20 @@ function ProductApp({ sceneColorPresetRepository }: ProductAppProps) {
             onOpenChange={(open) => setOpenSettingsPanel(open ? 'font' : null)}
             open={openSettingsPanel === 'font'}
           />
+          <IconButton
+            aria-pressed={showRoomBackground}
+            className="room-background-button"
+            label={showRoomBackground ? '隐藏房间背景' : '显示房间背景'}
+            onClick={() => setShowRoomBackground((visible) => !visible)}
+            showTitle={false}
+            variant="secondary"
+          >
+            {showRoomBackground ? (
+              <Eye aria-hidden="true" size={20} strokeWidth={1.8} />
+            ) : (
+              <EyeOff aria-hidden="true" size={20} strokeWidth={1.8} />
+            )}
+          </IconButton>
           <IconButton
             aria-pressed={freeCameraEnabled}
             className="free-camera-button"

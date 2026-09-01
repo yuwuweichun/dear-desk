@@ -490,6 +490,7 @@ interface DeskContentsProps {
   deskCameraPreset: DeskCameraPreset
   deskCameraTransitioning: boolean
   freeCameraEnabled: boolean
+  showRoomBackground: boolean
   notebookPhase: NotebookPhase
   notebookCoverLabel: string
   pastTracesPhase: PastTracesPhase
@@ -514,6 +515,7 @@ function DeskContents({
   deskCameraPreset,
   deskCameraTransitioning,
   freeCameraEnabled,
+  showRoomBackground,
   notebookPhase,
   notebookCoverLabel,
   pastTracesPhase,
@@ -604,7 +606,7 @@ function DeskContents({
         }
       />
 
-      <StudyRoomShell />
+      {showRoomBackground ? <StudyRoomShell /> : null}
 
       <DeskBody
         materials={materials}
@@ -678,6 +680,7 @@ interface DeskSceneProps {
   contentFont: ContentFontId
   fallback: ReactNode
   onCaptureReady?: (capture: CaptureScenePreview | null) => void
+  showRoomBackground: boolean
 }
 
 export function DeskScene({
@@ -685,6 +688,7 @@ export function DeskScene({
   contentFont,
   fallback,
   onCaptureReady,
+  showRoomBackground,
 }: DeskSceneProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -732,6 +736,7 @@ export function DeskScene({
     deskCameraPreset,
     deskCameraTransitioning,
     freeCameraEnabled,
+    showRoomBackground,
     notebookPhase,
     notebookCoverLabel,
     pastTracesPhase,
@@ -883,6 +888,7 @@ export function DeskScene({
       deskCameraPreset,
       deskCameraTransitioning,
       freeCameraEnabled,
+      showRoomBackground,
       notebookPhase,
       notebookCoverLabel,
       pastTracesPhase,
@@ -909,6 +915,7 @@ export function DeskScene({
     deskCameraPreset,
     deskCameraTransitioning,
     freeCameraEnabled,
+    showRoomBackground,
     notebookPhase,
     notebookCoverLabel,
     pastTracesPhase,
