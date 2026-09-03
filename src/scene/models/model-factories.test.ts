@@ -85,7 +85,6 @@ describe('procedural scene model factories', () => {
     expect(STUDY_ROOM_MODEL_SPEC.window.centerZ).toBe(0)
     expect(STUDY_ROOM_MODEL_SPEC.window.topY - STUDY_ROOM_MODEL_SPEC.window.bottomY).toBeCloseTo(12.65)
     expect(runtime.nodes.floor.position.y).toBe(-5.025)
-    expect(runtime.nodes.ceiling.position.y).toBeCloseTo(12.955)
     expect(runtime.nodes.cornerPosts.children).toHaveLength(4)
     expect(runtime.nodes.westWindow.getObjectByName('study-room-window-pane-1')).toBeTruthy()
     expect(runtime.nodes.windowBackdrop.name).toBe('study-room-window-outdoor-backdrop')

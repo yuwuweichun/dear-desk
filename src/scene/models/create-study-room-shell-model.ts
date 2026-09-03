@@ -15,7 +15,6 @@ export interface StudyRoomShellNodes extends Record<string, THREE.Object3D> {
   root: THREE.Group
   floor: THREE.InstancedMesh
   floorUnderlay: THREE.Mesh
-  ceiling: THREE.Mesh
   cornerPosts: THREE.Group
   walls: THREE.Group
   westWall: THREE.Mesh
@@ -232,16 +231,6 @@ export function createStudyRoomShellModel(options: ModelFactoryOptions = {}) {
   if (floor.instanceColor) floor.instanceColor.needsUpdate = true
   root.add(floor)
 
-  const ceiling = createWallMesh(
-    own(new THREE.PlaneGeometry(ROOM_WIDTH, ROOM_DEPTH)),
-    materials.wall,
-    'study-room-ceiling-background-blocker',
-    options,
-  )
-  ceiling.rotation.x = Math.PI / 2
-  ceiling.position.y = STUDY_ROOM_MODEL_SPEC.wallTopY - STUDY_ROOM_MODEL_SPEC.ceilingInset
-  root.add(ceiling)
-
   const cornerGeometry = own(new THREE.BoxGeometry(
     STUDY_ROOM_MODEL_SPEC.wallThickness,
     STUDY_ROOM_MODEL_SPEC.wallTopY - STUDY_ROOM_MODEL_SPEC.floorTopY,
@@ -350,7 +339,7 @@ export function createStudyRoomShellModel(options: ModelFactoryOptions = {}) {
   matrix.compose(new THREE.Vector3(0, capY, SOUTH_Z - base.capInset), new THREE.Quaternion(), new THREE.Vector3(ROOM_WIDTH, base.capHeight, base.depth * 0.72)); baseboards.setMatrixAt(7, matrix)
   baseboards.instanceMatrix.needsUpdate = true; root.add(baseboards)
 
-  const nodes = { root, floor, floorUnderlay, ceiling, cornerPosts, walls, westWall: westGroup.children[0] as THREE.Mesh, eastWall: east, northWall: north, southWall: south, westWindow, windowBackdrop, windowGlass: glassGroup, baseboards, windowApron, windowSill } satisfies StudyRoomShellNodes
+  const nodes = { root, floor, floorUnderlay, cornerPosts, walls, westWall: westGroup.children[0] as THREE.Mesh, eastWall: east, northWall: north, southWall: south, westWindow, windowBackdrop, windowGlass: glassGroup, baseboards, windowApron, windowSill } satisfies StudyRoomShellNodes
   setSculptRuntime(root, { colliders: { floor: { id: 'study-room-floor', type: 'box', center: [0, STUDY_ROOM_MODEL_SPEC.floorTopY, 0], size: [ROOM_WIDTH, 0.02, ROOM_DEPTH] } }, destructionGroups: { walls: [...walls.children], window: [westWindow], glass: [...glassGroup.children] }, nodes, sockets: { floor, westWindow } } satisfies SculptRuntime<StudyRoomShellNodes>)
   root.userData.resourceMetrics = measureModelResources(root)
   root.userData.resourceBudget = { targetTriangles: 250000, maxDrawCalls: 160, textures: materials.textures.length }

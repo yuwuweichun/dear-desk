@@ -117,7 +117,6 @@ export const NOTEBOOK_MODEL_SPEC = {
 export const STUDY_ROOM_MODEL_SPEC = {
   floorTopY: -5.025,
   wallTopY: 12.975,
-  ceilingInset: 0.02,
   wallThickness: 0.12,
   interior: { width: 42, depth: 33 },
   window: {

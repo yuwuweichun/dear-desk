@@ -291,8 +291,6 @@ function FreeOrbitCamera({ deskCameraPreset, enabled }: FreeOrbitCameraProps) {
     const pose = getCameraPoses(size.width < 700)[deskCameraPreset]
     applyCameraPose(camera, pose)
     controls.target.copy(pose.target)
-    controls.enableDamping = true
-    controls.dampingFactor = 0.08
     controls.enablePan = false
     controls.enableZoom = false
     controls.rotateSpeed = 0.65
