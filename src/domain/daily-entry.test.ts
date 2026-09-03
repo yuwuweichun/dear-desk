@@ -1,6 +1,5 @@
 import {
   defaultEntryTitle,
-  DailyEntryValidationError,
   MAX_ENTRY_TITLE_LENGTH,
   MAX_ENTRY_LENGTH,
   normalizeEntryTitle,
@@ -18,8 +17,8 @@ describe('daily entry domain', () => {
     expect(normalizeEntryText('  今天很好。  ')).toBe('今天很好。')
   })
 
-  it('rejects empty and oversized content', () => {
-    expect(() => normalizeEntryText('   ')).toThrow(DailyEntryValidationError)
+  it('allows empty and rejects oversized content', () => {
+    expect(normalizeEntryText('   ')).toBe('')
     expect(() => normalizeEntryText('a'.repeat(MAX_ENTRY_LENGTH + 1))).toThrow(
       `内容不能超过 ${MAX_ENTRY_LENGTH} 个字符。`,
     )

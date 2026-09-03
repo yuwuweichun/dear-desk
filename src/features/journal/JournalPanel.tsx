@@ -365,7 +365,7 @@ function JournalBook({ contentFont }: JournalPanelProps) {
               aria-pressed={writing}
               aria-label={writing ? '保存本页' : '开始书写本页'}
               title={writing ? '保存本页' : '开始书写本页'}
-              disabled={saving || overLimit || titleOverLimit || (writing && (!activeDraft.trim() || !activeTitle.trim())) || (!writing && (pageUnavailable || placingSticker))}
+              disabled={saving || overLimit || titleOverLimit || (writing && !activeTitle.trim()) || (!writing && (pageUnavailable || placingSticker))}
               loading={saving}
               variant="primary"
             >

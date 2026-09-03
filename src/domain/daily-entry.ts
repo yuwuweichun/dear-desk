@@ -36,10 +36,6 @@ export const toLocalDate = (date = new Date()): LocalDate =>
 export const normalizeEntryText = (text: string) => {
   const normalized = text.trim()
 
-  if (!normalized) {
-    throw new DailyEntryValidationError('请先写下一点内容。')
-  }
-
   if (normalized.length > MAX_ENTRY_LENGTH) {
     throw new DailyEntryValidationError(`内容不能超过 ${MAX_ENTRY_LENGTH} 个字符。`)
   }

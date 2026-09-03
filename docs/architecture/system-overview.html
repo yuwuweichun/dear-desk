@@ -310,7 +310,7 @@ AudioRuntime observes edges once
               <tr><td>目标页预读失败</td><td>翻页从 loading 复位到 idle，不提交游标</td><td>原跨页保持不变</td></tr>
               <tr><td>快速重复点击</td><td>非 idle 请求返回 <code>false</code></td><td>只有一个 pending cursor</td></tr>
               <tr><td>dirty 书写时翻页、切回阅读或关闭</td><td>意图被组件拦截，live status 提示先收笔</td><td>当前右页、模式与局部草稿</td></tr>
-              <tr><td>空文本、超长或任意日期写入失败</td><td>禁用/拒绝收笔并显示错误，恢复 writing</td><td><code>JournalBook</code> 的 <code>draftDate</code> 与草稿</td></tr>
+              <tr><td>超长、空标题或任意日期写入失败</td><td>禁用/拒绝收笔并显示错误，恢复 writing；空正文允许收笔并保存为空字符串</td><td><code>JournalBook</code> 的 <code>draftDate</code> 与草稿</td></tr>
               <tr><td>字体偏好无效、当前构建不可用或存储访问失败</td><td><code>readContentFontPreference()</code> 回退纸页宋体；写入失败不阻断当前页面切换</td><td>正文、铭牌纯文本、保存流程与 IndexedDB 数据</td></tr>
               <tr><td>音频偏好损坏、版本未知或存储不可用</td><td><code>readAudioPreferences()</code> 回退音乐关闭/30%、音效开启/60%；写入失败不阻断当前动作</td><td>正文、贴纸、场景状态和 IndexedDB 数据</td></tr>
               <tr><td>浏览器拒绝播放或音频资源失败</td><td><code>AudioController</code> 捕获同步异常与 Promise rejection；动作和状态机照常完成</td><td>本子、翻页、抽屉与用户偏好</td></tr>

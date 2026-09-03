@@ -210,6 +210,36 @@ describe('JournalPanel', () => {
     )
   })
 
+  it('allows finishing with an empty body and persists the empty text', async () => {
+    const repository = createRepository()
+    const user = userEvent.setup()
+    await renderJournal(repository)
+
+    await startWriting(user)
+    await user.click(screen.getByRole('button', { name: '保存本页' }))
+
+    await waitFor(() => {
+      expect(repository.save).toHaveBeenCalledWith(date, '', '今天')
+    })
+    expect(screen.queryByRole('textbox', { name: '本页记录' })).not.toBeInTheDocument()
+    expect(screen.getByRole('status')).toHaveTextContent('已收笔，内容已存入本地。')
+  })
+
+  it('allows clearing an existing body before finishing', async () => {
+    const repository = createRepository({ [date]: dailyEntry(date, '需要清空') })
+    const user = userEvent.setup()
+    await renderJournal(repository)
+
+    const textarea = await startWriting(user)
+    await user.clear(textarea)
+    await user.click(screen.getByRole('button', { name: '保存本页' }))
+
+    await waitFor(() => {
+      expect(repository.save).toHaveBeenCalledWith(date, '', '今天')
+    })
+    expect(screen.queryByRole('textbox', { name: '本页记录' })).not.toBeInTheDocument()
+  })
+
   it('uses the global content font without rendering a journal-owned font control', async () => {
     const repository = createRepository({
       [date]: dailyEntry(date, '字体会同时影响阅读与书写。'),
