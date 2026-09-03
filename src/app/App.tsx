@@ -113,7 +113,11 @@ function ProductApp({ sceneColorPresetRepository }: ProductAppProps) {
     readContentFontPreference(window.localStorage))
   const [audioPreferences, setAudioPreferences] = useState(() =>
     readAudioPreferences(window.localStorage))
-  const [audioController] = useState(() => createAudioController(audioPreferences))
+  const [audioController] = useState(() => {
+    const controller = createAudioController(audioPreferences)
+    controller.preloadSfx()
+    return controller
+  })
   const cycleDeskCameraPreset = useAppStore(
     (state) => state.cycleDeskCameraPreset,
   )

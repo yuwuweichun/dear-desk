@@ -6,6 +6,7 @@ import { AudioRuntime } from './AudioRuntime'
 
 const createController = () => ({
   dispose: vi.fn(),
+  preloadSfx: vi.fn(),
   playSfx: vi.fn(),
   setPreferences: vi.fn(),
 }) satisfies AudioController

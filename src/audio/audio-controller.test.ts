@@ -23,6 +23,23 @@ afterEach(() => {
 })
 
 describe('audio controller', () => {
+  it('preloads every sound effect once without playing it', () => {
+    const players: FakeAudio[] = []
+    const controller = createAudioController(DEFAULT_AUDIO_PREFERENCES, (source) => {
+      const player = new FakeAudio(source)
+      players.push(player)
+      return player
+    })
+
+    controller.preloadSfx()
+
+    expect(players).toHaveLength(5)
+    players.forEach((player) => {
+      expect(player.load).toHaveBeenCalledOnce()
+      expect(player.play).not.toHaveBeenCalled()
+    })
+  })
+
   it('plays, rewinds, and reuses one player per semantic effect', () => {
     const players: FakeAudio[] = []
     const controller = createAudioController(DEFAULT_AUDIO_PREFERENCES, (source) => {

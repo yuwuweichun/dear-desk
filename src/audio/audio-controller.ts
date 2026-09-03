@@ -31,6 +31,7 @@ type AudioFactory = (source: string) => PlayableAudio
 
 export interface AudioController {
   dispose(): void
+  preloadSfx(): void
   playSfx(effect: SoundEffectId, delayMs?: number): void
   setPreferences(preferences: AudioPreferences): void
 }
@@ -72,6 +73,17 @@ export const createAudioController = (
   }
 
   return {
+    preloadSfx() {
+      if (disposed) return
+      for (const effect of Object.keys(SOUND_EFFECT_SOURCES) as SoundEffectId[]) {
+        audioFor(effect).load()
+      }
+      console.info('[audio] SFX preload initialized', {
+        count: audioElements.size,
+        effects: [...audioElements.keys()],
+        note: 'Audio objects created and load() called; media decoding may still be in progress.',
+      })
+    },
     setPreferences(nextPreferences) {
       // React StrictMode replays effects after a cleanup-only mount probe.
       disposed = false
