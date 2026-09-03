@@ -187,7 +187,7 @@ HTML 必须遵循其中的内容组织、Bun 风格、全文搜索、章节导�
 - 分支名使用 Conventional Commits 类型前缀，例如 `feat/`、`fix/`、`docs/`、`refactor/`。
 - 不使用 `codex/` 前缀。
 - 后缀使用简洁的 kebab-case。
-- Commit message 使用 `type(scope): description`。
+- Commit message 使用 `type(scope): 中文描述`：`type` 与 `scope` 保持英文 Conventional Commits 格式，冒号后的描述必须使用中文，例如 `feat(scene): 调整前置镜头覆盖范围`。
 - 未经用户明确要求，不自动创建提交、推送远端或创建 PR。
 - 用户明确要求为当前任务创建提交时，应在提交前完成该任务的源码、文档、验证和验收状态回写，并将它们纳入同一个提交，避免仅为补记验收结果再创建第二个提交。
 - 保留用户已有修改，不回退与当前任务无关的文件。
