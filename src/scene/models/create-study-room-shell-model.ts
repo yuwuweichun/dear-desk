@@ -21,7 +21,7 @@ export interface StudyRoomShellNodes extends Record<string, THREE.Object3D> {
   eastWall: THREE.Mesh
   northWall: THREE.Mesh
   southWall: THREE.Mesh
-  westWindow: THREE.Group
+  northWindow: THREE.Group
   windowBackdrop: THREE.Mesh
   windowGlass: THREE.Group
   baseboards: THREE.InstancedMesh
@@ -192,7 +192,7 @@ export function createStudyRoomShellModel(options: ModelFactoryOptions = {}) {
   const own = <T extends THREE.BufferGeometry>(geometry: T) => { geometries.add(geometry); return geometry }
   const root = new THREE.Group()
   root.name = 'study-room-shell-model'
-  root.userData = { modelId: 'simple-study-room-shell', pass, structure: 'four-wall-enclosed-visual-room-with-west-window' }
+  root.userData = { modelId: 'simple-study-room-shell', pass, structure: 'four-wall-enclosed-visual-room-with-north-window' }
 
   const floorUnderlay = createWallMesh(
     own(new THREE.PlaneGeometry(ROOM_WIDTH, ROOM_DEPTH)),
@@ -255,61 +255,60 @@ export function createStudyRoomShellModel(options: ModelFactoryOptions = {}) {
 
   const walls = new THREE.Group(); walls.name = 'study-room-walls'; disableRaycast(walls)
   const window = STUDY_ROOM_MODEL_SPEC.window
-  const wz0 = window.centerZ - window.width / 2
-  const wz1 = window.centerZ + window.width / 2
-  const westGroup = new THREE.Group(); westGroup.name = 'study-room-west-wall'; disableRaycast(westGroup)
-  const westParts = [
-    wallQuad(WEST_X, NORTH_Z, wz0, STUDY_ROOM_MODEL_SPEC.floorTopY, STUDY_ROOM_MODEL_SPEC.wallTopY, 1),
-    wallQuad(WEST_X, wz1, SOUTH_Z, STUDY_ROOM_MODEL_SPEC.floorTopY, STUDY_ROOM_MODEL_SPEC.wallTopY, 1),
-    wallQuad(WEST_X, wz0, wz1, STUDY_ROOM_MODEL_SPEC.floorTopY, window.bottomY, 1),
-    wallQuad(WEST_X, wz0, wz1, window.topY, STUDY_ROOM_MODEL_SPEC.wallTopY, 1),
-  ]
-  westParts.forEach((geometry, index) => westGroup.add(createWallMesh(own(geometry), materials.wall, `study-room-west-wall-panel-${index + 1}`, options)))
-  const north = createWallMesh(own(horizontalQuad(NORTH_Z, WEST_X, EAST_X, STUDY_ROOM_MODEL_SPEC.floorTopY, STUDY_ROOM_MODEL_SPEC.wallTopY, 1)), materials.wall, 'study-room-north-wall', options)
+  const wx0 = window.centerX - window.width / 2
+  const wx1 = window.centerX + window.width / 2
+  const west = createWallMesh(own(wallQuad(WEST_X, NORTH_Z, SOUTH_Z, STUDY_ROOM_MODEL_SPEC.floorTopY, STUDY_ROOM_MODEL_SPEC.wallTopY, 1)), materials.wall, 'study-room-west-wall', options)
   const east = createWallMesh(own(wallQuad(EAST_X, SOUTH_Z, NORTH_Z, STUDY_ROOM_MODEL_SPEC.floorTopY, STUDY_ROOM_MODEL_SPEC.wallTopY, -1)), materials.wall, 'study-room-east-wall', options)
   const south = createWallMesh(own(horizontalQuad(SOUTH_Z, EAST_X, WEST_X, STUDY_ROOM_MODEL_SPEC.floorTopY, STUDY_ROOM_MODEL_SPEC.wallTopY, -1)), materials.wall, 'study-room-south-wall', options)
-  walls.add(westGroup, north, east, south); root.add(walls)
+  const northWindowParts = [
+    horizontalQuad(NORTH_Z, WEST_X, wx0, STUDY_ROOM_MODEL_SPEC.floorTopY, STUDY_ROOM_MODEL_SPEC.wallTopY, 1),
+    horizontalQuad(NORTH_Z, wx1, EAST_X, STUDY_ROOM_MODEL_SPEC.floorTopY, STUDY_ROOM_MODEL_SPEC.wallTopY, 1),
+    horizontalQuad(NORTH_Z, wx0, wx1, STUDY_ROOM_MODEL_SPEC.floorTopY, window.bottomY, 1),
+    horizontalQuad(NORTH_Z, wx0, wx1, window.topY, STUDY_ROOM_MODEL_SPEC.wallTopY, 1),
+  ]
+  const northWindowWall = new THREE.Group(); northWindowWall.name = 'study-room-north-wall'; disableRaycast(northWindowWall)
+  northWindowParts.forEach((geometry, index) => northWindowWall.add(createWallMesh(own(geometry), materials.wall, `study-room-north-wall-panel-${index + 1}`, options)))
+  walls.add(west, northWindowWall, east, south); root.add(walls)
 
-  const westWindow = new THREE.Group(); westWindow.name = 'study-room-west-window'; disableRaycast(westWindow)
+  const northWindow = new THREE.Group(); northWindow.name = 'study-room-north-window'; northWindow.position.set(0, 0, NORTH_Z); northWindow.rotation.y = -Math.PI / 2; disableRaycast(northWindow)
   const frameDepth = window.frameDepth
   const frameWidth = window.frameWidth
-  const frameX = WEST_X + frameDepth / 2
   const frameGeometry = own(new THREE.BoxGeometry(frameDepth, 1, 1))
   const addFrame = (name: string, position: [number, number, number], scale: [number, number, number]) => {
     const mesh = disableRaycast(markMesh(new THREE.Mesh(frameGeometry, materials.frame), name, options))
-    mesh.position.set(...position); mesh.scale.set(...scale); westWindow.add(mesh); return mesh
+    mesh.position.set(...position); mesh.scale.set(...scale); northWindow.add(mesh); return mesh
   }
-  addFrame('study-room-window-frame-left', [frameX, (window.bottomY + window.topY) / 2, wz0], [1, window.topY - window.bottomY + frameWidth, frameWidth])
-  addFrame('study-room-window-frame-right', [frameX, (window.bottomY + window.topY) / 2, wz1], [1, window.topY - window.bottomY + frameWidth, frameWidth])
-  addFrame('study-room-window-frame-top', [frameX, window.topY, window.centerZ], [1, frameWidth, window.width + frameWidth * 2])
-  addFrame('study-room-window-frame-bottom', [frameX, window.bottomY, window.centerZ], [1, frameWidth, window.width + frameWidth * 2])
-  addFrame('study-room-window-mullion-vertical', [frameX, (window.bottomY + window.topY) / 2, window.centerZ], [1, window.topY - window.bottomY, window.mullionWidth])
-  addFrame('study-room-window-mullion-horizontal', [frameX, (window.bottomY + window.topY) / 2, window.centerZ], [1, window.mullionWidth, window.width])
+  addFrame('study-room-window-frame-left', [0, (window.bottomY + window.topY) / 2, -window.width / 2], [1, window.topY - window.bottomY + frameWidth, frameWidth])
+  addFrame('study-room-window-frame-right', [0, (window.bottomY + window.topY) / 2, window.width / 2], [1, window.topY - window.bottomY + frameWidth, frameWidth])
+  addFrame('study-room-window-frame-top', [0, window.topY, 0], [1, frameWidth, window.width + frameWidth * 2])
+  addFrame('study-room-window-frame-bottom', [0, window.bottomY, 0], [1, frameWidth, window.width + frameWidth * 2])
+  addFrame('study-room-window-mullion-vertical', [0, (window.bottomY + window.topY) / 2, 0], [1, window.topY - window.bottomY, window.mullionWidth])
+  addFrame('study-room-window-mullion-horizontal', [0, (window.bottomY + window.topY) / 2, 0], [1, window.mullionWidth, window.width])
   const windowSill = disableRaycast(markMesh(
     new THREE.Mesh(own(new THREE.BoxGeometry(window.sillDepth, window.sillHeight, window.width + window.sillOverhang)), materials.frame),
     'study-room-window-sill',
     options,
   ))
-  windowSill.position.set(WEST_X + window.sillDepth / 2, window.bottomY - window.sillHeight / 2 + frameWidth * 0.35, window.centerZ)
+  windowSill.position.set(window.sillDepth / 2, window.bottomY - window.sillHeight / 2 + frameWidth * 0.35, 0)
   const windowApron = disableRaycast(markMesh(
     new THREE.Mesh(own(new THREE.BoxGeometry(window.frameDepth * 0.72, window.apronHeight, window.width + frameWidth)), materials.frame),
     'study-room-window-apron',
     options,
   ))
   windowApron.position.set(
-    WEST_X + window.frameDepth * 0.36,
+    window.frameDepth * 0.36,
     window.bottomY - window.sillHeight - window.apronHeight / 2,
-    window.centerZ,
+    0,
   )
-  westWindow.add(windowSill, windowApron)
+  northWindow.add(windowSill, windowApron)
   const windowBackdrop = disableRaycast(markMesh(
     new THREE.Mesh(own(new THREE.PlaneGeometry(window.width, window.topY - window.bottomY)), materials.outdoor),
     'study-room-window-outdoor-backdrop',
     options,
   ))
   windowBackdrop.rotation.y = Math.PI / 2
-  windowBackdrop.position.set(WEST_X - 0.015, (window.bottomY + window.topY) / 2, window.centerZ)
-  westWindow.add(windowBackdrop)
+  windowBackdrop.position.set(-0.015, (window.bottomY + window.topY) / 2, 0)
+  northWindow.add(windowBackdrop)
   const paneWidth = (window.width - window.mullionWidth - frameWidth * 2) / 2
   const paneHeight = (window.topY - window.bottomY - window.mullionWidth - frameWidth * 2) / 2
   const paneGeometry = own(new THREE.PlaneGeometry(paneWidth, paneHeight))
@@ -317,10 +316,10 @@ export function createStudyRoomShellModel(options: ModelFactoryOptions = {}) {
   for (let row = 0; row < 2; row += 1) for (let column = 0; column < 2; column += 1) {
     const pane = disableRaycast(markMesh(new THREE.Mesh(paneGeometry, materials.glass), `study-room-window-pane-${row * 2 + column + 1}`, options))
     pane.rotation.y = Math.PI / 2
-    pane.position.set(WEST_X + 0.06, window.bottomY + frameWidth + paneHeight / 2 + row * (paneHeight + window.mullionWidth), wz0 + frameWidth + paneWidth / 2 + column * (paneWidth + window.mullionWidth))
+    pane.position.set(0.06, window.bottomY + frameWidth + paneHeight / 2 + row * (paneHeight + window.mullionWidth), -window.width / 2 + frameWidth + paneWidth / 2 + column * (paneWidth + window.mullionWidth))
     glassGroup.add(pane)
   }
-  westWindow.add(glassGroup); root.add(westWindow)
+  northWindow.add(glassGroup); root.add(northWindow)
 
   const baseboardGeometry = own(new THREE.BoxGeometry(1, 1, 1))
   const baseboards = disableRaycast(new THREE.InstancedMesh(baseboardGeometry, materials.baseboard, 8))
@@ -339,8 +338,8 @@ export function createStudyRoomShellModel(options: ModelFactoryOptions = {}) {
   matrix.compose(new THREE.Vector3(0, capY, SOUTH_Z - base.capInset), new THREE.Quaternion(), new THREE.Vector3(ROOM_WIDTH, base.capHeight, base.depth * 0.72)); baseboards.setMatrixAt(7, matrix)
   baseboards.instanceMatrix.needsUpdate = true; root.add(baseboards)
 
-  const nodes = { root, floor, floorUnderlay, cornerPosts, walls, westWall: westGroup.children[0] as THREE.Mesh, eastWall: east, northWall: north, southWall: south, westWindow, windowBackdrop, windowGlass: glassGroup, baseboards, windowApron, windowSill } satisfies StudyRoomShellNodes
-  setSculptRuntime(root, { colliders: { floor: { id: 'study-room-floor', type: 'box', center: [0, STUDY_ROOM_MODEL_SPEC.floorTopY, 0], size: [ROOM_WIDTH, 0.02, ROOM_DEPTH] } }, destructionGroups: { walls: [...walls.children], window: [westWindow], glass: [...glassGroup.children] }, nodes, sockets: { floor, westWindow } } satisfies SculptRuntime<StudyRoomShellNodes>)
+  const nodes = { root, floor, floorUnderlay, cornerPosts, walls, westWall: west, eastWall: east, northWall: northWindowWall.children[0] as THREE.Mesh, southWall: south, northWindow, windowBackdrop, windowGlass: glassGroup, baseboards, windowApron, windowSill } satisfies StudyRoomShellNodes
+  setSculptRuntime(root, { colliders: { floor: { id: 'study-room-floor', type: 'box', center: [0, STUDY_ROOM_MODEL_SPEC.floorTopY, 0], size: [ROOM_WIDTH, 0.02, ROOM_DEPTH] } }, destructionGroups: { walls: [...walls.children], window: [northWindow], glass: [...glassGroup.children] }, nodes, sockets: { floor, northWindow } } satisfies SculptRuntime<StudyRoomShellNodes>)
   root.userData.resourceMetrics = measureModelResources(root)
   root.userData.resourceBudget = { targetTriangles: 250000, maxDrawCalls: 160, textures: materials.textures.length }
   root.userData.dispose = () => { disposeModelGeometry(root); geometries.clear(); Object.values(materials).forEach((value) => { if (value instanceof THREE.Material) value.dispose() }); materials.textures.forEach((texture) => texture.dispose()) }

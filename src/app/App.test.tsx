@@ -277,26 +277,27 @@ describe('App camera controls', () => {
       name: '打开场景颜色编辑器',
     })
     const freeCameraButton = screen.getByRole('button', {
-      name: '关闭自由视角',
+      name: '开启自由视角',
     })
     const toolStack = paletteButton.closest('.scene-tool-stack')
     expect(toolStack).toContainElement(freeCameraButton)
-    expect(freeCameraButton).toHaveAttribute('aria-pressed', 'true')
+    expect(freeCameraButton).toHaveAttribute('aria-pressed', 'false')
     expect(freeCameraButton).not.toHaveAttribute('title')
-    expect(freeCameraButton.querySelector('.lucide-camera')).toBeInTheDocument()
-    expect(freeCameraButton.querySelector('.lucide-camera-off')).not.toBeInTheDocument()
+    expect(freeCameraButton.querySelector('.lucide-camera-off')).toBeInTheDocument()
+    expect(freeCameraButton.querySelector('.lucide-camera')).not.toBeInTheDocument()
 
     fireEvent.click(freeCameraButton)
 
-    const disabledFreeCameraButton = screen.getByRole('button', {
-      name: '开启自由视角',
+    const enabledFreeCameraButton = screen.getByRole('button', {
+      name: '关闭自由视角',
     })
-    expect(disabledFreeCameraButton).toHaveAttribute('aria-pressed', 'false')
-    expect(disabledFreeCameraButton).not.toHaveAttribute('title')
-    expect(disabledFreeCameraButton).toBeDisabled()
-    expect(disabledFreeCameraButton.querySelector('.lucide-camera-off')).toBeInTheDocument()
+    expect(enabledFreeCameraButton).toHaveAttribute('aria-pressed', 'true')
+    expect(enabledFreeCameraButton).not.toHaveAttribute('title')
+    expect(enabledFreeCameraButton).not.toBeDisabled()
+    expect(enabledFreeCameraButton.querySelector('.lucide-camera')).toBeInTheDocument()
+    expect(enabledFreeCameraButton.querySelector('.lucide-camera-off')).not.toBeInTheDocument()
     expect(
-      screen.getByRole('button', { name: '当前远处，切换到正面' }),
+      screen.getByRole('button', { name: '当前正面，切换到近处' }),
     ).toBeDisabled()
   })
 })
@@ -474,7 +475,7 @@ describe('App global content font', () => {
     const fontButton = screen.getByRole('button', {
       name: '更换内容字体，当前纸页宋体',
     })
-    const cameraButton = screen.getByRole('button', { name: '关闭自由视角' })
+    const cameraButton = screen.getByRole('button', { name: '开启自由视角' })
     const toolStack = paletteButton.closest('.scene-tool-stack')
     expect(toolStack).toContainElement(fontButton)
     expect(toolStack).toContainElement(cameraButton)

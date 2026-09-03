@@ -120,7 +120,7 @@ export const STUDY_ROOM_MODEL_SPEC = {
   wallThickness: 0.12,
   interior: { width: 42, depth: 33 },
   window: {
-    centerZ: 0,
+    centerX: 0,
     bottomY: -1.45,
     topY: 11.2,
     width: 10.3,

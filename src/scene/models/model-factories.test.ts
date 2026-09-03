@@ -75,24 +75,24 @@ afterEach(() => {
 })
 
 describe('procedural scene model factories', () => {
-  it('builds the room shell with a real west opening and four panes', () => {
+  it('builds the room shell with a real north opening and four panes', () => {
     const room = trackRoot(createStudyRoomShellModel())
     const runtime = getRuntime<StudyRoomShellNodes>(room)
 
     expect(STUDY_ROOM_MODEL_SPEC.interior).toEqual({ width: 42, depth: 33 })
     expect(STUDY_ROOM_MODEL_SPEC.wallTopY - STUDY_ROOM_MODEL_SPEC.floorTopY).toBe(18)
     expect(STUDY_ROOM_MODEL_SPEC.window.width).toBeCloseTo(10.3)
-    expect(STUDY_ROOM_MODEL_SPEC.window.centerZ).toBe(0)
+    expect(STUDY_ROOM_MODEL_SPEC.window.centerX).toBe(0)
     expect(STUDY_ROOM_MODEL_SPEC.window.topY - STUDY_ROOM_MODEL_SPEC.window.bottomY).toBeCloseTo(12.65)
     expect(runtime.nodes.floor.position.y).toBe(-5.025)
     expect(runtime.nodes.cornerPosts.children).toHaveLength(4)
-    expect(runtime.nodes.westWindow.getObjectByName('study-room-window-pane-1')).toBeTruthy()
+    expect(runtime.nodes.northWindow.getObjectByName('study-room-window-pane-1')).toBeTruthy()
     expect(runtime.nodes.windowBackdrop.name).toBe('study-room-window-outdoor-backdrop')
     expect(runtime.nodes.windowSill.name).toBe('study-room-window-sill')
     expect(runtime.nodes.windowApron.name).toBe('study-room-window-apron')
-    expect(runtime.nodes.windowSill.position.x).toBeGreaterThan(-21)
+    expect(runtime.nodes.windowSill.position.z).toBeGreaterThan(-16.5)
     expect(runtime.nodes.windowGlass.children).toHaveLength(4)
-    expect(runtime.nodes.westWall.geometry.getAttribute('position').count).toBeGreaterThan(0)
+    expect(runtime.nodes.northWall.geometry.getAttribute('position').count).toBeGreaterThan(0)
     expect((runtime.nodes.westWall.material as THREE.MeshStandardMaterial).side).toBe(THREE.DoubleSide)
     expect(runtime.nodes.westWall.material).toBe(runtime.nodes.eastWall.material)
     expect(runtime.nodes.eastWall.material).toBe(runtime.nodes.northWall.material)
