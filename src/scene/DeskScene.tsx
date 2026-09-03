@@ -115,8 +115,8 @@ const getCameraPoses = (mobile: boolean) => ({
     ? cameraPose([6.7, 7.7, 11.5], [0, -0.45, 0.15], 37)
     : cameraPose([8.9, 5.7, 11.3], [0, -0.9, 0.2], 35),
   front: mobile
-    ? cameraPose([0.1, 8.4, 14.2], [0, -0.5, 0.15], 42)
-    : cameraPose([0.15, 6.8, 13.6], [0, -0.75, 0.15], 36),
+    ? cameraPose([0.1, 6.5, 16.2], [0, 3.5, 0.15], 46)
+    : cameraPose([0.15, 5.5, 15.2], [0, 2.5, 0.15], 44),
   near: mobile
     ? cameraPose([0, 10.6, 6.2], [0, 0.22, 0.2], 43)
     : cameraPose([0, 8.6, 5.1], [0, 0.22, 0.2], 37),
