@@ -262,7 +262,7 @@ function ProductApp({ sceneColorPresetRepository }: ProductAppProps) {
         pastTracesPhase={pastTracesPhase}
       />
       {stickerWorkflow === 'composing' ? (
-        <StickerStudio />
+        <StickerStudio onWallPlacementPrepared={() => setShowRoomBackground(true)} />
       ) : (
         <div className="scene-shell">
           <DeskScene
@@ -354,7 +354,7 @@ function ProductApp({ sceneColorPresetRepository }: ProductAppProps) {
             }}
             variant="secondary"
           >
-            <span>贴纸工作台</span>
+            <span>装饰工坊</span>
           </Button>
         </div>
       ) : null}

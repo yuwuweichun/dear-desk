@@ -264,7 +264,7 @@
   .desk-actions .dd-button { min-width: 0; padding-inline: 10px; }
   .journal-paper { min-height: 120px; }
   .sticker-studio-controls { overflow-y: auto; }
-  .studio-target-actions { grid-template-columns: 1fr 1fr; }
+  .studio-target-actions { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .manual-cutout-shell { padding: 10px; }
   .manual-cutout { padding: 14px; border-radius: 22px; }
   .manual-cutout-toolbar label { width: 100%; }

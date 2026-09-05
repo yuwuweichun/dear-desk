@@ -17,12 +17,17 @@ import type {
 import {
   clampJournalStickerPosition,
   clampStickerPosition,
+  clampWallStickerPosition,
+  normalizeStickerScale,
   STICKER_ROTATION_STEP,
+  STICKER_SCALE_STEP,
+  WALL_STICKER_SCALE_MAX,
   type JournalStickerPosition,
   type PlacedSticker,
   type StickerDraft,
   type StickerPosition,
   type StickerRepository,
+  type WallStickerPosition,
 } from '../domain/sticker'
 
 type LoadStatus = 'idle' | 'loading' | 'ready' | 'error'
@@ -49,6 +54,7 @@ export type StickerWorkflow =
   | 'composing'
   | 'placingDesk'
   | 'placingJournal'
+  | 'placingWall'
 
 export type NotebookPhase =
   | 'desk'
@@ -77,6 +83,7 @@ export interface AppState {
   errorMessage: string | null
   stickers: PlacedSticker[]
   journalStickers: PlacedSticker[]
+  wallStickers: PlacedSticker[]
   journalPageDates: LocalDate[]
   journalPageEntries: Record<string, DailyEntry | null>
   journalPageStickers: Record<string, PlacedSticker[]>
@@ -131,18 +138,23 @@ export interface AppState {
   cancelStickerComposer: () => void
   prepareStickerPlacement: (
     draft: StickerDraft,
-    target: 'desk' | 'journal',
+    target: 'desk' | 'journal' | 'wall',
   ) => void
   cancelStickerPlacement: () => void
   placePendingDeskSticker: (position: StickerPosition) => Promise<boolean>
   placePendingJournalSticker: (
     position: JournalStickerPosition,
   ) => Promise<boolean>
+  placePendingWallSticker: (position: WallStickerPosition) => Promise<boolean>
   selectSticker: (instanceId: string | null) => void
   previewStickerPosition: (instanceId: string, position: StickerPosition) => void
   previewJournalStickerPosition: (
     instanceId: string,
     position: JournalStickerPosition,
+  ) => void
+  previewWallStickerPosition: (
+    instanceId: string,
+    position: WallStickerPosition,
   ) => void
   commitStickerPosition: (
     instanceId: string,
@@ -152,7 +164,12 @@ export interface AppState {
     instanceId: string,
     position: JournalStickerPosition,
   ) => Promise<boolean>
+  commitWallStickerPosition: (
+    instanceId: string,
+    position: WallStickerPosition,
+  ) => Promise<boolean>
   rotateSelectedSticker: (direction: -1 | 1) => Promise<boolean>
+  resizeSelectedSticker: (direction: -1 | 1) => Promise<boolean>
   deleteSelectedSticker: () => Promise<boolean>
   clearStickerError: () => void
 }
@@ -167,12 +184,16 @@ const unavailableStickerRepository: StickerRepository = {
   delete: async () => undefined,
   listDesk: async () => [],
   listJournal: async () => [],
+  listWall: async () => [],
   listJournalDateCounts: async () => [],
   listJournalDates: async () => [],
   move: async () => {
     throw new Error('贴纸存储不可用。')
   },
   rotate: async () => {
+    throw new Error('贴纸存储不可用。')
+  },
+  resize: async () => {
     throw new Error('贴纸存储不可用。')
   },
 }
@@ -195,6 +216,7 @@ export const createAppStore = (
     errorMessage: null,
     stickers: [],
     journalStickers: [],
+    wallStickers: [],
     journalPageDates: [selectedDate],
     journalPageEntries: {},
     journalPageStickers: {},
@@ -282,13 +304,15 @@ export const createAppStore = (
     loadStickers: async () => {
       set({ stickerStatus: 'loading', stickerErrorMessage: null })
       try {
-        const [stickers, journalStickers] = await Promise.all([
+        const [stickers, journalStickers, wallStickers] = await Promise.all([
           stickerRepository.listDesk(),
           stickerRepository.listJournal(get().selectedDate),
+          stickerRepository.listWall(),
         ])
         set((state) => ({
           stickers,
           journalStickers,
+          wallStickers,
           journalPageStickers: {
             ...state.journalPageStickers,
             [state.selectedDate]: journalStickers,
@@ -735,13 +759,18 @@ export const createAppStore = (
 
     prepareStickerPlacement: (draft, target) =>
       set({
-        notebookPhase: target === 'desk' ? 'desk' : 'editing',
+        notebookPhase: target === 'journal' ? 'editing' : 'desk',
         freeCameraEnabled: false,
         deskCameraTransitioning: false,
         pendingSticker: draft,
         selectedStickerId: null,
         stickerErrorMessage: null,
-        stickerWorkflow: target === 'desk' ? 'placingDesk' : 'placingJournal',
+        stickerWorkflow:
+          target === 'desk'
+            ? 'placingDesk'
+            : target === 'journal'
+              ? 'placingJournal'
+              : 'placingWall',
       }),
 
     cancelStickerPlacement: () =>
@@ -810,6 +839,32 @@ export const createAppStore = (
       }
     },
 
+    placePendingWallSticker: async (position) => {
+      const draft = get().pendingSticker
+      if (!draft || get().stickerWorkflow !== 'placingWall') return false
+      set({ stickerStatus: 'saving', stickerErrorMessage: null })
+      try {
+        const sticker = await stickerRepository.create(draft, {
+          surface: 'wall',
+          position: clampWallStickerPosition(position),
+        })
+        set((state) => ({
+          pendingSticker: null,
+          selectedStickerId: sticker.instance.id,
+          wallStickers: [...state.wallStickers, sticker],
+          stickerStatus: 'idle',
+          stickerWorkflow: 'idle',
+        }))
+        return true
+      } catch (error) {
+        set({
+          stickerStatus: 'error',
+          stickerErrorMessage: messageFromError(error, '墙面装饰没有保存成功。'),
+        })
+        return false
+      }
+    },
+
     selectSticker: (instanceId) =>
       set((state) => ({
         ...(state.pastTracesPhase === 'closed' && instanceId && state.freeCameraEnabled
@@ -832,7 +887,7 @@ export const createAppStore = (
                 ...sticker,
                 instance: {
                   ...sticker.instance,
-                  position: clampStickerPosition(position),
+                  position: clampStickerPosition(position, sticker.instance.scale),
                 },
               }
             : sticker,
@@ -849,6 +904,21 @@ export const createAppStore = (
                 instance: {
                   ...sticker.instance,
                   position: clampJournalStickerPosition(position),
+                },
+              }
+            : sticker,
+        ),
+      })),
+
+    previewWallStickerPosition: (instanceId, position) =>
+      set((state) => ({
+        wallStickers: state.wallStickers.map((sticker) =>
+          sticker.instance.id === instanceId && sticker.instance.surface === 'wall'
+            ? {
+                ...sticker,
+                instance: {
+                  ...sticker.instance,
+                  position: clampWallStickerPosition(position),
                 },
               }
             : sticker,
@@ -897,8 +967,33 @@ export const createAppStore = (
       }
     },
 
+    commitWallStickerPosition: async (instanceId, position) => {
+      set({ stickerStatus: 'saving', stickerErrorMessage: null })
+      try {
+        const instance = await stickerRepository.move(instanceId, position)
+        set((state) => ({
+          wallStickers: state.wallStickers.map((sticker) =>
+            sticker.instance.id === instanceId ? { ...sticker, instance } : sticker,
+          ),
+          stickerStatus: 'idle',
+        }))
+        return true
+      } catch (error) {
+        set({
+          stickerStatus: 'error',
+          stickerErrorMessage: messageFromError(error, '墙面装饰位置没有保存成功。'),
+        })
+        void get().loadStickers()
+        return false
+      }
+    },
+
     rotateSelectedSticker: async (direction) => {
-      const selected = [...get().stickers, ...get().journalStickers].find(
+      const selected = [
+        ...get().stickers,
+        ...get().journalStickers,
+        ...get().wallStickers,
+      ].find(
         (sticker) => sticker.instance.id === get().selectedStickerId,
       )
       if (!selected) return false
@@ -915,6 +1010,9 @@ export const createAppStore = (
           journalStickers: state.journalStickers.map((sticker) =>
             sticker.instance.id === instance.id ? { ...sticker, instance } : sticker,
           ),
+          wallStickers: state.wallStickers.map((sticker) =>
+            sticker.instance.id === instance.id ? { ...sticker, instance } : sticker,
+          ),
           stickerStatus: 'idle',
         }))
         return true
@@ -922,6 +1020,44 @@ export const createAppStore = (
         set({
           stickerStatus: 'error',
           stickerErrorMessage: messageFromError(error, '贴纸方向没有保存成功。'),
+        })
+        return false
+      }
+    },
+
+    resizeSelectedSticker: async (direction) => {
+      const selected = [
+        ...get().stickers,
+        ...get().journalStickers,
+        ...get().wallStickers,
+      ].find((sticker) => sticker.instance.id === get().selectedStickerId)
+      if (!selected) return false
+      set({ stickerStatus: 'saving', stickerErrorMessage: null })
+      try {
+        const instance = await stickerRepository.resize(
+          selected.instance.id,
+          normalizeStickerScale(
+            selected.instance.scale,
+            selected.instance.surface === 'wall' ? WALL_STICKER_SCALE_MAX : undefined,
+          ) + STICKER_SCALE_STEP * direction,
+        )
+        set((state) => ({
+          stickers: state.stickers.map((sticker) =>
+            sticker.instance.id === instance.id ? { ...sticker, instance } : sticker,
+          ),
+          journalStickers: state.journalStickers.map((sticker) =>
+            sticker.instance.id === instance.id ? { ...sticker, instance } : sticker,
+          ),
+          wallStickers: state.wallStickers.map((sticker) =>
+            sticker.instance.id === instance.id ? { ...sticker, instance } : sticker,
+          ),
+          stickerStatus: 'idle',
+        }))
+        return true
+      } catch (error) {
+        set({
+          stickerStatus: 'error',
+          stickerErrorMessage: messageFromError(error, '贴纸大小没有保存成功。'),
         })
         return false
       }
@@ -939,6 +1075,9 @@ export const createAppStore = (
             (sticker) => sticker.instance.id !== instanceId,
           ),
           journalStickers: state.journalStickers.filter(
+            (sticker) => sticker.instance.id !== instanceId,
+          ),
+          wallStickers: state.wallStickers.filter(
             (sticker) => sticker.instance.id !== instanceId,
           ),
           stickerStatus: 'idle',

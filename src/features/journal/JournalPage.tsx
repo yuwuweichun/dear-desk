@@ -75,7 +75,7 @@ export function JournalStickerPage({
           onClick={onOpenWorkbench}
           variant="secondary"
         >
-          前往贴纸工作台
+          前往装饰工坊
         </Button>
       </div>
     </JournalPageFrame>

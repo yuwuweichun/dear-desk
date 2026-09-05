@@ -2,8 +2,11 @@ import type { LocalDate } from '../domain/daily-entry'
 import {
   clampJournalStickerPosition,
   clampStickerPosition,
+  clampWallStickerPosition,
   normalizeStickerRotation,
+  normalizeStickerScale,
   STICKER_FORGE_COMMIT,
+  WALL_STICKER_SCALE_MAX,
   type JournalStickerPosition,
   type PlacedSticker,
   type StickerDefinition,
@@ -13,6 +16,7 @@ import {
   type StickerPosition,
   type StickerRepository,
   type StickerSourceAsset,
+  type WallStickerPosition,
 } from '../domain/sticker'
 import { database, type DearDeskDatabase } from './database'
 
@@ -35,6 +39,12 @@ export class DexieStickerRepository implements StickerRepository {
         .where('[surface+journalDate]')
         .equals(['journal', date])
         .toArray(),
+    )
+  }
+
+  listWall(): Promise<PlacedSticker[]> {
+    return this.listInstances(
+      this.db.stickerInstances.where('surface').equals('wall').toArray(),
     )
   }
 
@@ -64,7 +74,7 @@ export class DexieStickerRepository implements StickerRepository {
       left.createdAt.localeCompare(right.createdAt),
     )
     const stickers = await Promise.all(
-      instances.map(async (instance) => {
+      instances.map(async (instance): Promise<PlacedSticker | null> => {
         if (typeof instance.definitionId !== 'string' || !instance.definitionId) {
           return null
         }
@@ -79,7 +89,14 @@ export class DexieStickerRepository implements StickerRepository {
         const asset = await this.db.stickerRenderAssets.get(
           definition.previewAssetId,
         )
-        return asset ? { asset, definition, instance } : null
+        const normalizedInstance: StickerInstance = {
+          ...instance,
+              scale: normalizeStickerScale(
+                instance.scale,
+                instance.surface === 'wall' ? WALL_STICKER_SCALE_MAX : undefined,
+              ),
+        }
+        return asset ? { asset, definition, instance: normalizedInstance } : null
       }),
     )
     return stickers.filter((sticker): sticker is PlacedSticker => sticker !== null)
@@ -135,22 +152,35 @@ export class DexieStickerRepository implements StickerRepository {
       id: instanceId,
       definitionId,
       rotationY: 0,
+      scale: 1,
       createdAt: timestamp,
       updatedAt: timestamp,
     }
-    const instance: StickerInstance =
-      placement.surface === 'desk'
-        ? {
-            ...base,
-            surface: 'desk',
-            position: clampStickerPosition(placement.position),
-          }
-        : {
-            ...base,
-            surface: 'journal',
-            journalDate: placement.journalDate,
-            position: clampJournalStickerPosition(placement.position),
-          }
+    let instance: StickerInstance
+    switch (placement.surface) {
+      case 'desk':
+        instance = {
+          ...base,
+          surface: 'desk',
+          position: clampStickerPosition(placement.position),
+        }
+        break
+      case 'journal':
+        instance = {
+          ...base,
+          surface: 'journal',
+          journalDate: placement.journalDate,
+          position: clampJournalStickerPosition(placement.position),
+        }
+        break
+      case 'wall':
+        instance = {
+          ...base,
+          surface: 'wall',
+          position: clampWallStickerPosition(placement.position),
+        }
+        break
+    }
 
     await this.db.transaction(
       'rw',
@@ -170,25 +200,35 @@ export class DexieStickerRepository implements StickerRepository {
 
   async move(
     instanceId: string,
-    position: StickerPosition | JournalStickerPosition,
+    position: StickerPosition | JournalStickerPosition | WallStickerPosition,
   ): Promise<StickerInstance> {
     return this.db.transaction('rw', this.db.stickerInstances, async () => {
       const existing = await this.db.stickerInstances.get(instanceId)
       if (!existing) throw new Error('找不到这张贴纸。')
-      const updated: StickerInstance =
-        existing.surface === 'desk'
-          ? {
-              ...existing,
-              position: clampStickerPosition(position as StickerPosition),
-              updatedAt: this.now().toISOString(),
-            }
-          : {
-              ...existing,
-              position: clampJournalStickerPosition(
-                position as JournalStickerPosition,
-              ),
-              updatedAt: this.now().toISOString(),
-            }
+      let updated: StickerInstance
+      switch (existing.surface) {
+        case 'desk':
+          updated = {
+            ...existing,
+            position: clampStickerPosition(position as StickerPosition, existing.scale),
+            updatedAt: this.now().toISOString(),
+          }
+          break
+        case 'journal':
+          updated = {
+            ...existing,
+            position: clampJournalStickerPosition(position as JournalStickerPosition),
+            updatedAt: this.now().toISOString(),
+          }
+          break
+        case 'wall':
+          updated = {
+            ...existing,
+            position: clampWallStickerPosition(position as WallStickerPosition),
+            updatedAt: this.now().toISOString(),
+          }
+          break
+      }
       await this.db.stickerInstances.put(updated)
       return updated
     })
@@ -201,6 +241,10 @@ export class DexieStickerRepository implements StickerRepository {
     return this.updateInstance(instanceId, {
       rotationY: normalizeStickerRotation(rotationY),
     })
+  }
+
+  async resize(instanceId: string, scale: number): Promise<StickerInstance> {
+    return this.updateInstance(instanceId, { scale })
   }
 
   async delete(instanceId: string): Promise<void> {
@@ -229,15 +273,29 @@ export class DexieStickerRepository implements StickerRepository {
 
   private async updateInstance(
     instanceId: string,
-    patch: Pick<StickerInstance, 'rotationY'>,
+    patch: Partial<Pick<StickerInstance, 'rotationY' | 'scale'>>,
   ) {
     return this.db.transaction('rw', this.db.stickerInstances, async () => {
       const existing = await this.db.stickerInstances.get(instanceId)
       if (!existing) throw new Error('找不到这张贴纸。')
-      const updated: StickerInstance = {
+      const normalizedScale =
+        patch.scale === undefined
+          ? existing.scale
+          : normalizeStickerScale(
+              patch.scale,
+              existing.surface === 'wall' ? WALL_STICKER_SCALE_MAX : undefined,
+            )
+      let updated: StickerInstance = {
         ...existing,
         ...patch,
+        ...(normalizedScale === undefined ? {} : { scale: normalizedScale }),
         updatedAt: this.now().toISOString(),
+      }
+      if (updated.surface === 'desk') {
+        updated = {
+          ...updated,
+          position: clampStickerPosition(updated.position, updated.scale),
+        }
       }
       await this.db.stickerInstances.put(updated)
       return updated

@@ -4,14 +4,23 @@ export const MAX_STICKER_TEXT_LENGTH = 60
 export const MAX_STICKER_IMAGE_BYTES = 15 * 1024 * 1024
 export const MAX_STICKER_IMAGE_SIDE = 4096
 export const STICKER_ROTATION_STEP = Math.PI / 12
+export const STICKER_MAX_EDGE = 1.72
+export const STICKER_SCALE_MIN = 0.5
+export const STICKER_SCALE_MAX = 2
+export const WALL_STICKER_SCALE_MAX = 5
+export const STICKER_SCALE_STEP = 0.25
 export const STICKER_FORGE_COMMIT =
   '068caa49eef69745564a5debbc01bab3fcd31042' as const
 
+const DESK_HALF_WIDTH = 6
+const DESK_HALF_DEPTH = 4
+const defaultStickerClearance = STICKER_MAX_EDGE / Math.SQRT2
+
 export const STICKER_BOUNDS = {
-  minX: -4.05,
-  maxX: 4.05,
-  minZ: -2.72,
-  maxZ: 2.72,
+  minX: -DESK_HALF_WIDTH + defaultStickerClearance,
+  maxX: DESK_HALF_WIDTH - defaultStickerClearance,
+  minZ: -DESK_HALF_DEPTH + defaultStickerClearance,
+  maxZ: DESK_HALF_DEPTH - defaultStickerClearance,
 } as const
 
 export type StickerMaterial =
@@ -26,6 +35,11 @@ export interface StickerPosition {
 }
 
 export interface JournalStickerPosition {
+  x: number
+  y: number
+}
+
+export interface WallStickerPosition {
   x: number
   y: number
 }
@@ -89,6 +103,7 @@ interface StickerInstanceBase {
   id: string
   definitionId: string
   rotationY: number
+  scale?: number
   createdAt: string
   updatedAt: string
 }
@@ -104,7 +119,15 @@ export interface JournalStickerInstance extends StickerInstanceBase {
   position: JournalStickerPosition
 }
 
-export type StickerInstance = DeskStickerInstance | JournalStickerInstance
+export interface WallStickerInstance extends StickerInstanceBase {
+  surface: 'wall'
+  position: WallStickerPosition
+}
+
+export type StickerInstance =
+  | DeskStickerInstance
+  | JournalStickerInstance
+  | WallStickerInstance
 
 export interface PlacedSticker {
   definition: StickerDefinition
@@ -145,16 +168,19 @@ export type StickerPlacement =
       journalDate: LocalDate
       position: JournalStickerPosition
     }
+  | { surface: 'wall'; position: WallStickerPosition }
 
 export interface StickerRepository {
   create(draft: StickerDraft, placement: StickerPlacement): Promise<PlacedSticker>
   delete(instanceId: string): Promise<void>
   listDesk(): Promise<PlacedSticker[]>
   listJournal(date: LocalDate): Promise<PlacedSticker[]>
+  listWall(): Promise<PlacedSticker[]>
   listJournalDateCounts(): Promise<JournalStickerDateCount[]>
   listJournalDates(): Promise<LocalDate[]>
   move(instanceId: string, position: StickerInstance['position']): Promise<StickerInstance>
   rotate(instanceId: string, rotationY: number): Promise<StickerInstance>
+  resize(instanceId: string, scale: number): Promise<StickerInstance>
 }
 
 export class StickerValidationError extends Error {
@@ -178,16 +204,40 @@ export const normalizeStickerText = (text: string) => {
 const clamp = (value: number, min: number, max: number) =>
   Math.min(Math.max(Number.isFinite(value) ? value : 0, min), max)
 
+export const normalizeStickerScale = (
+  scale?: number,
+  max = STICKER_SCALE_MAX,
+) => {
+  const value = scale ?? 1
+  return Number.isFinite(value) ? clamp(value, STICKER_SCALE_MIN, max) : 1
+}
+
 export const clampStickerPosition = (
   position: StickerPosition,
+  scale = 1,
 ): StickerPosition => ({
-  x: clamp(position.x, STICKER_BOUNDS.minX, STICKER_BOUNDS.maxX),
-  z: clamp(position.z, STICKER_BOUNDS.minZ, STICKER_BOUNDS.maxZ),
+  x: clamp(
+    position.x,
+    -DESK_HALF_WIDTH + (STICKER_MAX_EDGE * normalizeStickerScale(scale)) / Math.SQRT2,
+    DESK_HALF_WIDTH - (STICKER_MAX_EDGE * normalizeStickerScale(scale)) / Math.SQRT2,
+  ),
+  z: clamp(
+    position.z,
+    -DESK_HALF_DEPTH + (STICKER_MAX_EDGE * normalizeStickerScale(scale)) / Math.SQRT2,
+    DESK_HALF_DEPTH - (STICKER_MAX_EDGE * normalizeStickerScale(scale)) / Math.SQRT2,
+  ),
 })
 
 export const clampJournalStickerPosition = (
   position: JournalStickerPosition,
 ): JournalStickerPosition => ({
+  x: clamp(position.x, 0, 1),
+  y: clamp(position.y, 0, 1),
+})
+
+export const clampWallStickerPosition = (
+  position: WallStickerPosition,
+): WallStickerPosition => ({
   x: clamp(position.x, 0, 1),
   y: clamp(position.y, 0, 1),
 })

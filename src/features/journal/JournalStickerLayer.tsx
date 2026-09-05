@@ -5,6 +5,7 @@ import type {
   JournalStickerPosition,
   PlacedSticker,
 } from '../../domain/sticker'
+import { normalizeStickerScale } from '../../domain/sticker'
 import { useAppStore } from '../../state/app-store-context'
 
 interface JournalStickerItemProps {
@@ -46,8 +47,9 @@ function JournalStickerItem({
   }, [sticker.asset.blob])
 
   const aspect = sticker.asset.width / sticker.asset.height
-  const width = aspect >= 1 ? 112 : 112 * aspect
-  const height = aspect >= 1 ? 112 / aspect : 112
+  const maxEdge = 112 * normalizeStickerScale(instance.scale)
+  const width = aspect >= 1 ? maxEdge : maxEdge * aspect
+  const height = aspect >= 1 ? maxEdge / aspect : maxEdge
 
   const positionFromPointer = (event: React.PointerEvent<HTMLElement>) => {
     const layer = event.currentTarget.parentElement

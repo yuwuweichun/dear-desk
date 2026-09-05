@@ -73,7 +73,8 @@ const placedSticker = (placement: StickerPlacement): PlacedSticker => ({
           createdAt: '2026-08-07T01:00:00.000Z',
           updatedAt: '2026-08-07T01:00:00.000Z',
         }
-      : {
+      : placement.surface === 'journal'
+        ? {
           id: 'instance-journal',
           definitionId: 'definition-journal',
           surface: 'journal',
@@ -82,7 +83,16 @@ const placedSticker = (placement: StickerPlacement): PlacedSticker => ({
           rotationY: 0,
           createdAt: '2026-08-07T01:00:00.000Z',
           updatedAt: '2026-08-07T01:00:00.000Z',
-        },
+        }
+        : {
+            id: 'instance-wall',
+            definitionId: 'definition-wall',
+            surface: 'wall',
+            position: placement.position,
+            rotationY: 0,
+            createdAt: '2026-08-07T01:00:00.000Z',
+            updatedAt: '2026-08-07T01:00:00.000Z',
+          },
 })
 
 function neverSource(): never {
@@ -95,21 +105,42 @@ const journalSticker = placedSticker({
   journalDate: date,
   position: { x: 0.4, y: 0.3 },
 })
+const wallSticker = placedSticker({
+  surface: 'wall',
+  position: { x: 0.25, y: 0.6 },
+})
 
 const createStickerRepository = (): StickerRepository => ({
   create: vi.fn().mockImplementation(async (_draft, placement) => placedSticker(placement)),
   delete: vi.fn().mockResolvedValue(undefined),
   listDesk: vi.fn().mockResolvedValue([]),
   listJournal: vi.fn().mockResolvedValue([]),
+  listWall: vi.fn().mockResolvedValue([]),
   listJournalDateCounts: vi.fn().mockResolvedValue([]),
   listJournalDates: vi.fn().mockResolvedValue([]),
   move: vi.fn().mockImplementation(async (id, position) => {
-    const sticker = id === 'instance-journal' ? journalSticker : deskSticker
+    const sticker = id === 'instance-journal'
+      ? journalSticker
+      : id === 'instance-wall'
+        ? wallSticker
+        : deskSticker
     return { ...sticker.instance, position } as typeof sticker.instance
   }),
   rotate: vi.fn().mockImplementation(async (id, rotationY) => {
-    const sticker = id === 'instance-journal' ? journalSticker : deskSticker
+    const sticker = id === 'instance-journal'
+      ? journalSticker
+      : id === 'instance-wall'
+        ? wallSticker
+        : deskSticker
     return { ...sticker.instance, rotationY }
+  }),
+  resize: vi.fn().mockImplementation(async (id, scale) => {
+    const sticker = id === 'instance-journal'
+      ? journalSticker
+      : id === 'instance-wall'
+        ? wallSticker
+        : deskSticker
+    return { ...sticker.instance, scale }
   }),
 })
 
@@ -238,15 +269,17 @@ describe('app store', () => {
     expect(store.getState().notebookPhase).toBe('desk')
   })
 
-  it('loads text plus desk and current-date journal stickers independently', async () => {
+  it('loads desk, current-date journal and wall stickers independently', async () => {
     const stickers = createStickerRepository()
     vi.mocked(stickers.listDesk).mockResolvedValue([deskSticker])
     vi.mocked(stickers.listJournal).mockResolvedValue([journalSticker])
+    vi.mocked(stickers.listWall).mockResolvedValue([wallSticker])
     const store = createAppStore(createRepository(), date, stickers)
     await Promise.all([store.getState().loadToday(), store.getState().loadStickers()])
     expect(stickers.listJournal).toHaveBeenCalledWith(date)
     expect(store.getState().stickers).toEqual([deskSticker])
     expect(store.getState().journalStickers).toEqual([journalSticker])
+    expect(store.getState().wallStickers).toEqual([wallSticker])
   })
 
   it('builds a dated journal sequence and locks overlapping page turns', async () => {
@@ -392,7 +425,7 @@ describe('app store', () => {
     })
   })
 
-  it('places the same prepared draft on the desk or current journal', async () => {
+  it('places the same prepared draft on the desk, current journal or wall', async () => {
     const stickers = createStickerRepository()
     const store = createAppStore(createRepository(), date, stickers)
     store.getState().openStickerStudio()
@@ -413,6 +446,37 @@ describe('app store', () => {
       journalDate: date,
       position: { x: 0.25, y: 0.75 },
     })
+
+    store.getState().requestNotebookClose()
+    store.getState().advanceNotebookPhase('closing')
+    store.getState().advanceNotebookPhase('retreating')
+    store.getState().openStickerStudio()
+    store.getState().prepareStickerPlacement(stickerDraft, 'wall')
+    expect(store.getState()).toMatchObject({ notebookPhase: 'desk', stickerWorkflow: 'placingWall' })
+    await expect(store.getState().placePendingWallSticker({ x: -1, y: 2 })).resolves.toBe(true)
+    expect(stickers.create).toHaveBeenLastCalledWith(stickerDraft, {
+      surface: 'wall',
+      position: { x: 0, y: 1 },
+    })
+  })
+
+  it('persists movement, rotation, size and deletion for wall decorations', async () => {
+    const stickers = createStickerRepository()
+    vi.mocked(stickers.listWall).mockResolvedValue([wallSticker])
+    const store = createAppStore(createRepository(), date, stickers)
+    await store.getState().loadStickers()
+    store.getState().selectSticker('instance-wall')
+    store.getState().previewWallStickerPosition('instance-wall', { x: 1.2, y: -1 })
+    expect(store.getState().wallStickers[0]?.instance.position).toEqual({ x: 1, y: 0 })
+    await store.getState().commitWallStickerPosition('instance-wall', { x: 0.7, y: 0.8 })
+    await store.getState().rotateSelectedSticker(1)
+    await store.getState().resizeSelectedSticker(1)
+    await store.getState().deleteSelectedSticker()
+    expect(stickers.move).toHaveBeenCalledWith('instance-wall', { x: 0.7, y: 0.8 })
+    expect(stickers.rotate).toHaveBeenCalledWith('instance-wall', expect.any(Number))
+    expect(stickers.resize).toHaveBeenCalledWith('instance-wall', 1.25)
+    expect(stickers.delete).toHaveBeenCalledWith('instance-wall')
+    expect(store.getState().wallStickers).toEqual([])
   })
 
   it('persists movement, rotation and deletion for journal stickers', async () => {

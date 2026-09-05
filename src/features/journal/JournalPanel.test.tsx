@@ -121,8 +121,8 @@ describe('JournalPanel', () => {
     expect(readingMode).toHaveAttribute('aria-pressed', 'true')
     expect(editingMode).toHaveAttribute('aria-pressed', 'false')
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument()
-    expect(container.querySelector('.journal-page-left')).toHaveTextContent('前往贴纸工作台')
-    expect(screen.getByRole('button', { name: '前往贴纸工作台' })).toBeVisible()
+    expect(container.querySelector('.journal-page-left')).toHaveTextContent('前往装饰工坊')
+    expect(screen.getByRole('button', { name: '前往装饰工坊' })).toBeVisible()
     expect(screen.queryByText('尚未留下')).not.toBeInTheDocument()
     expect(screen.queryByText('当前日期')).not.toBeInTheDocument()
     expect(screen.queryByText('旧日记录')).not.toBeInTheDocument()
@@ -169,7 +169,7 @@ describe('JournalPanel', () => {
     expect(await screen.findByRole('button', { name: '选择贴纸 今天很好' })).toBeVisible()
     expect(container.querySelector('.journal-page-left')).toHaveTextContent('1 张')
 
-    await user.click(screen.getByRole('button', { name: '前往贴纸工作台' }))
+    await user.click(screen.getByRole('button', { name: '前往装饰工坊' }))
     expect(store.getState()).toMatchObject({
       notebookPhase: 'desk',
       stickerWorkflow: 'composing',

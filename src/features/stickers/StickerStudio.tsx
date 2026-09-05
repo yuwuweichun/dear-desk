@@ -56,7 +56,11 @@ const progressLabel = (progress: BackgroundRemovalProgress | null) => {
   return `正在加载本地模型${Number.isFinite(progress.progress) ? ` ${Math.round(progress.progress ?? 0)}%` : '…'}`
 }
 
-export function StickerStudio() {
+export function StickerStudio({
+  onWallPlacementPrepared,
+}: {
+  onWallPlacementPrepared?: () => void
+}) {
   const cancelStickerComposer = useAppStore((state) => state.cancelStickerComposer)
   const prepareStickerPlacement = useAppStore((state) => state.prepareStickerPlacement)
   const mountRef = useRef<HTMLDivElement>(null)
@@ -241,13 +245,14 @@ export function StickerStudio() {
     sessionRef.current?.setAppearance(next)
   }
 
-  const confirm = async (target: 'desk' | 'journal') => {
+  const confirm = async (target: 'desk' | 'journal' | 'wall') => {
     const session = sessionRef.current
     if (!session) return
     setSaving(true)
     setError(null)
     try {
       const preview = await session.capture()
+      if (target === 'wall') onWallPlacementPrepared?.()
       if (sourceKind === 'text') {
         const normalizedText = normalizeStickerText(text)
         closeSession()
@@ -326,7 +331,7 @@ export function StickerStudio() {
       <aside className="sticker-studio-controls">
         <header>
           <div>
-            <p>独立贴纸工作台</p>
+            <p>装饰工坊</p>
             <h1 id="sticker-studio-title">制作</h1>
           </div>
           <IconButton
@@ -484,6 +489,16 @@ export function StickerStudio() {
             variant="secondary"
           >
             <span>{saving ? '正在生成' : '放到日记'}</span>
+          </Button>
+          <Button
+            className="studio-confirm is-secondary"
+            disabled={!canConfirm}
+            icon={<ImageIcon aria-hidden="true" size={18} />}
+            loading={saving}
+            onClick={() => void confirm('wall')}
+            variant="secondary"
+          >
+            <span>{saving ? '正在生成' : '放到墙面'}</span>
           </Button>
         </div>
       </aside>

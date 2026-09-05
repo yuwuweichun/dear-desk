@@ -5,7 +5,11 @@ import * as THREE from 'three'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 
 import type { ContentFontId } from '../domain/journal-font'
-import type { PlacedSticker, StickerPosition } from '../domain/sticker'
+import type {
+  PlacedSticker,
+  StickerPosition,
+  WallStickerPosition,
+} from '../domain/sticker'
 import { useAppStore } from '../state/app-store-context'
 import type {
   DeskCameraPreset,
@@ -30,6 +34,12 @@ import { DESK_MAT_MODEL_SPEC, DESK_MODEL_SPEC } from './models/model-specs'
 import { PAST_TRACE_DRAWER_DURATION_SECONDS } from '../domain/past-trace'
 import { SceneEnvironment } from './models/SceneEnvironment'
 import { StickerObject } from './StickerObject'
+import { WallStickerObject } from './WallStickerObject'
+import {
+  WALL_HIT_SURFACE,
+  WALL_STICKER_Z,
+  wallStickerPositionFromWorld,
+} from './wall-sticker-layout'
 import {
   easeInOutCubic,
   getDeskCameraTransitionDuration,
@@ -505,6 +515,10 @@ interface DeskContentsProps {
     instanceId: string,
     position: StickerPosition,
   ) => Promise<boolean>
+  commitWallStickerPosition: (
+    instanceId: string,
+    position: WallStickerPosition,
+  ) => Promise<boolean>
   contentFont: ContentFontId
   deskCameraPreset: DeskCameraPreset
   deskCameraTransitioning: boolean
@@ -515,8 +529,13 @@ interface DeskContentsProps {
   onReadyChange?: (ready: boolean) => void
   pastTracesPhase: PastTracesPhase
   placePendingDeskSticker: (position: StickerPosition) => Promise<boolean>
+  placePendingWallSticker: (position: WallStickerPosition) => Promise<boolean>
   colors: SceneColorConfig
   previewStickerPosition: (instanceId: string, position: StickerPosition) => void
+  previewWallStickerPosition: (
+    instanceId: string,
+    position: WallStickerPosition,
+  ) => void
   reducedMotion: boolean
   requestNotebookOpen: () => void
   requestPastTracesOpen: () => void
@@ -526,11 +545,13 @@ interface DeskContentsProps {
   selectedStickerId: string | null
   stickers: PlacedSticker[]
   stickerWorkflow: StickerWorkflow
+  wallStickers: PlacedSticker[]
 }
 
 function DeskContents({
   advanceNotebookPhase,
   commitStickerPosition,
+  commitWallStickerPosition,
   contentFont,
   deskCameraPreset,
   deskCameraTransitioning,
@@ -541,8 +562,10 @@ function DeskContents({
   onReadyChange,
   pastTracesPhase,
   placePendingDeskSticker,
+  placePendingWallSticker,
   colors,
   previewStickerPosition,
+  previewWallStickerPosition,
   reducedMotion,
   requestNotebookOpen,
   requestPastTracesOpen,
@@ -552,6 +575,7 @@ function DeskContents({
   selectedStickerId,
   stickers,
   stickerWorkflow,
+  wallStickers,
 }: DeskContentsProps) {
   const { scene } = useThree()
   const [materials, setMaterials] = useState<ModelMaterialLibrary | null>(null)
@@ -646,6 +670,29 @@ function DeskContents({
       />
 
       {showRoomBackground ? <StudyRoomShell onReadyChange={markRoomReady} /> : null}
+      {showRoomBackground && stickerWorkflow === 'placingWall' ? (
+        <mesh
+          name="wall-decoration-hit-surface"
+          position={[0, WALL_HIT_SURFACE.y, WALL_STICKER_Z - 0.005]}
+          onClick={(event) => {
+            event.stopPropagation()
+            const position = wallStickerPositionFromWorld({
+              x: event.point.x,
+              y: event.point.y,
+            })
+            if (position) void placePendingWallSticker(position)
+          }}
+          onPointerOver={() => {
+            document.body.style.cursor = 'crosshair'
+          }}
+          onPointerOut={() => {
+            document.body.style.cursor = ''
+          }}
+        >
+          <planeGeometry args={[WALL_HIT_SURFACE.width, WALL_HIT_SURFACE.height]} />
+          <meshBasicMaterial colorWrite={false} depthWrite={false} transparent opacity={0} />
+        </mesh>
+      ) : null}
 
       <DeskBody
         materials={materials}
@@ -657,8 +704,8 @@ function DeskContents({
       />
       <DeskMat materials={materials} onReadyChange={markMatReady} />
       <mesh
-        name="desk-mat-hit-surface"
-        position={[0, DESK_MAT_MODEL_SPEC.topY, 0.2]}
+        name="desk-hit-surface"
+        position={[0, DESK_MAT_MODEL_SPEC.topY, 0]}
         rotation={[-Math.PI / 2, 0, 0]}
         onClick={(event) => {
           if (pastTracesPhase !== 'closed') return
@@ -676,7 +723,9 @@ function DeskContents({
           if (stickerWorkflow === 'placingDesk') document.body.style.cursor = ''
         }}
       >
-        <planeGeometry args={[DESK_MAT_MODEL_SPEC.width, DESK_MAT_MODEL_SPEC.depth]} />
+        <planeGeometry
+          args={[DESK_MODEL_SPEC.tabletop.width, DESK_MODEL_SPEC.tabletop.depth]}
+        />
         <meshBasicMaterial
           colorWrite={false}
           depthWrite={false}
@@ -701,6 +750,23 @@ function DeskContents({
           }}
         />
       ))}
+      {showRoomBackground ? wallStickers.map((sticker) => (
+        <WallStickerObject
+          key={sticker.instance.id}
+          sticker={sticker}
+          interactive={
+            stickerWorkflow === 'idle' &&
+            notebookPhase === 'desk' &&
+            pastTracesPhase === 'closed'
+          }
+          selected={selectedStickerId === sticker.instance.id}
+          onSelect={selectSticker}
+          onPreviewPosition={previewWallStickerPosition}
+          onCommitPosition={(instanceId, position) => {
+            void commitWallStickerPosition(instanceId, position)
+          }}
+        />
+      )) : null}
       <NotebookObject
         contentFont={contentFont}
         deskCameraPreset={deskCameraPreset}
@@ -750,14 +816,21 @@ export function DeskScene({
   const commitStickerPosition = useAppStore(
     (state) => state.commitStickerPosition,
   )
+  const commitWallStickerPosition = useAppStore(
+    (state) => state.commitWallStickerPosition,
+  )
   const notebookPhase = useAppStore((state) => state.notebookPhase)
   const pastTracesPhase = useAppStore((state) => state.pastTracesPhase)
   const notebookCoverLabel = useAppStore(
     (state) => state.notebookCoverSettings?.label ?? '',
   )
   const placePendingDeskSticker = useAppStore((state) => state.placePendingDeskSticker)
+  const placePendingWallSticker = useAppStore((state) => state.placePendingWallSticker)
   const previewStickerPosition = useAppStore(
     (state) => state.previewStickerPosition,
+  )
+  const previewWallStickerPosition = useAppStore(
+    (state) => state.previewWallStickerPosition,
   )
   const requestNotebookOpen = useAppStore((state) => state.requestNotebookOpen)
   const requestPastTracesOpen = useAppStore(
@@ -772,10 +845,12 @@ export function DeskScene({
   const selectSticker = useAppStore((state) => state.selectSticker)
   const selectedStickerId = useAppStore((state) => state.selectedStickerId)
   const stickers = useAppStore((state) => state.stickers)
+  const wallStickers = useAppStore((state) => state.wallStickers)
   const stickerWorkflow = useAppStore((state) => state.stickerWorkflow)
   const latestSceneProps = useRef<DeskContentsProps>({
     advanceNotebookPhase,
     commitStickerPosition,
+    commitWallStickerPosition,
     contentFont,
     deskCameraPreset,
     deskCameraTransitioning,
@@ -786,8 +861,10 @@ export function DeskScene({
     onReadyChange,
     pastTracesPhase,
     placePendingDeskSticker,
+    placePendingWallSticker,
     colors,
     previewStickerPosition,
+    previewWallStickerPosition,
     reducedMotion,
     requestNotebookOpen,
     requestPastTracesOpen,
@@ -797,6 +874,7 @@ export function DeskScene({
     selectedStickerId,
     stickers,
     stickerWorkflow,
+    wallStickers,
   })
 
   useEffect(() => {
@@ -938,6 +1016,7 @@ export function DeskScene({
     latestSceneProps.current = {
       advanceNotebookPhase,
       commitStickerPosition,
+      commitWallStickerPosition,
       contentFont,
       deskCameraPreset,
       deskCameraTransitioning,
@@ -948,8 +1027,10 @@ export function DeskScene({
       onReadyChange,
       pastTracesPhase,
       placePendingDeskSticker,
+      placePendingWallSticker,
       colors,
       previewStickerPosition,
+      previewWallStickerPosition,
       reducedMotion,
       requestNotebookOpen,
       requestPastTracesOpen,
@@ -959,6 +1040,7 @@ export function DeskScene({
       selectedStickerId,
       stickers,
       stickerWorkflow,
+      wallStickers,
     }
     if (rootRef.current) {
       rootRef.current.render(<DeskContents {...latestSceneProps.current} />)
@@ -966,6 +1048,7 @@ export function DeskScene({
   }, [
     advanceNotebookPhase,
     commitStickerPosition,
+    commitWallStickerPosition,
     contentFont,
     deskCameraPreset,
     deskCameraTransitioning,
@@ -976,8 +1059,10 @@ export function DeskScene({
     onReadyChange,
     pastTracesPhase,
     placePendingDeskSticker,
+    placePendingWallSticker,
     colors,
     previewStickerPosition,
+    previewWallStickerPosition,
     reducedMotion,
     requestNotebookOpen,
     requestPastTracesOpen,
@@ -987,6 +1072,7 @@ export function DeskScene({
     selectedStickerId,
     stickers,
     stickerWorkflow,
+    wallStickers,
   ])
 
   return (

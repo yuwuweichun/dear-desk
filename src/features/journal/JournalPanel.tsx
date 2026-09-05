@@ -178,7 +178,7 @@ function JournalBook({ contentFont }: JournalPanelProps) {
 
   const openStickerWorkbench = () => {
     if (dirty) {
-      setSessionMessage('请先收笔，再前往贴纸工作台。')
+      setSessionMessage('请先收笔，再前往装饰工坊。')
       return
     }
     if (turning || saving || placingSticker) return

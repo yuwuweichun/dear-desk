@@ -7,6 +7,7 @@ import type { DailyEntry, LocalDate } from '../domain/daily-entry'
 import {
   STICKER_BOUNDS,
   STICKER_FORGE_COMMIT,
+  WALL_STICKER_SCALE_MAX,
   type ImageStickerDraft,
   type StickerDraft,
 } from '../domain/sticker'
@@ -63,7 +64,7 @@ describe('DexieStickerRepository', () => {
     }
   })
 
-  it('creates desk and journal placements and queries each surface independently', async () => {
+  it('creates desk, journal and wall placements and queries each surface independently', async () => {
     database = new DearDeskDatabase(`sticker-test-${crypto.randomUUID()}`)
     let id = 0
     const repository = new DexieStickerRepository(
@@ -81,9 +82,14 @@ describe('DexieStickerRepository', () => {
       journalDate: date,
       position: { x: 1.5, y: -0.5 },
     })
+    const wall = await repository.create(textDraft, {
+      surface: 'wall',
+      position: { x: -1, y: 2 },
+    })
 
     expect(desk.instance).toMatchObject({
       surface: 'desk',
+      scale: 1,
       position: { x: STICKER_BOUNDS.maxX, z: STICKER_BOUNDS.minZ },
     })
     expect(journal.instance).toMatchObject({
@@ -91,9 +97,17 @@ describe('DexieStickerRepository', () => {
       journalDate: date,
       position: { x: 1, y: 0 },
     })
+    expect(wall.instance).toMatchObject({
+      surface: 'wall',
+      position: { x: 0, y: 1 },
+    })
+    await expect(repository.resize(wall.instance.id, 99)).resolves.toMatchObject({
+      scale: WALL_STICKER_SCALE_MAX,
+    })
     expect(desk.asset.upstreamCommit).toBe(STICKER_FORGE_COMMIT)
     await expect(repository.listDesk()).resolves.toHaveLength(1)
     await expect(repository.listJournal(date)).resolves.toHaveLength(1)
+    await expect(repository.listWall()).resolves.toHaveLength(1)
     await expect(repository.listJournalDateCounts()).resolves.toEqual([
       { count: 1, date },
     ])
@@ -105,11 +119,11 @@ describe('DexieStickerRepository', () => {
     await expect(repository.listJournal(date)).resolves.toEqual([])
     await expect(repository.listJournalDates()).resolves.toEqual([])
     await expect(database.stickerSourceAssets.count()).resolves.toBe(0)
-    await expect(database.stickerDefinitions.count()).resolves.toBe(1)
-    await expect(database.stickerRenderAssets.count()).resolves.toBe(1)
+    await expect(database.stickerDefinitions.count()).resolves.toBe(2)
+    await expect(database.stickerRenderAssets.count()).resolves.toBe(2)
   })
 
-  it('moves, rotates and deletes a desk sticker transactionally', async () => {
+  it('moves, rotates, resizes and deletes a desk sticker transactionally', async () => {
     database = new DearDeskDatabase(`sticker-update-${crypto.randomUUID()}`)
     let id = 0
     const repository = new DexieStickerRepository(
@@ -124,8 +138,18 @@ describe('DexieStickerRepository', () => {
 
     const moved = await repository.move(created.instance.id, { x: 1.2, z: 0.7 })
     const rotated = await repository.rotate(created.instance.id, -Math.PI / 2)
+    const edgeMoved = await repository.move(created.instance.id, { x: 99, z: 99 })
+    const resized = await repository.resize(created.instance.id, 99)
     expect(moved.position).toEqual({ x: 1.2, z: 0.7 })
     expect(rotated.rotationY).toBeCloseTo(Math.PI * 1.5)
+    expect(edgeMoved.position).toEqual({
+      x: STICKER_BOUNDS.maxX,
+      z: STICKER_BOUNDS.maxZ,
+    })
+    expect(resized.scale).toBe(2)
+    if (resized.surface !== 'desk') throw new Error('expected desk sticker')
+    expect(resized.position.x).toBeLessThan(STICKER_BOUNDS.maxX)
+    expect(resized.position.z).toBeLessThan(STICKER_BOUNDS.maxZ)
 
     await repository.delete(created.instance.id)
     await expect(repository.listDesk()).resolves.toEqual([])
@@ -181,6 +205,7 @@ describe('DexieStickerRepository', () => {
     expect(migrated[0]?.instance).toMatchObject({
       id: 'instance-old',
       surface: 'desk',
+      scale: 1,
       position: { x: 0.5, z: 0.2 },
     })
     await expect(database.stickerSourceAssets.count()).resolves.toBe(0)

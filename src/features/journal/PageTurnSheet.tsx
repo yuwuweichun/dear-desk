@@ -82,7 +82,7 @@ const createStickerSnapshotAction = () => {
   action.className = 'page-turn-snapshot-action'
   action.setAttribute('aria-hidden', 'true')
   action.append(createStickerIcon())
-  appendText(action, 'span', 'page-turn-snapshot-action__label', '前往贴纸工作台')
+  appendText(action, 'span', 'page-turn-snapshot-action__label', '前往装饰工坊')
   return action
 }
 
