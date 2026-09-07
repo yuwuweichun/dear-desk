@@ -539,6 +539,33 @@ textarea:focus-visible {
   scrollbar-gutter: stable;
 }
 
+.scene-color-editor__desk {
+  display: flex;
+  flex-direction: column;
+}
+
+.scene-color-editor__desk > .scene-color-editor__presets {
+  order: -1;
+}
+
+.scene-color-editor__parameters {
+  order: 1;
+  border-bottom: 1px solid #d9d1c3;
+}
+
+.scene-color-editor__parameters > summary {
+  padding: 10px 0;
+  color: #725d42;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 800;
+  list-style-position: inside;
+}
+
+.scene-color-editor__parameters[open] > summary {
+  border-bottom: 1px solid #ded7ca;
+}
+
 .scene-color-editor__presets {
   display: grid;
   align-content: start;
