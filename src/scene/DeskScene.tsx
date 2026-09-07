@@ -11,6 +11,8 @@ import type {
   WallStickerPosition,
 } from '../domain/sticker'
 import { useAppStore } from '../state/app-store-context'
+import { getFreeOrbitPolarLimits, isOrbitPathInsideRoom } from './free-orbit-camera'
+import { STUDY_ROOM_MODEL_SPEC } from './models/model-specs'
 import type {
   DeskCameraPreset,
   NotebookPhase,
@@ -304,8 +306,18 @@ function FreeOrbitCamera({ deskCameraPreset, enabled }: FreeOrbitCameraProps) {
     controls.enablePan = false
     controls.enableZoom = false
     controls.rotateSpeed = 0.65
-    controls.minPolarAngle = 0.22
-    controls.maxPolarAngle = Math.PI / 2 - 0.08
+    const orbitLimits = getFreeOrbitPolarLimits(
+      pose.position,
+      pose.target,
+      STUDY_ROOM_MODEL_SPEC.floorTopY,
+      STUDY_ROOM_MODEL_SPEC.wallTopY - STUDY_ROOM_MODEL_SPEC.ceilingInset,
+    )
+    if (!isOrbitPathInsideRoom(pose.position, pose.target, STUDY_ROOM_MODEL_SPEC.interior.width, STUDY_ROOM_MODEL_SPEC.interior.depth)) {
+      controls.dispose()
+      throw new Error('Free camera orbit exceeds study room bounds')
+    }
+    controls.minPolarAngle = orbitLimits.min
+    controls.maxPolarAngle = orbitLimits.max
     controls.update()
     controlsRef.current = controls
 
