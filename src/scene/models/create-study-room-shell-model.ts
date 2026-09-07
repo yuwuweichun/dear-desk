@@ -1,5 +1,11 @@
 import * as THREE from 'three'
 
+import {
+  getWallpaperTheme,
+  WALLPAPER_FACE_IDS,
+  type WallpaperFace,
+  type WallpaperThemeId,
+} from '../../domain/wallpaper-theme'
 import { STUDY_ROOM_MODEL_SPEC } from './model-specs'
 import {
   disposeModelGeometry,
@@ -77,14 +83,45 @@ const noise = (x: number, y: number, seed: number) => {
   return value - Math.floor(value)
 }
 
-const createRoomMaterials = () => {
+const configureWallpaperTexture = (texture: THREE.Texture, name: string) => {
+  texture.name = name
+  texture.colorSpace = THREE.SRGBColorSpace
+  texture.wrapS = THREE.ClampToEdgeWrapping
+  texture.wrapT = THREE.ClampToEdgeWrapping
+  texture.minFilter = THREE.LinearMipmapLinearFilter
+  texture.magFilter = THREE.LinearFilter
+  texture.generateMipmaps = true
+  texture.needsUpdate = true
+  return texture
+}
+
+const createRoomMaterials = (wallpaperThemeId: WallpaperThemeId = 'plain') => {
   const size = STUDY_ROOM_MODEL_SPEC.textureResolution
-  const wallAlbedo = makeTexture('study-room-wall-albedo', size, THREE.SRGBColorSpace, (x, y) => {
+  const wallpaperTheme = getWallpaperTheme(wallpaperThemeId)
+  const createPlainWallAlbedo = () => makeTexture('study-room-wall-albedo', size, THREE.SRGBColorSpace, (x, y) => {
     const fineGrain = noise(x / size * 24, y / size * 24, 7) - 0.5
     const broadVariation = noise(x / size * 3, y / size * 3, 19) - 0.5
     const value = fineGrain * 4 + broadVariation * 6
     return [Math.round(151 + value), Math.round(147 + value), Math.round(122 + value)]
   })
+  const plainWallAlbedo = createPlainWallAlbedo()
+  const wallAlbedoByFace = Object.fromEntries(
+    WALLPAPER_FACE_IDS.map((face) => [face, plainWallAlbedo]),
+  ) as unknown as Record<WallpaperFace, THREE.Texture>
+  if (wallpaperTheme.atlasPath && wallpaperTheme.atlasLayout && wallpaperTheme.atlasColumns && wallpaperTheme.atlasRows) {
+    const atlas = new THREE.TextureLoader().load(wallpaperTheme.atlasPath)
+    const atlasCellOrigin = wallpaperTheme.atlasCellOrigin ?? [0, 0]
+    const atlasCellSize = wallpaperTheme.atlasCellSize ?? [1 / wallpaperTheme.atlasColumns!, 1 / wallpaperTheme.atlasRows!]
+    const inset = 0.0015
+    WALLPAPER_FACE_IDS.forEach((face) => {
+      const [column, row] = wallpaperTheme.atlasLayout![face]
+      const texture = configureWallpaperTexture(atlas.clone(), `study-room-wallpaper-${wallpaperThemeId}-${face}`)
+      texture.repeat.set(atlasCellSize[0] - atlasCellOrigin[0] * 2 - inset * 2, atlasCellSize[1] - atlasCellOrigin[1] * 2 - inset * 2)
+      texture.offset.set(column / wallpaperTheme.atlasColumns! + atlasCellOrigin[0] + inset, (wallpaperTheme.atlasRows! - row - 1) / wallpaperTheme.atlasRows! + atlasCellOrigin[1] + inset)
+      wallAlbedoByFace[face] = texture
+    })
+    atlas.dispose()
+  }
   const wallData = makeTexture('study-room-wall-data', size, THREE.NoColorSpace, (x, y) => {
     const value = Math.round(228 + (noise(x / size * 28, y / size * 28, 11) - 0.5) * 16)
     return [value, value, value]
@@ -126,19 +163,22 @@ const createRoomMaterials = () => {
   outdoorAlbedo.wrapS = THREE.ClampToEdgeWrapping
   outdoorAlbedo.wrapT = THREE.ClampToEdgeWrapping
 
-  wallAlbedo.repeat.set(...STUDY_ROOM_MODEL_SPEC.textureRepeat.wall)
   wallData.repeat.set(...STUDY_ROOM_MODEL_SPEC.textureRepeat.wall)
   floorAlbedo.repeat.set(...STUDY_ROOM_MODEL_SPEC.textureRepeat.floor)
   floorData.repeat.set(...STUDY_ROOM_MODEL_SPEC.textureRepeat.floor)
 
-  const wall = new THREE.MeshStandardMaterial({
-    color: '#ffffff', map: wallAlbedo, roughness: 0.88, roughnessMap: wallData,
+  const createWall = (face: WallpaperFace) => new THREE.MeshStandardMaterial({
+    color: '#ffffff', map: wallAlbedoByFace[face], roughness: 0.88, roughnessMap: wallData,
     bumpMap: wallData, bumpScale: 0.012, aoMap: wallData, aoMapIntensity: 0.12,
-    emissive: '#97937a', emissiveIntensity: 0.24,
+    emissive: wallpaperTheme.atlasPath ? '#ffffff' : '#97937a',
+    emissiveIntensity: wallpaperTheme.atlasPath ? 0.06 : 0.24,
     side: THREE.DoubleSide,
   })
-  wall.name = 'study-room-wall-paint'
-  const ceiling = new THREE.MeshBasicMaterial({ color: '#d4c6b4', side: THREE.DoubleSide })
+  const wallWest = createWall('west'); wallWest.name = 'study-room-wall-paint-west'
+  const wallNorth = wallpaperTheme.atlasPath ? createWall('north') : wallWest; wallNorth.name = 'study-room-wall-paint-north'
+  const wallEast = wallpaperTheme.atlasPath ? createWall('east') : wallWest; wallEast.name = 'study-room-wall-paint-east'
+  const wallSouth = wallpaperTheme.atlasPath ? createWall('south') : wallWest; wallSouth.name = 'study-room-wall-paint-south'
+  const ceiling = new THREE.MeshBasicMaterial({ color: wallpaperTheme.atlasPath ? '#ffffff' : '#d4c6b4', map: wallpaperTheme.atlasPath ? wallAlbedoByFace.ceiling : null, side: THREE.DoubleSide })
   ceiling.name = 'study-room-ceiling-paint'
   const ceilingTray = new THREE.MeshStandardMaterial({ color: '#e6dac9', roughness: 0.82, bumpMap: wallData, bumpScale: 0.004 })
   ceilingTray.name = 'study-room-ceiling-tray-trim'
@@ -165,17 +205,19 @@ const createRoomMaterials = () => {
   glass.name = 'study-room-window-glass'
   const outdoor = new THREE.MeshBasicMaterial({ color: '#fff7d7', map: outdoorAlbedo, side: THREE.DoubleSide })
   outdoor.name = 'study-room-window-outdoor-backdrop'
-  return { wall, ceiling, ceilingTray, floor, floorGap, frame, baseboard, glass, outdoor, textures: [wallAlbedo, wallData, floorAlbedo, floorData, outdoorAlbedo] }
+  const textures = [...new Set([...Object.values(wallAlbedoByFace), wallData, floorAlbedo, floorData, outdoorAlbedo])]
+  return { wall: wallNorth, wallWest, wallNorth, wallEast, wallSouth, ceiling, ceilingTray, floor, floorGap, frame, baseboard, glass, outdoor, textures }
 }
 
 const createQuad = (
   vertices: Array<[number, number, number]>,
   normal: [number, number, number],
+  uv: [number, number, number, number] = [0, 0, 1, 1],
 ) => {
   const geometry = new THREE.BufferGeometry()
   geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices.flat(), 3))
   geometry.setAttribute('normal', new THREE.Float32BufferAttribute([...normal, ...normal, ...normal, ...normal], 3))
-  geometry.setAttribute('uv', new THREE.Float32BufferAttribute([0, 0, 1, 0, 1, 1, 0, 1], 2))
+  geometry.setAttribute('uv', new THREE.Float32BufferAttribute([uv[0], uv[1], uv[2], uv[1], uv[2], uv[3], uv[0], uv[3]], 2))
   geometry.setIndex([0, 1, 2, 0, 2, 3])
   geometry.computeBoundingSphere()
   return geometry
@@ -186,22 +228,30 @@ const wallQuad = (x: number, z0: number, z1: number, y0: number, y1: number, inw
     ? createQuad([[x, y0, z0], [x, y1, z0], [x, y1, z1], [x, y0, z1]], [1, 0, 0])
     : createQuad([[x, y0, z1], [x, y1, z1], [x, y1, z0], [x, y0, z0]], [-1, 0, 0])
 
-const horizontalQuad = (z: number, x0: number, x1: number, y0: number, y1: number, inward: 1 | -1) =>
+const horizontalQuad = (z: number, x0: number, x1: number, y0: number, y1: number, inward: 1 | -1, uv?: [number, number, number, number]) =>
   inward === 1
-    ? createQuad([[x0, y0, z], [x1, y0, z], [x1, y1, z], [x0, y1, z]], [0, 0, 1])
-    : createQuad([[x1, y0, z], [x0, y0, z], [x0, y1, z], [x1, y1, z]], [0, 0, -1])
+    ? createQuad([[x0, y0, z], [x1, y0, z], [x1, y1, z], [x0, y1, z]], [0, 0, 1], uv)
+    : createQuad([[x1, y0, z], [x0, y0, z], [x0, y1, z], [x1, y1, z]], [0, 0, -1], uv)
 
 const createWallMesh = (geometry: THREE.BufferGeometry, material: THREE.Material, name: string, options: ModelFactoryOptions) =>
   disableRaycast(markMesh(new THREE.Mesh(geometry, material), name, { ...options, castShadow: false, receiveShadow: true }))
 
-export function createStudyRoomShellModel(options: ModelFactoryOptions = {}) {
+export function createStudyRoomShellModel(
+  options: ModelFactoryOptions & { wallpaperThemeId?: WallpaperThemeId } = {},
+) {
   const pass = options.pass ?? 'optimization-pass'
-  const materials = createRoomMaterials()
+  const wallpaperThemeId = options.wallpaperThemeId ?? 'plain'
+  const materials = createRoomMaterials(wallpaperThemeId)
   const geometries = new Set<THREE.BufferGeometry>()
   const own = <T extends THREE.BufferGeometry>(geometry: T) => { geometries.add(geometry); return geometry }
   const root = new THREE.Group()
   root.name = 'study-room-shell-model'
-  root.userData = { modelId: 'simple-study-room-shell', pass, structure: 'four-wall-enclosed-visual-room-with-north-window' }
+  root.userData = {
+    modelId: 'simple-study-room-shell',
+    pass,
+    structure: 'four-wall-enclosed-visual-room-with-north-window',
+    wallpaperThemeId,
+  }
 
   const floorUnderlay = createWallMesh(
     own(new THREE.PlaneGeometry(ROOM_WIDTH, ROOM_DEPTH)),
@@ -313,7 +363,7 @@ export function createStudyRoomShellModel(options: ModelFactoryOptions = {}) {
     [cornerOffsetX, cornerOffsetZ, 'south-east'],
     [-cornerOffsetX, cornerOffsetZ, 'south-west'],
   ] as const) {
-    const post = disableRaycast(markMesh(new THREE.Mesh(cornerGeometry, materials.wall), `study-room-corner-${name}`, options))
+    const post = disableRaycast(markMesh(new THREE.Mesh(cornerGeometry, materials.wallNorth), `study-room-corner-${name}`, options))
     post.position.set(x, (STUDY_ROOM_MODEL_SPEC.floorTopY + STUDY_ROOM_MODEL_SPEC.wallTopY) / 2, z)
     cornerPosts.add(post)
   }
@@ -323,17 +373,19 @@ export function createStudyRoomShellModel(options: ModelFactoryOptions = {}) {
   const window = STUDY_ROOM_MODEL_SPEC.window
   const wx0 = window.centerX - window.width / 2
   const wx1 = window.centerX + window.width / 2
-  const west = createWallMesh(own(wallQuad(WEST_X, NORTH_Z, SOUTH_Z, STUDY_ROOM_MODEL_SPEC.floorTopY, STUDY_ROOM_MODEL_SPEC.wallTopY, 1)), materials.wall, 'study-room-west-wall', options)
-  const east = createWallMesh(own(wallQuad(EAST_X, SOUTH_Z, NORTH_Z, STUDY_ROOM_MODEL_SPEC.floorTopY, STUDY_ROOM_MODEL_SPEC.wallTopY, -1)), materials.wall, 'study-room-east-wall', options)
-  const south = createWallMesh(own(horizontalQuad(SOUTH_Z, EAST_X, WEST_X, STUDY_ROOM_MODEL_SPEC.floorTopY, STUDY_ROOM_MODEL_SPEC.wallTopY, -1)), materials.wall, 'study-room-south-wall', options)
+  const northWallU = (x: number) => (x - WEST_X) / ROOM_WIDTH
+  const northWallV = (y: number) => (y - STUDY_ROOM_MODEL_SPEC.floorTopY) / (STUDY_ROOM_MODEL_SPEC.wallTopY - STUDY_ROOM_MODEL_SPEC.floorTopY)
+  const west = createWallMesh(own(wallQuad(WEST_X, NORTH_Z, SOUTH_Z, STUDY_ROOM_MODEL_SPEC.floorTopY, STUDY_ROOM_MODEL_SPEC.wallTopY, 1)), materials.wallWest, 'study-room-west-wall', options)
+  const east = createWallMesh(own(wallQuad(EAST_X, SOUTH_Z, NORTH_Z, STUDY_ROOM_MODEL_SPEC.floorTopY, STUDY_ROOM_MODEL_SPEC.wallTopY, -1)), materials.wallEast, 'study-room-east-wall', options)
+  const south = createWallMesh(own(horizontalQuad(SOUTH_Z, EAST_X, WEST_X, STUDY_ROOM_MODEL_SPEC.floorTopY, STUDY_ROOM_MODEL_SPEC.wallTopY, -1)), materials.wallSouth, 'study-room-south-wall', options)
   const northWindowParts = [
-    horizontalQuad(NORTH_Z, WEST_X, wx0, STUDY_ROOM_MODEL_SPEC.floorTopY, STUDY_ROOM_MODEL_SPEC.wallTopY, 1),
-    horizontalQuad(NORTH_Z, wx1, EAST_X, STUDY_ROOM_MODEL_SPEC.floorTopY, STUDY_ROOM_MODEL_SPEC.wallTopY, 1),
-    horizontalQuad(NORTH_Z, wx0, wx1, STUDY_ROOM_MODEL_SPEC.floorTopY, window.bottomY, 1),
-    horizontalQuad(NORTH_Z, wx0, wx1, window.topY, STUDY_ROOM_MODEL_SPEC.wallTopY, 1),
+    horizontalQuad(NORTH_Z, WEST_X, wx0, STUDY_ROOM_MODEL_SPEC.floorTopY, STUDY_ROOM_MODEL_SPEC.wallTopY, 1, [northWallU(WEST_X), 0, northWallU(wx0), 1]),
+    horizontalQuad(NORTH_Z, wx1, EAST_X, STUDY_ROOM_MODEL_SPEC.floorTopY, STUDY_ROOM_MODEL_SPEC.wallTopY, 1, [northWallU(wx1), 0, northWallU(EAST_X), 1]),
+    horizontalQuad(NORTH_Z, wx0, wx1, STUDY_ROOM_MODEL_SPEC.floorTopY, window.bottomY, 1, [northWallU(wx0), 0, northWallU(wx1), northWallV(window.bottomY)]),
+    horizontalQuad(NORTH_Z, wx0, wx1, window.topY, STUDY_ROOM_MODEL_SPEC.wallTopY, 1, [northWallU(wx0), northWallV(window.topY), northWallU(wx1), 1]),
   ]
   const northWindowWall = new THREE.Group(); northWindowWall.name = 'study-room-north-wall'; disableRaycast(northWindowWall)
-  northWindowParts.forEach((geometry, index) => northWindowWall.add(createWallMesh(own(geometry), materials.wall, `study-room-north-wall-panel-${index + 1}`, options)))
+  northWindowParts.forEach((geometry, index) => northWindowWall.add(createWallMesh(own(geometry), materials.wallNorth, `study-room-north-wall-panel-${index + 1}`, options)))
   walls.add(west, northWindowWall, east, south); root.add(walls)
 
   const northWindow = new THREE.Group(); northWindow.name = 'study-room-north-window'; northWindow.position.set(0, 0, NORTH_Z); northWindow.rotation.y = -Math.PI / 2; disableRaycast(northWindow)
@@ -343,7 +395,7 @@ export function createStudyRoomShellModel(options: ModelFactoryOptions = {}) {
   const windowCenterY = (window.bottomY + window.topY) / 2
   const frameOpeningWidth = window.width - window.revealThickness * 2
   const frameOpeningHeight = windowHeight - window.revealThickness * 2
-  const windowReveal = disableRaycast(new THREE.InstancedMesh(ceilingTrayGeometry, materials.wall, 4))
+  const windowReveal = disableRaycast(new THREE.InstancedMesh(ceilingTrayGeometry, materials.wallNorth, 4))
   windowReveal.name = 'study-room-window-reveal'
   windowReveal.castShadow = false
   windowReveal.receiveShadow = true

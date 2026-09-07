@@ -144,6 +144,30 @@ describe('procedural scene model factories', () => {
     geometrySpies.forEach((spy) => expect(spy).toHaveBeenCalledTimes(1))
   })
 
+  it('maps Candy Cloud from one five-face cube-net atlas', () => {
+    const room = trackRoot(createStudyRoomShellModel({ wallpaperThemeId: 'candy-cloud' }))
+    const runtime = getRuntime<StudyRoomShellNodes>(room)
+    const westMaterial = runtime.nodes.westWall.material as THREE.MeshStandardMaterial
+    const northMaterial = runtime.nodes.northWall.material as THREE.MeshStandardMaterial
+    const ceilingMaterial = runtime.nodes.ceiling.material as THREE.MeshBasicMaterial
+
+    expect(room.userData.wallpaperThemeId).toBe('candy-cloud')
+    expect(westMaterial.map?.name).toBe('study-room-wallpaper-candy-cloud-west')
+    expect(northMaterial.map?.name).toBe('study-room-wallpaper-candy-cloud-north')
+    expect(westMaterial.map?.repeat.x).toBeCloseTo(0.293, 2)
+    expect(westMaterial.map?.repeat.y).toBeCloseTo(0.442, 2)
+    expect(runtime.nodes.westWall.material).not.toBe(runtime.nodes.eastWall.material)
+    expect(ceilingMaterial.map?.name).toBe('study-room-wallpaper-candy-cloud-ceiling')
+    expect(room.userData.resourceMetrics.textures).toBe(9)
+
+    const northPanels = runtime.nodes.walls.getObjectByName('study-room-north-wall')?.children as THREE.Mesh[]
+    const firstPanelUv = northPanels[0]!.geometry.getAttribute('uv').array
+    const secondPanelUv = northPanels[1]!.geometry.getAttribute('uv').array
+    expect(firstPanelUv[0]).toBeCloseTo(0)
+    expect(firstPanelUv[2]).toBeLessThan(0.5)
+    expect(secondPanelUv[0]).toBeGreaterThan(0.5)
+  })
+
   it('keeps eleven historical candidates while concept-restored v12 is the default', () => {
     expect(Object.keys(SCENE_PALETTE_PRESETS)).toEqual([
       'v1', 'v2', 'v3', 'v4', 'v5', 'v6', 'v7', 'v8', 'v9', 'v10', 'v11', 'v12',
