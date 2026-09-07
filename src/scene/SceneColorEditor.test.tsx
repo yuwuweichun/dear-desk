@@ -43,7 +43,9 @@ describe('SceneColorEditor', () => {
 
     expect(screen.getByRole('dialog', { name: '场景颜色编辑器' }))
       .toHaveAttribute('id', 'scene-color-editor')
-    expect(screen.getAllByRole('textbox')).toHaveLength(9)
+    expect(screen.getByText('调整书桌参数').closest('details')).not.toHaveAttribute('open')
+    await user.click(screen.getByText('调整书桌参数'))
+    expect(screen.getAllByRole('textbox')).toHaveLength(10)
     const deskLegs = screen.getByRole('textbox', { name: '桌腿与支撑 HEX' })
     await user.clear(deskLegs)
     await user.type(deskLegs, '#FF00AA')
@@ -62,6 +64,7 @@ describe('SceneColorEditor', () => {
         onReset={vi.fn()}
       />,
     )
+    fireEvent.click(screen.getByText('调整书桌参数'))
     const swatch = screen.getByLabelText('桌面颜色')
 
     fireEvent.change(swatch, { target: { value: '#123456' } })
@@ -148,8 +151,8 @@ describe('SceneColorEditor', () => {
       />,
     )
 
-    await user.click(screen.getByRole('tab', { name: '预设' }))
-    expect(screen.getByRole('tabpanel', { name: '预设' })).toBeInTheDocument()
+    await user.click(screen.getByRole('tab', { name: '书桌' }))
+    expect(screen.getByRole('tabpanel', { name: '书桌' })).toBeInTheDocument()
     expect(screen.getByAltText('默认配色场景预览')).toHaveAttribute(
       'src',
       '/assets/scene-color-presets/default-v11.webp',
@@ -173,5 +176,29 @@ describe('SceneColorEditor', () => {
 
     unmount()
     expect(revokeObjectURL).toHaveBeenCalledWith('blob:rain')
+  })
+
+  it('shows wallpaper preview cards in the second tab', async () => {
+    const onWallpaperChange = vi.fn()
+    const user = userEvent.setup()
+    render(
+      <SceneColorEditor
+        colors={getSceneColorConfig()}
+        onChange={vi.fn()}
+        onClose={vi.fn()}
+        onReset={vi.fn()}
+        onWallpaperChange={onWallpaperChange}
+        wallpaperThemeId="plain"
+      />,
+    )
+
+    await user.click(screen.getByRole('tab', { name: '墙纸' }))
+    expect(screen.getByRole('tabpanel', { name: '墙纸' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '选择墙纸 默认墙面' })).toHaveAttribute('aria-pressed', 'true')
+    const candyCard = screen.getByRole('button', { name: '选择墙纸 Candy Cloud' })
+    expect(candyCard).toBeInTheDocument()
+    expect(candyCard).not.toHaveTextContent('墙纸')
+    await user.click(screen.getByRole('button', { name: '选择墙纸 Candy Cloud' }))
+    expect(onWallpaperChange).toHaveBeenCalledWith('candy-cloud')
   })
 })

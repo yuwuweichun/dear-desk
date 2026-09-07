@@ -5,6 +5,7 @@ import * as THREE from 'three'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 
 import type { ContentFontId } from '../domain/journal-font'
+import type { WallpaperThemeId } from '../domain/wallpaper-theme'
 import type {
   PlacedSticker,
   StickerPosition,
@@ -499,11 +500,20 @@ function DeskMat({
   return model ? <primitive object={model} dispose={null} /> : null
 }
 
-function StudyRoomShell({ onReadyChange }: { onReadyChange: (ready: boolean) => void }) {
+function StudyRoomShell({
+  onReadyChange,
+  wallpaperThemeId,
+}: {
+  onReadyChange: (ready: boolean) => void
+  wallpaperThemeId: WallpaperThemeId
+}) {
   const [model, setModel] = useState<THREE.Group | null>(null)
 
   useEffect(() => {
-    const nextModel = createStudyRoomShellModel({ pass: 'optimization-pass' })
+    const nextModel = createStudyRoomShellModel({
+      pass: 'optimization-pass',
+      wallpaperThemeId,
+    })
     let disposed = false
     queueMicrotask(() => {
       if (!disposed) {
@@ -516,7 +526,7 @@ function StudyRoomShell({ onReadyChange }: { onReadyChange: (ready: boolean) => 
       onReadyChange(false)
       disposeFactoryModel(nextModel)
     }
-  }, [onReadyChange])
+  }, [onReadyChange, wallpaperThemeId])
 
   return model ? <primitive object={model} dispose={null} /> : null
 }
@@ -536,6 +546,7 @@ interface DeskContentsProps {
   deskCameraTransitioning: boolean
   freeCameraEnabled: boolean
   showRoomBackground: boolean
+  wallpaperThemeId: WallpaperThemeId
   notebookPhase: NotebookPhase
   notebookCoverLabel: string
   onReadyChange?: (ready: boolean) => void
@@ -569,6 +580,7 @@ function DeskContents({
   deskCameraTransitioning,
   freeCameraEnabled,
   showRoomBackground,
+  wallpaperThemeId,
   notebookPhase,
   notebookCoverLabel,
   onReadyChange,
@@ -681,7 +693,9 @@ function DeskContents({
         }
       />
 
-      {showRoomBackground ? <StudyRoomShell onReadyChange={markRoomReady} /> : null}
+      {showRoomBackground ? (
+        <StudyRoomShell onReadyChange={markRoomReady} wallpaperThemeId={wallpaperThemeId} />
+      ) : null}
       {showRoomBackground && stickerWorkflow === 'placingWall' ? (
         <mesh
           name="wall-decoration-hit-surface"
@@ -801,6 +815,7 @@ interface DeskSceneProps {
   onCaptureReady?: (capture: CaptureScenePreview | null) => void
   onReadyChange?: (ready: boolean) => void
   showRoomBackground: boolean
+  wallpaperThemeId: WallpaperThemeId
 }
 
 export function DeskScene({
@@ -810,6 +825,7 @@ export function DeskScene({
   onCaptureReady,
   onReadyChange,
   showRoomBackground,
+  wallpaperThemeId,
 }: DeskSceneProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -868,6 +884,7 @@ export function DeskScene({
     deskCameraTransitioning,
     freeCameraEnabled,
     showRoomBackground,
+    wallpaperThemeId,
     notebookPhase,
     notebookCoverLabel,
     onReadyChange,
@@ -1034,6 +1051,7 @@ export function DeskScene({
       deskCameraTransitioning,
       freeCameraEnabled,
       showRoomBackground,
+      wallpaperThemeId,
       notebookPhase,
       notebookCoverLabel,
       onReadyChange,
@@ -1066,6 +1084,7 @@ export function DeskScene({
     deskCameraTransitioning,
     freeCameraEnabled,
     showRoomBackground,
+    wallpaperThemeId,
     notebookPhase,
     notebookCoverLabel,
     onReadyChange,

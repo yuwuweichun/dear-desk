@@ -38,6 +38,11 @@ import type {
   SceneColorPresetRepository,
 } from '../domain/scene-color-preset'
 import type { CaptureScenePreview } from '../scene/capture-scene-preview'
+import {
+  readWallpaperThemePreference,
+  writeWallpaperThemePreference,
+  type WallpaperThemeId,
+} from '../domain/wallpaper-theme'
 
 type ModelReviewKind = 'desk' | 'mat' | 'notebook' | 'room'
 type OpenSettingsPanel = 'audio' | 'colors' | 'font' | null
@@ -106,6 +111,8 @@ function ProductApp({ sceneColorPresetRepository }: ProductAppProps) {
   const [sceneColorPresetsError, setSceneColorPresetsError] = useState<string | null>(null)
   const [captureScene, setCaptureScene] = useState<CaptureScenePreview | null>(null)
   const [showRoomBackground, setShowRoomBackground] = useState(true)
+  const [wallpaperThemeId, setWallpaperThemeId] = useState<WallpaperThemeId>(() =>
+    readWallpaperThemePreference(window.localStorage))
   const [showNameplateEditor, setShowNameplateEditor] = useState(false)
   const [nameplateDraft, setNameplateDraft] = useState('')
   const [nameplateValidationError, setNameplateValidationError] = useState<string | null>(null)
@@ -272,6 +279,7 @@ function ProductApp({ sceneColorPresetRepository }: ProductAppProps) {
             onCaptureReady={handleCaptureReady}
             onReadyChange={handleSceneReadyChange}
             showRoomBackground={showRoomBackground}
+            wallpaperThemeId={wallpaperThemeId}
           />
         </div>
       )}
@@ -456,6 +464,11 @@ function ProductApp({ sceneColorPresetRepository }: ProductAppProps) {
                 onSavePreset={saveSceneColorPreset}
                 presets={sceneColorPresets}
                 presetsError={sceneColorPresetsError}
+                onWallpaperChange={(themeId) => {
+                  setWallpaperThemeId(themeId)
+                  writeWallpaperThemePreference(window.localStorage, themeId)
+                }}
+                wallpaperThemeId={wallpaperThemeId}
               />
             ) : null}
           </div>

@@ -79,18 +79,23 @@ vi.mock('../scene/SceneColorEditor', () => ({
     onClose,
     onDeletePreset,
     onSavePreset,
+    onWallpaperChange,
     presets = [],
   }: {
     onChange: (colors: SceneColorConfig) => void
     onClose: () => void
     onDeletePreset?: (id: string) => Promise<void>
     onSavePreset?: (name: string) => Promise<unknown>
+    onWallpaperChange?: (themeId: 'plain' | 'candy-cloud') => void
     presets?: SceneColorPreset[]
   }) => (
     <aside aria-label="场景颜色编辑器" role="dialog">
       <button aria-label="关闭颜色面板" onClick={onClose} type="button" />
       <button onClick={() => void onSavePreset?.('测试预设')} type="button">
         保存测试预设
+      </button>
+      <button onClick={() => onWallpaperChange?.('candy-cloud')} type="button">
+        选择墙纸 Candy Cloud
       </button>
       {presets.map((preset) => (
         <div key={preset.id}>
@@ -350,6 +355,21 @@ describe('App room background control', () => {
       'aria-pressed',
       'true',
     )
+  })
+
+  it('changes and restores the selected wallpaper theme', () => {
+    const store = createAppStore(createRepository(), date)
+
+    render(
+      <AppStoreProvider store={store}>
+        <App />
+      </AppStoreProvider>,
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: '打开场景颜色编辑器' }))
+    fireEvent.click(screen.getByRole('button', { name: '选择墙纸 Candy Cloud' }))
+
+    expect(window.localStorage.getItem('dear-desk:wallpaper-theme')).toBe('candy-cloud')
   })
 })
 

@@ -6,6 +6,7 @@ import {
   sceneColorsEqual,
   type SceneColorPreset,
 } from '../domain/scene-color-preset'
+import type { WallpaperThemeId } from '../domain/wallpaper-theme'
 import { Button, IconButton } from '../ui'
 import type { SceneColorConfig } from './models/material-library'
 import { getSceneColorConfig } from './models/material-library'
@@ -97,6 +98,8 @@ interface SceneColorEditorProps {
   }>
   presets?: SceneColorPreset[]
   presetsError?: string | null
+  wallpaperThemeId?: WallpaperThemeId
+  onWallpaperChange?: (themeId: WallpaperThemeId) => void
 }
 
 interface PresetPreviewProps {
@@ -192,6 +195,42 @@ function PresetCard({
   )
 }
 
+function WallpaperCard({
+  active,
+  label,
+  onApply,
+  previewColor,
+  previewSrc,
+}: {
+  active: boolean
+  label: string
+  onApply: () => void
+  previewColor?: string
+  previewSrc?: string
+}) {
+  return (
+    <article className="scene-preset-card" data-active={active}>
+      <button
+        aria-label={`选择墙纸 ${label}`}
+        aria-pressed={active}
+        className="scene-preset-card__apply"
+        onClick={onApply}
+        type="button"
+      >
+        <span
+          className="scene-preset-card__preview wallpaper-preview"
+          style={previewColor ? { backgroundColor: previewColor } : undefined}
+        >
+          {previewSrc ? <img alt="" aria-hidden="true" src={previewSrc} /> : null}
+        </span>
+        <span className="scene-preset-card__meta">
+          <strong>{label}</strong>
+        </span>
+      </button>
+    </article>
+  )
+}
+
 export function SceneColorEditor({
   colors,
   loadingPresets = false,
@@ -202,10 +241,12 @@ export function SceneColorEditor({
   onSavePreset,
   presets = [],
   presetsError = null,
+  wallpaperThemeId = 'plain',
+  onWallpaperChange = () => undefined,
 }: SceneColorEditorProps) {
   const [copyState, setCopyState] = useState<'idle' | 'copied' | 'failed'>('idle')
   const [resetRevision, setResetRevision] = useState(0)
-  const [activeTab, setActiveTab] = useState<'colors' | 'presets'>('colors')
+  const [activeTab, setActiveTab] = useState<'desk' | 'wallpaper'>('desk')
   const [presetName, setPresetName] = useState('')
   const [presetStatus, setPresetStatus] = useState<string | null>(null)
   const [presetError, setPresetError] = useState<string | null>(null)
@@ -271,7 +312,7 @@ export function SceneColorEditor({
     >
       <header className="scene-color-editor__header">
         <div>
-          <strong>场景颜色</strong>
+          <strong>场景外观</strong>
         </div>
         <div className="scene-color-editor__commands">
           <IconButton
@@ -293,118 +334,135 @@ export function SceneColorEditor({
         </div>
       </header>
 
-      <div className="scene-color-editor__tabs" aria-label="场景颜色面板" role="tablist">
+      <div className="scene-color-editor__tabs" aria-label="场景外观面板" role="tablist">
         <button
-          aria-controls="scene-colors-panel"
-          aria-selected={activeTab === 'colors'}
-          id="scene-colors-tab"
-          onClick={() => setActiveTab('colors')}
+          aria-controls="scene-desk-panel"
+          aria-selected={activeTab === 'desk'}
+          id="scene-desk-tab"
+          onClick={() => setActiveTab('desk')}
           role="tab"
           type="button"
         >
-          颜色
+          书桌
         </button>
         <button
-          aria-controls="scene-presets-panel"
-          aria-selected={activeTab === 'presets'}
-          id="scene-presets-tab"
-          onClick={() => setActiveTab('presets')}
+          aria-controls="scene-wallpaper-panel"
+          aria-selected={activeTab === 'wallpaper'}
+          id="scene-wallpaper-tab"
+          onClick={() => setActiveTab('wallpaper')}
           role="tab"
           type="button"
         >
-          预设
+          墙纸
         </button>
       </div>
 
-      {activeTab === 'colors' ? (
+      {activeTab === 'desk' ? (
         <div
-          aria-labelledby="scene-colors-tab"
-          className="scene-color-editor__body"
-          id="scene-colors-panel"
+          aria-labelledby="scene-desk-tab"
+          className="scene-color-editor__body scene-color-editor__desk"
+          id="scene-desk-panel"
           role="tabpanel"
         >
-          {colorGroups.map((group) => (
-            <fieldset key={group.label}>
-              <legend>{group.label}</legend>
-              {group.fields.map((field) => (
-                <ColorField
-                  key={`${field.key}-${resetRevision}`}
-                  colorKey={field.key}
-                  label={field.label}
-                  onChange={changeColor}
-                  value={colors[field.key]}
+          <details className="scene-color-editor__parameters">
+            <summary>调整书桌参数</summary>
+            {colorGroups.map((group) => (
+              <fieldset key={group.label}>
+                <legend>{group.label}</legend>
+                {group.fields.map((field) => (
+                  <ColorField
+                    key={`${field.key}-${resetRevision}`}
+                    colorKey={field.key}
+                    label={field.label}
+                    onChange={changeColor}
+                    value={colors[field.key]}
+                  />
+                ))}
+              </fieldset>
+            ))}
+          </details>
+          <div className="scene-color-editor__presets">
+            <form className="scene-preset-form" onSubmit={(event) => void savePreset(event)}>
+              <label htmlFor="scene-preset-name">预设名称</label>
+              <div>
+                <input
+                  autoComplete="off"
+                  id="scene-preset-name"
+                  maxLength={MAX_SCENE_COLOR_PRESET_NAME_LENGTH}
+                  onChange={(event) => setPresetName(event.target.value)}
+                  placeholder="例如 雨天书桌"
+                  value={presetName}
+                />
+                <Button
+                  disabled={!onSavePreset}
+                  htmlType="submit"
+                  icon={<Save aria-hidden="true" size={16} />}
+                  loading={savingPreset}
+                  variant="primary"
+                >
+                  保存
+                </Button>
+              </div>
+            </form>
+            <div className="scene-preset-list" aria-label="书桌预设列表">
+              <PresetCard
+                active={defaultActive}
+                builtIn
+                name="默认配色"
+                onApply={() => onChange(defaultColors)}
+                previewSrc={DEFAULT_PRESET_PREVIEW}
+              />
+              {loadingPresets ? <p className="scene-preset-list__empty">正在读取预设...</p> : null}
+              {presets.map((preset) => (
+                <PresetCard
+                  active={matchingPreset?.id === preset.id}
+                  deleting={deletingPresetId === preset.id}
+                  key={preset.id}
+                  name={preset.name}
+                  onApply={() => onChange({ ...preset.colors })}
+                  onDelete={onDeletePreset ? () => void deletePreset(preset) : undefined}
+                  previewBlob={preset.previewBlob}
                 />
               ))}
-            </fieldset>
-          ))}
+              {!loadingPresets && presets.length === 0 ? (
+                <p className="scene-preset-list__empty">还没有自定义预设</p>
+              ) : null}
+            </div>
+            {presetError || presetsError || presetStatus ? (
+              <p
+                className="scene-color-editor__status scene-color-editor__status--inline"
+                aria-live="polite"
+                role={presetError || presetsError ? 'alert' : undefined}
+              >
+                {presetError ?? presetsError ?? presetStatus}
+              </p>
+            ) : null}
+          </div>
         </div>
       ) : (
         <div
-          aria-labelledby="scene-presets-tab"
+          aria-labelledby="scene-wallpaper-tab"
           className="scene-color-editor__body scene-color-editor__presets"
-          id="scene-presets-panel"
+          id="scene-wallpaper-panel"
           role="tabpanel"
         >
-          <form className="scene-preset-form" onSubmit={(event) => void savePreset(event)}>
-            <label htmlFor="scene-preset-name">预设名称</label>
-            <div>
-              <input
-                autoComplete="off"
-                id="scene-preset-name"
-                maxLength={MAX_SCENE_COLOR_PRESET_NAME_LENGTH}
-                onChange={(event) => setPresetName(event.target.value)}
-                placeholder="例如 雨天书桌"
-                value={presetName}
-              />
-              <Button
-                disabled={!onSavePreset}
-                htmlType="submit"
-                icon={<Save aria-hidden="true" size={16} />}
-                loading={savingPreset}
-                variant="primary"
-              >
-                保存
-              </Button>
-            </div>
-          </form>
-
-          <div className="scene-preset-list" aria-label="颜色预设列表">
-            <PresetCard
-              active={defaultActive}
-              builtIn
-              name="默认配色"
-              onApply={() => onChange(defaultColors)}
-              previewSrc={DEFAULT_PRESET_PREVIEW}
+          <div className="scene-preset-list" aria-label="墙纸预览列表">
+            <WallpaperCard
+              active={wallpaperThemeId === 'plain'}
+              label="默认墙面"
+              onApply={() => onWallpaperChange('plain')}
+              previewColor="#d4c6b4"
             />
-            {loadingPresets ? <p className="scene-preset-list__empty">正在读取预设...</p> : null}
-            {presets.map((preset) => (
-              <PresetCard
-                active={matchingPreset?.id === preset.id}
-                deleting={deletingPresetId === preset.id}
-                key={preset.id}
-                name={preset.name}
-                onApply={() => onChange({ ...preset.colors })}
-                onDelete={onDeletePreset ? () => void deletePreset(preset) : undefined}
-                previewBlob={preset.previewBlob}
-              />
-            ))}
-            {!loadingPresets && presets.length === 0 ? (
-              <p className="scene-preset-list__empty">还没有自定义预设</p>
-            ) : null}
+            <WallpaperCard
+              active={wallpaperThemeId === 'candy-cloud'}
+              label="Candy Cloud"
+              onApply={() => onWallpaperChange('candy-cloud')}
+              previewSrc="/assets/wallpapers/candy-cloud-cube-net.png"
+            />
           </div>
-
-          {presetError || presetsError || presetStatus ? (
-            <p
-              className="scene-color-editor__status scene-color-editor__status--inline"
-              aria-live="polite"
-              role={presetError || presetsError ? 'alert' : undefined}
-            >
-              {presetError ?? presetsError ?? presetStatus}
-            </p>
-          ) : null}
         </div>
       )}
-      {activeTab === 'colors' && copyState !== 'idle' ? (
+      {activeTab === 'desk' && copyState !== 'idle' ? (
         <p className="scene-color-editor__status" aria-live="polite">
           {copyState === 'copied' ? '颜色配置已复制' : '复制失败'}
         </p>
