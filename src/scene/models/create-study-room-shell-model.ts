@@ -15,6 +15,9 @@ export interface StudyRoomShellNodes extends Record<string, THREE.Object3D> {
   root: THREE.Group
   floor: THREE.InstancedMesh
   floorUnderlay: THREE.Mesh
+  ceiling: THREE.Mesh
+  ceilingTray: THREE.InstancedMesh
+  ceilingCrown: THREE.InstancedMesh
   cornerPosts: THREE.Group
   walls: THREE.Group
   westWall: THREE.Mesh
@@ -22,11 +25,10 @@ export interface StudyRoomShellNodes extends Record<string, THREE.Object3D> {
   northWall: THREE.Mesh
   southWall: THREE.Mesh
   northWindow: THREE.Group
+  windowReveal: THREE.InstancedMesh
   windowBackdrop: THREE.Mesh
   windowGlass: THREE.Group
   baseboards: THREE.InstancedMesh
-  windowApron: THREE.Mesh
-  windowSill: THREE.Mesh
 }
 
 const ROOM_WIDTH = STUDY_ROOM_MODEL_SPEC.interior.width
@@ -81,7 +83,7 @@ const createRoomMaterials = () => {
     const fineGrain = noise(x / size * 24, y / size * 24, 7) - 0.5
     const broadVariation = noise(x / size * 3, y / size * 3, 19) - 0.5
     const value = fineGrain * 4 + broadVariation * 6
-    return [Math.round(137 + value), Math.round(146 + value), Math.round(126 + value)]
+    return [Math.round(151 + value), Math.round(147 + value), Math.round(122 + value)]
   })
   const wallData = makeTexture('study-room-wall-data', size, THREE.NoColorSpace, (x, y) => {
     const value = Math.round(228 + (noise(x / size * 28, y / size * 28, 11) - 0.5) * 16)
@@ -132,10 +134,14 @@ const createRoomMaterials = () => {
   const wall = new THREE.MeshStandardMaterial({
     color: '#ffffff', map: wallAlbedo, roughness: 0.88, roughnessMap: wallData,
     bumpMap: wallData, bumpScale: 0.012, aoMap: wallData, aoMapIntensity: 0.12,
-    emissive: '#89927e', emissiveIntensity: 0.24,
+    emissive: '#97937a', emissiveIntensity: 0.24,
     side: THREE.DoubleSide,
   })
   wall.name = 'study-room-wall-paint'
+  const ceiling = new THREE.MeshBasicMaterial({ color: '#d4c6b4', side: THREE.DoubleSide })
+  ceiling.name = 'study-room-ceiling-paint'
+  const ceilingTray = new THREE.MeshStandardMaterial({ color: '#e6dac9', roughness: 0.82, bumpMap: wallData, bumpScale: 0.004 })
+  ceilingTray.name = 'study-room-ceiling-tray-trim'
   const floor = new THREE.MeshPhysicalMaterial({
     color: '#ffffff', map: floorAlbedo, roughness: 0.58, roughnessMap: floorData,
     bumpMap: floorData, bumpScale: 0.018, aoMap: floorData, aoMapIntensity: 0.22,
@@ -144,7 +150,10 @@ const createRoomMaterials = () => {
   floor.name = 'study-room-floor-wood'
   const floorGap = new THREE.MeshStandardMaterial({ color: '#2d190f', roughness: 0.95 })
   floorGap.name = 'study-room-floor-seam-underlay'
-  const frame = new THREE.MeshStandardMaterial({ color: '#d1bd97', roughness: 0.62, bumpMap: wallData, bumpScale: 0.008 })
+  const frame = new THREE.MeshStandardMaterial({
+    color: '#b98b69', map: floorAlbedo, roughness: 0.58, roughnessMap: floorData,
+    bumpMap: floorData, bumpScale: 0.012,
+  })
   frame.name = 'study-room-window-frame'
   const baseboard = new THREE.MeshStandardMaterial({ color: '#cbb991', roughness: 0.74, bumpMap: wallData, bumpScale: 0.004 })
   baseboard.name = 'study-room-baseboard'
@@ -156,7 +165,7 @@ const createRoomMaterials = () => {
   glass.name = 'study-room-window-glass'
   const outdoor = new THREE.MeshBasicMaterial({ color: '#fff7d7', map: outdoorAlbedo, side: THREE.DoubleSide })
   outdoor.name = 'study-room-window-outdoor-backdrop'
-  return { wall, floor, floorGap, frame, baseboard, glass, outdoor, textures: [wallAlbedo, wallData, floorAlbedo, floorData, outdoorAlbedo] }
+  return { wall, ceiling, ceilingTray, floor, floorGap, frame, baseboard, glass, outdoor, textures: [wallAlbedo, wallData, floorAlbedo, floorData, outdoorAlbedo] }
 }
 
 const createQuad = (
@@ -231,6 +240,63 @@ export function createStudyRoomShellModel(options: ModelFactoryOptions = {}) {
   if (floor.instanceColor) floor.instanceColor.needsUpdate = true
   root.add(floor)
 
+  const ceiling = createWallMesh(
+    own(new THREE.PlaneGeometry(ROOM_WIDTH, ROOM_DEPTH)),
+    materials.ceiling,
+    'study-room-ceiling-background-blocker',
+    options,
+  )
+  ceiling.rotation.x = Math.PI / 2
+  ceiling.position.y = STUDY_ROOM_MODEL_SPEC.wallTopY - STUDY_ROOM_MODEL_SPEC.ceilingInset
+  root.add(ceiling)
+
+  const ceilingTrayGeometry = own(new THREE.BoxGeometry(1, 1, 1))
+  const ceilingTray = disableRaycast(new THREE.InstancedMesh(ceilingTrayGeometry, materials.ceilingTray, 4))
+  ceilingTray.name = 'study-room-ceiling-tray'
+  ceilingTray.castShadow = false
+  ceilingTray.receiveShadow = true
+  const ceilingY = ceiling.position.y
+  const tray = STUDY_ROOM_MODEL_SPEC.ceilingTray
+  const trayMatrix = new THREE.Matrix4()
+  const innerDepth = ROOM_DEPTH - tray.soffitWidth * 2
+  const trayY = ceilingY - tray.drop / 2
+  trayMatrix.compose(new THREE.Vector3(0, trayY, -ROOM_DEPTH / 2 + tray.soffitWidth / 2), new THREE.Quaternion(), new THREE.Vector3(ROOM_WIDTH, tray.drop, tray.soffitWidth))
+  ceilingTray.setMatrixAt(0, trayMatrix)
+  trayMatrix.compose(new THREE.Vector3(0, trayY, ROOM_DEPTH / 2 - tray.soffitWidth / 2), new THREE.Quaternion(), new THREE.Vector3(ROOM_WIDTH, tray.drop, tray.soffitWidth))
+  ceilingTray.setMatrixAt(1, trayMatrix)
+  trayMatrix.compose(new THREE.Vector3(-ROOM_WIDTH / 2 + tray.soffitWidth / 2, trayY, 0), new THREE.Quaternion(), new THREE.Vector3(tray.soffitWidth, tray.drop, innerDepth))
+  ceilingTray.setMatrixAt(2, trayMatrix)
+  trayMatrix.compose(new THREE.Vector3(ROOM_WIDTH / 2 - tray.soffitWidth / 2, trayY, 0), new THREE.Quaternion(), new THREE.Vector3(tray.soffitWidth, tray.drop, innerDepth))
+  ceilingTray.setMatrixAt(3, trayMatrix)
+  ceilingTray.instanceMatrix.needsUpdate = true
+  root.add(ceilingTray)
+
+  const ceilingCrown = disableRaycast(new THREE.InstancedMesh(ceilingTrayGeometry, materials.ceilingTray, 8))
+  ceilingCrown.name = 'study-room-ceiling-crown'
+  ceilingCrown.castShadow = false
+  ceilingCrown.receiveShadow = true
+  const soffitBottomY = ceilingY - tray.drop
+  const crownY = soffitBottomY - tray.crownHeight / 2
+  trayMatrix.compose(new THREE.Vector3(0, crownY, NORTH_Z + tray.crownDepth / 2), new THREE.Quaternion(), new THREE.Vector3(ROOM_WIDTH, tray.crownHeight, tray.crownDepth))
+  ceilingCrown.setMatrixAt(0, trayMatrix)
+  trayMatrix.compose(new THREE.Vector3(0, crownY, SOUTH_Z - tray.crownDepth / 2), new THREE.Quaternion(), new THREE.Vector3(ROOM_WIDTH, tray.crownHeight, tray.crownDepth))
+  ceilingCrown.setMatrixAt(1, trayMatrix)
+  trayMatrix.compose(new THREE.Vector3(WEST_X + tray.crownDepth / 2, crownY, 0), new THREE.Quaternion(), new THREE.Vector3(tray.crownDepth, tray.crownHeight, ROOM_DEPTH))
+  ceilingCrown.setMatrixAt(2, trayMatrix)
+  trayMatrix.compose(new THREE.Vector3(EAST_X - tray.crownDepth / 2, crownY, 0), new THREE.Quaternion(), new THREE.Vector3(tray.crownDepth, tray.crownHeight, ROOM_DEPTH))
+  ceilingCrown.setMatrixAt(3, trayMatrix)
+  const lipY = soffitBottomY - tray.lipHeight / 2
+  trayMatrix.compose(new THREE.Vector3(0, lipY, NORTH_Z + tray.lipDepth / 2), new THREE.Quaternion(), new THREE.Vector3(ROOM_WIDTH, tray.lipHeight, tray.lipDepth))
+  ceilingCrown.setMatrixAt(4, trayMatrix)
+  trayMatrix.compose(new THREE.Vector3(0, lipY, SOUTH_Z - tray.lipDepth / 2), new THREE.Quaternion(), new THREE.Vector3(ROOM_WIDTH, tray.lipHeight, tray.lipDepth))
+  ceilingCrown.setMatrixAt(5, trayMatrix)
+  trayMatrix.compose(new THREE.Vector3(WEST_X + tray.lipDepth / 2, lipY, 0), new THREE.Quaternion(), new THREE.Vector3(tray.lipDepth, tray.lipHeight, ROOM_DEPTH))
+  ceilingCrown.setMatrixAt(6, trayMatrix)
+  trayMatrix.compose(new THREE.Vector3(EAST_X - tray.lipDepth / 2, lipY, 0), new THREE.Quaternion(), new THREE.Vector3(tray.lipDepth, tray.lipHeight, ROOM_DEPTH))
+  ceilingCrown.setMatrixAt(7, trayMatrix)
+  ceilingCrown.instanceMatrix.needsUpdate = true
+  root.add(ceilingCrown)
+
   const cornerGeometry = own(new THREE.BoxGeometry(
     STUDY_ROOM_MODEL_SPEC.wallThickness,
     STUDY_ROOM_MODEL_SPEC.wallTopY - STUDY_ROOM_MODEL_SPEC.floorTopY,
@@ -273,50 +339,53 @@ export function createStudyRoomShellModel(options: ModelFactoryOptions = {}) {
   const northWindow = new THREE.Group(); northWindow.name = 'study-room-north-window'; northWindow.position.set(0, 0, NORTH_Z); northWindow.rotation.y = -Math.PI / 2; disableRaycast(northWindow)
   const frameDepth = window.frameDepth
   const frameWidth = window.frameWidth
+  const windowHeight = window.topY - window.bottomY
+  const windowCenterY = (window.bottomY + window.topY) / 2
+  const frameOpeningWidth = window.width - window.revealThickness * 2
+  const frameOpeningHeight = windowHeight - window.revealThickness * 2
+  const windowReveal = disableRaycast(new THREE.InstancedMesh(ceilingTrayGeometry, materials.wall, 4))
+  windowReveal.name = 'study-room-window-reveal'
+  windowReveal.castShadow = false
+  windowReveal.receiveShadow = true
+  const revealMatrix = new THREE.Matrix4()
+  const revealX = -window.revealDepth / 2
+  revealMatrix.compose(new THREE.Vector3(revealX, windowCenterY, -window.width / 2 + window.revealThickness / 2), new THREE.Quaternion(), new THREE.Vector3(window.revealDepth, windowHeight, window.revealThickness))
+  windowReveal.setMatrixAt(0, revealMatrix)
+  revealMatrix.compose(new THREE.Vector3(revealX, windowCenterY, window.width / 2 - window.revealThickness / 2), new THREE.Quaternion(), new THREE.Vector3(window.revealDepth, windowHeight, window.revealThickness))
+  windowReveal.setMatrixAt(1, revealMatrix)
+  revealMatrix.compose(new THREE.Vector3(revealX, window.bottomY + window.revealThickness / 2, 0), new THREE.Quaternion(), new THREE.Vector3(window.revealDepth, window.revealThickness, window.width - window.revealThickness * 2))
+  windowReveal.setMatrixAt(2, revealMatrix)
+  revealMatrix.compose(new THREE.Vector3(revealX, window.topY - window.revealThickness / 2, 0), new THREE.Quaternion(), new THREE.Vector3(window.revealDepth, window.revealThickness, window.width - window.revealThickness * 2))
+  windowReveal.setMatrixAt(3, revealMatrix)
+  windowReveal.instanceMatrix.needsUpdate = true
+  northWindow.add(windowReveal)
   const frameGeometry = own(new THREE.BoxGeometry(frameDepth, 1, 1))
   const addFrame = (name: string, position: [number, number, number], scale: [number, number, number]) => {
     const mesh = disableRaycast(markMesh(new THREE.Mesh(frameGeometry, materials.frame), name, options))
     mesh.position.set(...position); mesh.scale.set(...scale); northWindow.add(mesh); return mesh
   }
-  addFrame('study-room-window-frame-left', [0, (window.bottomY + window.topY) / 2, -window.width / 2], [1, window.topY - window.bottomY + frameWidth, frameWidth])
-  addFrame('study-room-window-frame-right', [0, (window.bottomY + window.topY) / 2, window.width / 2], [1, window.topY - window.bottomY + frameWidth, frameWidth])
-  addFrame('study-room-window-frame-top', [0, window.topY, 0], [1, frameWidth, window.width + frameWidth * 2])
-  addFrame('study-room-window-frame-bottom', [0, window.bottomY, 0], [1, frameWidth, window.width + frameWidth * 2])
-  addFrame('study-room-window-mullion-vertical', [0, (window.bottomY + window.topY) / 2, 0], [1, window.topY - window.bottomY, window.mullionWidth])
-  addFrame('study-room-window-mullion-horizontal', [0, (window.bottomY + window.topY) / 2, 0], [1, window.mullionWidth, window.width])
-  const windowSill = disableRaycast(markMesh(
-    new THREE.Mesh(own(new THREE.BoxGeometry(window.sillDepth, window.sillHeight, window.width + window.sillOverhang)), materials.frame),
-    'study-room-window-sill',
-    options,
-  ))
-  windowSill.position.set(window.sillDepth / 2, window.bottomY - window.sillHeight / 2 + frameWidth * 0.35, 0)
-  const windowApron = disableRaycast(markMesh(
-    new THREE.Mesh(own(new THREE.BoxGeometry(window.frameDepth * 0.72, window.apronHeight, window.width + frameWidth)), materials.frame),
-    'study-room-window-apron',
-    options,
-  ))
-  windowApron.position.set(
-    window.frameDepth * 0.36,
-    window.bottomY - window.sillHeight - window.apronHeight / 2,
-    0,
-  )
-  northWindow.add(windowSill, windowApron)
+  addFrame('study-room-window-frame-left', [-window.frameInset, windowCenterY, -frameOpeningWidth / 2 + frameWidth / 2], [1, frameOpeningHeight, frameWidth])
+  addFrame('study-room-window-frame-right', [-window.frameInset, windowCenterY, frameOpeningWidth / 2 - frameWidth / 2], [1, frameOpeningHeight, frameWidth])
+  addFrame('study-room-window-frame-top', [-window.frameInset, window.topY - window.revealThickness - frameWidth / 2, 0], [1, frameWidth, frameOpeningWidth])
+  addFrame('study-room-window-frame-bottom', [-window.frameInset, window.bottomY + window.revealThickness + frameWidth / 2, 0], [1, frameWidth, frameOpeningWidth])
+  addFrame('study-room-window-mullion-vertical', [-window.frameInset, windowCenterY, 0], [1, frameOpeningHeight - frameWidth * 2, window.mullionWidth])
+  addFrame('study-room-window-mullion-horizontal', [-window.frameInset, windowCenterY, 0], [1, window.mullionWidth, frameOpeningWidth - frameWidth * 2])
   const windowBackdrop = disableRaycast(markMesh(
     new THREE.Mesh(own(new THREE.PlaneGeometry(window.width, window.topY - window.bottomY)), materials.outdoor),
     'study-room-window-outdoor-backdrop',
     options,
   ))
   windowBackdrop.rotation.y = Math.PI / 2
-  windowBackdrop.position.set(-0.015, (window.bottomY + window.topY) / 2, 0)
+  windowBackdrop.position.set(-window.frameInset - frameDepth / 2 - 0.02, windowCenterY, 0)
   northWindow.add(windowBackdrop)
-  const paneWidth = (window.width - window.mullionWidth - frameWidth * 2) / 2
-  const paneHeight = (window.topY - window.bottomY - window.mullionWidth - frameWidth * 2) / 2
+  const paneWidth = (frameOpeningWidth - window.mullionWidth - frameWidth * 2) / 2
+  const paneHeight = (frameOpeningHeight - window.mullionWidth - frameWidth * 2) / 2
   const paneGeometry = own(new THREE.PlaneGeometry(paneWidth, paneHeight))
   const glassGroup = new THREE.Group(); glassGroup.name = 'study-room-window-glass'; disableRaycast(glassGroup)
   for (let row = 0; row < 2; row += 1) for (let column = 0; column < 2; column += 1) {
     const pane = disableRaycast(markMesh(new THREE.Mesh(paneGeometry, materials.glass), `study-room-window-pane-${row * 2 + column + 1}`, options))
     pane.rotation.y = Math.PI / 2
-    pane.position.set(0.06, window.bottomY + frameWidth + paneHeight / 2 + row * (paneHeight + window.mullionWidth), -window.width / 2 + frameWidth + paneWidth / 2 + column * (paneWidth + window.mullionWidth))
+    pane.position.set(-window.frameInset + frameDepth / 2 - 0.015, window.bottomY + window.revealThickness + frameWidth + paneHeight / 2 + row * (paneHeight + window.mullionWidth), -frameOpeningWidth / 2 + frameWidth + paneWidth / 2 + column * (paneWidth + window.mullionWidth))
     glassGroup.add(pane)
   }
   northWindow.add(glassGroup); root.add(northWindow)
@@ -338,7 +407,7 @@ export function createStudyRoomShellModel(options: ModelFactoryOptions = {}) {
   matrix.compose(new THREE.Vector3(0, capY, SOUTH_Z - base.capInset), new THREE.Quaternion(), new THREE.Vector3(ROOM_WIDTH, base.capHeight, base.depth * 0.72)); baseboards.setMatrixAt(7, matrix)
   baseboards.instanceMatrix.needsUpdate = true; root.add(baseboards)
 
-  const nodes = { root, floor, floorUnderlay, cornerPosts, walls, westWall: west, eastWall: east, northWall: northWindowWall.children[0] as THREE.Mesh, southWall: south, northWindow, windowBackdrop, windowGlass: glassGroup, baseboards, windowApron, windowSill } satisfies StudyRoomShellNodes
+  const nodes = { root, floor, floorUnderlay, ceiling, ceilingTray, ceilingCrown, cornerPosts, walls, westWall: west, eastWall: east, northWall: northWindowWall.children[0] as THREE.Mesh, southWall: south, northWindow, windowReveal, windowBackdrop, windowGlass: glassGroup, baseboards } satisfies StudyRoomShellNodes
   setSculptRuntime(root, { colliders: { floor: { id: 'study-room-floor', type: 'box', center: [0, STUDY_ROOM_MODEL_SPEC.floorTopY, 0], size: [ROOM_WIDTH, 0.02, ROOM_DEPTH] } }, destructionGroups: { walls: [...walls.children], window: [northWindow], glass: [...glassGroup.children] }, nodes, sockets: { floor, northWindow } } satisfies SculptRuntime<StudyRoomShellNodes>)
   root.userData.resourceMetrics = measureModelResources(root)
   root.userData.resourceBudget = { targetTriangles: 250000, maxDrawCalls: 160, textures: materials.textures.length }
