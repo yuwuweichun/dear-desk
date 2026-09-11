@@ -1,5 +1,16 @@
 # Dear Desk audio assets
 
+## Background music
+
+The project owner provided the two background tracks on 2026-09-11. They are
+shown in the product by mood rather than by filename. Public redistribution
+rights remain unverified and must be documented before a public release.
+
+| Mood | Project file | Original source | SHA-256 |
+| --- | --- | --- | --- |
+| 宁静 | `music/calm.mp3` | `Paper Drawer Loops.mp3` | `a57c0b81c1311c9b1313a002710b79db472e3a3aca61044cadd21615732d779b` |
+| 愉悦 | `music/joyful.mp3` | `Sunny Desk Routines.mp3` | `bc3e94f12b8092512e303e712e31da23480fafc299024188b3973092a2db5ac6` |
+
 These sound effects were provided by the project owner on 2026-08-25 and
 explicitly approved for use in this project. The original download pages,
 authors, and license names were not supplied. Public redistribution rights

@@ -5,7 +5,7 @@ import type {
   AudioChannelPreference,
   AudioPreferences,
 } from '../../audio/audio-preferences'
-import { IconButton } from '../../ui'
+import { IconButton, SegmentedControl } from '../../ui'
 
 interface AudioSettingsControlProps {
   onChange: (preferences: AudioPreferences) => void
@@ -130,12 +130,30 @@ export function AudioSettingsControl({
             <span>声音</span>
             <strong>音频设置</strong>
           </header>
-          <AudioChannelControl
-            channel={preferences.music}
-            icon={<Music2 aria-hidden="true" size={17} strokeWidth={1.8} />}
-            label="音乐"
-            onChange={(value) => updateChannel('music', value)}
-          />
+          <div className="audio-music-group">
+            <AudioChannelControl
+              channel={preferences.music}
+              icon={<Music2 aria-hidden="true" size={17} strokeWidth={1.8} />}
+              label="音乐"
+              onChange={(value) => updateChannel('music', value)}
+            />
+            <div className="audio-track-picker">
+              <span className="audio-track-picker__label">背景音乐</span>
+              <SegmentedControl
+                ariaLabel="背景音乐"
+                className="audio-track-picker__control"
+                onChange={(track) => onChange({
+                  ...preferences,
+                  music: { ...preferences.music, track },
+                })}
+                options={[
+                  { label: '宁静', value: 'calm' },
+                  { label: '愉悦', value: 'joyful' },
+                ]}
+                value={preferences.music.track}
+              />
+            </div>
+          </div>
           <AudioChannelControl
             channel={preferences.sfx}
             icon={<Waves aria-hidden="true" size={17} strokeWidth={1.8} />}

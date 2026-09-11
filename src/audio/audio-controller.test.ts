@@ -8,6 +8,7 @@ class FakeAudio {
   preload = ''
   src: string
   volume = 1
+  loop = false
   load = vi.fn()
   pause = vi.fn()
   play = vi.fn().mockResolvedValue(undefined)
@@ -56,6 +57,31 @@ describe('audio controller', () => {
     expect(players[0]?.currentTime).toBe(0)
     expect(players[0]?.volume).toBe(0.6)
     expect(players[0]?.play).toHaveBeenCalledTimes(2)
+  })
+
+  it('loops and switches the selected background track after a user gesture', () => {
+    const players: FakeAudio[] = []
+    const controller = createAudioController({
+      ...DEFAULT_AUDIO_PREFERENCES,
+      music: { ...DEFAULT_AUDIO_PREFERENCES.music, enabled: true },
+    }, (source) => {
+      const player = new FakeAudio(source)
+      players.push(player)
+      return player
+    })
+
+    controller.unlockMusic()
+    expect(players[0]?.src).toBe('/audio/music/calm.mp3')
+    expect(players[0]?.loop).toBe(true)
+    expect(players[0]?.play).toHaveBeenCalledOnce()
+
+    controller.setPreferences({
+      ...DEFAULT_AUDIO_PREFERENCES,
+      music: { enabled: true, volume: 0.3, track: 'joyful' },
+    })
+    expect(players[0]?.pause).toHaveBeenCalled()
+    expect(players[1]?.src).toBe('/audio/music/joyful.mp3')
+    expect(players[1]?.play).toHaveBeenCalledOnce()
   })
 
   it('does not create a player while SFX are disabled', () => {

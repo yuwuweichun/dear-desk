@@ -2,7 +2,13 @@ import {
   DEFAULT_AUDIO_PREFERENCES,
   normalizeAudioPreferences,
   type AudioPreferences,
+  type MusicTrackId,
 } from './audio-preferences'
+
+export const MUSIC_SOURCES: Record<MusicTrackId, string> = {
+  calm: '/audio/music/calm.mp3',
+  joyful: '/audio/music/joyful.mp3',
+}
 
 export const SOUND_EFFECT_SOURCES = {
   'drawer-close': '/audio/drawer-close.mp3',
@@ -21,6 +27,7 @@ interface PlayableAudio {
   preload: string
   src: string
   volume: number
+  loop?: boolean
   load(): void
   pause(): void
   play(): Promise<void> | void
@@ -31,6 +38,7 @@ type AudioFactory = (source: string) => PlayableAudio
 
 export interface AudioController {
   dispose(): void
+  unlockMusic(): void
   preloadSfx(): void
   playSfx(effect: SoundEffectId, delayMs?: number): void
   setPreferences(preferences: AudioPreferences): void
@@ -46,6 +54,8 @@ export const createAudioController = (
   let disposed = false
   const audioElements = new Map<SoundEffectId, PlayableAudio>()
   const pendingTimers = new Map<SoundEffectId, number>()
+  let musicAudio: PlayableAudio | null = null
+  let musicUnlocked = false
 
   const audioFor = (effect: SoundEffectId) => {
     const existing = audioElements.get(effect)
@@ -72,6 +82,28 @@ export const createAudioController = (
     }
   }
 
+  const syncMusic = () => {
+    if (disposed || !preferences.music.enabled || preferences.music.volume <= 0) {
+      musicAudio?.pause()
+      return
+    }
+    if (!musicAudio || musicAudio.src !== new URL(MUSIC_SOURCES[preferences.music.track], window.location.origin).href) {
+      musicAudio?.pause()
+      musicAudio = createAudio(MUSIC_SOURCES[preferences.music.track])
+      musicAudio.loop = true
+      musicAudio.preload = 'auto'
+    }
+    musicAudio.volume = preferences.music.volume
+    if (musicUnlocked) {
+      try {
+        const playback = musicAudio.play()
+        if (playback && typeof playback.catch === 'function') void playback.catch(() => undefined)
+      } catch {
+        // Music is enhancement-only; playback failures must not block the action.
+      }
+    }
+  }
+
   return {
     preloadSfx() {
       if (disposed) return
@@ -88,10 +120,16 @@ export const createAudioController = (
       // React StrictMode replays effects after a cleanup-only mount probe.
       disposed = false
       preferences = normalizeAudioPreferences(nextPreferences)
+      syncMusic()
       for (const audio of audioElements.values()) {
         audio.volume = preferences.sfx.volume
         if (!preferences.sfx.enabled) audio.pause()
       }
+    },
+    unlockMusic() {
+      if (disposed) return
+      musicUnlocked = true
+      syncMusic()
     },
     playSfx(effect, delayMs = 0) {
       const pendingTimer = pendingTimers.get(effect)
@@ -117,6 +155,10 @@ export const createAudioController = (
         audio.load()
       }
       audioElements.clear()
+      musicAudio?.pause()
+      musicAudio?.removeAttribute('src')
+      musicAudio?.load()
+      musicAudio = null
     },
   }
 }

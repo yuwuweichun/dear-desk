@@ -29,6 +29,16 @@ export function AudioRuntime({
   const previousPastTracesPhase = useRef(pastTracesPhase)
 
   useEffect(() => {
+    const unlock = () => controller.unlockMusic()
+    document.addEventListener('pointerdown', unlock)
+    document.addEventListener('keydown', unlock)
+    return () => {
+      document.removeEventListener('pointerdown', unlock)
+      document.removeEventListener('keydown', unlock)
+    }
+  }, [controller])
+
+  useEffect(() => {
     if (previousNotebookPhase.current === notebookPhase) return
     previousNotebookPhase.current = notebookPhase
     if (notebookPhase === 'opening') {

@@ -9,6 +9,7 @@ const createController = () => ({
   preloadSfx: vi.fn(),
   playSfx: vi.fn(),
   setPreferences: vi.fn(),
+  unlockMusic: vi.fn(),
 }) satisfies AudioController
 
 describe('audio runtime state edges', () => {

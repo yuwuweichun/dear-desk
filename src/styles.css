@@ -220,6 +220,14 @@ textarea:focus-visible {
   border-bottom: 0;
 }
 
+.audio-music-group {
+  border-bottom: 1px solid #e2dbcf;
+}
+
+.audio-music-group .audio-channel-control {
+  border-bottom: 0;
+}
+
 .audio-channel-control__header,
 .audio-channel-control__label,
 .audio-channel-control__volume {
@@ -330,6 +338,25 @@ textarea:focus-visible {
   position: relative;
   width: 48px;
   height: 48px;
+}
+
+.audio-track-picker {
+  display: grid;
+  gap: 8px;
+  margin: -2px 14px 14px;
+}
+
+.audio-track-picker__label {
+  color: #756a59;
+  font-size: 11px;
+}
+
+.audio-track-picker__control {
+  width: 100%;
+}
+
+.audio-track-picker__control .dd-button {
+  flex: 1;
 }
 
 .content-font-menu {

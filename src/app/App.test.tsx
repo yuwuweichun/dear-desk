@@ -554,7 +554,7 @@ describe('App audio settings', () => {
 
     expect(JSON.parse(window.localStorage.getItem(AUDIO_PREFERENCES_STORAGE_KEY) ?? '')).toEqual({
       version: 1,
-      music: { enabled: true, volume: 0.4 },
+      music: { enabled: true, volume: 0.4, track: 'calm' },
       sfx: { enabled: true, volume: 0.55 },
     })
 

@@ -5,15 +5,17 @@ export interface AudioChannelPreference {
   volume: number
 }
 
+export type MusicTrackId = 'calm' | 'joyful'
+
 export interface AudioPreferences {
   version: 1
-  music: AudioChannelPreference
+  music: AudioChannelPreference & { track: MusicTrackId }
   sfx: AudioChannelPreference
 }
 
 export const DEFAULT_AUDIO_PREFERENCES: AudioPreferences = {
   version: 1,
-  music: { enabled: false, volume: 0.3 },
+  music: { enabled: false, volume: 0.3, track: 'calm' },
   sfx: { enabled: true, volume: 0.6 },
 }
 
@@ -44,6 +46,14 @@ const normalizeChannel = (
   }
 }
 
+const normalizeMusic = (value: unknown): AudioPreferences['music'] => {
+  const channel = normalizeChannel(value, DEFAULT_AUDIO_PREFERENCES.music)
+  const track = value && typeof value === 'object' && 'track' in value
+    ? (value as { track?: unknown }).track
+    : undefined
+  return { ...channel, track: track === 'joyful' ? 'joyful' : 'calm' }
+}
+
 export const normalizeAudioPreferences = (value: unknown): AudioPreferences => {
   if (!value || typeof value !== 'object') {
     return structuredClone(DEFAULT_AUDIO_PREFERENCES)
@@ -54,7 +64,7 @@ export const normalizeAudioPreferences = (value: unknown): AudioPreferences => {
   }
   return {
     version: 1,
-    music: normalizeChannel(candidate.music, DEFAULT_AUDIO_PREFERENCES.music),
+    music: normalizeMusic(candidate.music),
     sfx: normalizeChannel(candidate.sfx, DEFAULT_AUDIO_PREFERENCES.sfx),
   }
 }

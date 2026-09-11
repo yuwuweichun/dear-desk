@@ -31,6 +31,11 @@ describe('audio settings control', () => {
     fireEvent.click(button)
 
     expect(screen.getByRole('dialog', { name: '音频设置' })).toBeInTheDocument()
+    expect(screen.getByRole('group', { name: '背景音乐' })).toBeInTheDocument()
+    expect(screen.getByText('背景音乐')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '宁静' })).toHaveAttribute('aria-pressed', 'true')
+    fireEvent.click(screen.getByRole('button', { name: '愉悦' }))
+    expect(screen.getByRole('button', { name: '愉悦' })).toHaveAttribute('aria-pressed', 'true')
     const musicToggle = screen.getByRole('switch', { name: '音乐开关' })
     const sfxToggle = screen.getByRole('switch', { name: '音效开关' })
     const musicVolume = screen.getByRole('slider', { name: '音乐音量' })

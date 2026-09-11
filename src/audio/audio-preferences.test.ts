@@ -17,13 +17,13 @@ describe('audio preferences', () => {
     expect(readAudioPreferences(storage)).toEqual(DEFAULT_AUDIO_PREFERENCES)
     writeAudioPreferences(storage, {
       version: 1,
-      music: { enabled: true, volume: 0.42 },
+      music: { enabled: true, volume: 0.42, track: 'calm' },
       sfx: { enabled: false, volume: 0.75 },
     })
 
     expect(JSON.parse(values.get(AUDIO_PREFERENCES_STORAGE_KEY) ?? '')).toEqual({
       version: 1,
-      music: { enabled: true, volume: 0.42 },
+      music: { enabled: true, volume: 0.42, track: 'calm' },
       sfx: { enabled: false, volume: 0.75 },
     })
     expect(readAudioPreferences(storage).sfx.enabled).toBe(false)
@@ -32,11 +32,11 @@ describe('audio preferences', () => {
   it('clamps volumes and falls back for unsupported versions', () => {
     expect(normalizeAudioPreferences({
       version: 1,
-      music: { enabled: true, volume: 4 },
+      music: { enabled: true, volume: 4, track: 'joyful' },
       sfx: { enabled: false, volume: -2 },
     })).toEqual({
       version: 1,
-      music: { enabled: true, volume: 1 },
+      music: { enabled: true, volume: 1, track: 'joyful' },
       sfx: { enabled: false, volume: 0 },
     })
     expect(normalizeAudioPreferences({ version: 2 })).toEqual(DEFAULT_AUDIO_PREFERENCES)
