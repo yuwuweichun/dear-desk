@@ -126,7 +126,6 @@ export const STUDY_ROOM_MODEL_SPEC = {
     lipHeight: 0.1,
     soffitWidth: 2.4,
   },
-  wallThickness: 0.12,
   interior: { width: 42, depth: 33 },
   window: {
     centerX: 0,

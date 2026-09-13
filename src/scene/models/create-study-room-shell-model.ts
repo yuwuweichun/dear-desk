@@ -24,7 +24,6 @@ export interface StudyRoomShellNodes extends Record<string, THREE.Object3D> {
   ceiling: THREE.Mesh
   ceilingTray: THREE.InstancedMesh
   ceilingCrown: THREE.InstancedMesh
-  cornerPosts: THREE.Group
   walls: THREE.Group
   westWall: THREE.Mesh
   eastWall: THREE.Mesh
@@ -43,6 +42,15 @@ const WEST_X = -ROOM_WIDTH / 2
 const EAST_X = ROOM_WIDTH / 2
 const NORTH_Z = -ROOM_DEPTH / 2
 const SOUTH_Z = ROOM_DEPTH / 2
+const ROOM_PERIMETER = ROOM_WIDTH * 2 + ROOM_DEPTH * 2
+const WEST_U0 = 0
+const WEST_U1 = ROOM_DEPTH / ROOM_PERIMETER
+const SOUTH_U0 = WEST_U1
+const SOUTH_U1 = (ROOM_DEPTH + ROOM_WIDTH) / ROOM_PERIMETER
+const EAST_U0 = SOUTH_U1
+const EAST_U1 = (ROOM_DEPTH * 2 + ROOM_WIDTH) / ROOM_PERIMETER
+const NORTH_U0 = EAST_U1
+const NORTH_U1 = 1
 
 const disableRaycast = <T extends THREE.Object3D>(object: T): T => {
   object.raycast = () => undefined
@@ -86,7 +94,7 @@ const noise = (x: number, y: number, seed: number) => {
 const configureWallpaperTexture = (texture: THREE.Texture, name: string) => {
   texture.name = name
   texture.colorSpace = THREE.SRGBColorSpace
-  texture.wrapS = THREE.ClampToEdgeWrapping
+  texture.wrapS = THREE.RepeatWrapping
   texture.wrapT = THREE.ClampToEdgeWrapping
   texture.minFilter = THREE.LinearMipmapLinearFilter
   texture.magFilter = THREE.LinearFilter
@@ -108,19 +116,12 @@ const createRoomMaterials = (wallpaperThemeId: WallpaperThemeId = 'plain') => {
   const wallAlbedoByFace = Object.fromEntries(
     WALLPAPER_FACE_IDS.map((face) => [face, plainWallAlbedo]),
   ) as unknown as Record<WallpaperFace, THREE.Texture>
-  if (wallpaperTheme.atlasPath && wallpaperTheme.atlasLayout && wallpaperTheme.atlasColumns && wallpaperTheme.atlasRows) {
-    const atlas = new THREE.TextureLoader().load(wallpaperTheme.atlasPath)
-    const atlasCellOrigin = wallpaperTheme.atlasCellOrigin ?? [0, 0]
-    const atlasCellSize = wallpaperTheme.atlasCellSize ?? [1 / wallpaperTheme.atlasColumns!, 1 / wallpaperTheme.atlasRows!]
-    const inset = 0.0015
-    WALLPAPER_FACE_IDS.forEach((face) => {
-      const [column, row] = wallpaperTheme.atlasLayout![face]
-      const texture = configureWallpaperTexture(atlas.clone(), `study-room-wallpaper-${wallpaperThemeId}-${face}`)
-      texture.repeat.set(atlasCellSize[0] - atlasCellOrigin[0] * 2 - inset * 2, atlasCellSize[1] - atlasCellOrigin[1] * 2 - inset * 2)
-      texture.offset.set(column / wallpaperTheme.atlasColumns! + atlasCellOrigin[0] + inset, (wallpaperTheme.atlasRows! - row - 1) / wallpaperTheme.atlasRows! + atlasCellOrigin[1] + inset)
-      wallAlbedoByFace[face] = texture
+  if (wallpaperTheme.panoramaPath) {
+    const panorama = new THREE.TextureLoader().load(wallpaperTheme.panoramaPath)
+    configureWallpaperTexture(panorama, `study-room-wallpaper-${wallpaperThemeId}-panorama`)
+    ;(['west', 'north', 'east', 'south'] as const).forEach((face) => {
+      wallAlbedoByFace[face] = panorama
     })
-    atlas.dispose()
   }
   const wallData = makeTexture('study-room-wall-data', size, THREE.NoColorSpace, (x, y) => {
     const value = Math.round(228 + (noise(x / size * 28, y / size * 28, 11) - 0.5) * 16)
@@ -170,15 +171,16 @@ const createRoomMaterials = (wallpaperThemeId: WallpaperThemeId = 'plain') => {
   const createWall = (face: WallpaperFace) => new THREE.MeshStandardMaterial({
     color: '#ffffff', map: wallAlbedoByFace[face], roughness: 0.88, roughnessMap: wallData,
     bumpMap: wallData, bumpScale: 0.012, aoMap: wallData, aoMapIntensity: 0.12,
-    emissive: wallpaperTheme.atlasPath ? '#ffffff' : '#97937a',
-    emissiveIntensity: wallpaperTheme.atlasPath ? 0.06 : 0.24,
+    emissive: wallpaperTheme.panoramaPath ? '#ffffff' : '#97937a',
+    emissiveIntensity: wallpaperTheme.panoramaPath ? 0.06 : 0.24,
     side: THREE.DoubleSide,
   })
   const wallWest = createWall('west'); wallWest.name = 'study-room-wall-paint-west'
-  const wallNorth = wallpaperTheme.atlasPath ? createWall('north') : wallWest; wallNorth.name = 'study-room-wall-paint-north'
-  const wallEast = wallpaperTheme.atlasPath ? createWall('east') : wallWest; wallEast.name = 'study-room-wall-paint-east'
-  const wallSouth = wallpaperTheme.atlasPath ? createWall('south') : wallWest; wallSouth.name = 'study-room-wall-paint-south'
-  const ceiling = new THREE.MeshBasicMaterial({ color: wallpaperTheme.atlasPath ? '#ffffff' : '#d4c6b4', map: wallpaperTheme.atlasPath ? wallAlbedoByFace.ceiling : null, side: THREE.DoubleSide })
+  const isWallpapered = wallpaperTheme.panoramaPath !== undefined
+  const wallNorth = isWallpapered ? createWall('north') : wallWest; wallNorth.name = 'study-room-wall-paint-north'
+  const wallEast = isWallpapered ? createWall('east') : wallWest; wallEast.name = 'study-room-wall-paint-east'
+  const wallSouth = isWallpapered ? createWall('south') : wallWest; wallSouth.name = 'study-room-wall-paint-south'
+  const ceiling = new THREE.MeshBasicMaterial({ color: '#d4c6b4', map: null, side: THREE.DoubleSide })
   ceiling.name = 'study-room-ceiling-paint'
   const ceilingTray = new THREE.MeshStandardMaterial({ color: '#e6dac9', roughness: 0.82, bumpMap: wallData, bumpScale: 0.004 })
   ceilingTray.name = 'study-room-ceiling-tray-trim'
@@ -212,21 +214,24 @@ const createRoomMaterials = (wallpaperThemeId: WallpaperThemeId = 'plain') => {
 const createQuad = (
   vertices: Array<[number, number, number]>,
   normal: [number, number, number],
-  uv: [number, number, number, number] = [0, 0, 1, 1],
+  uv: readonly number[] = [0, 0, 1, 1],
 ) => {
   const geometry = new THREE.BufferGeometry()
   geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices.flat(), 3))
   geometry.setAttribute('normal', new THREE.Float32BufferAttribute([...normal, ...normal, ...normal, ...normal], 3))
-  geometry.setAttribute('uv', new THREE.Float32BufferAttribute([uv[0], uv[1], uv[2], uv[1], uv[2], uv[3], uv[0], uv[3]], 2))
+  const uvValues = uv.length === 4
+    ? [uv[0]!, uv[1]!, uv[2]!, uv[1]!, uv[2]!, uv[3]!, uv[0]!, uv[3]!]
+    : uv
+  geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvValues, 2))
   geometry.setIndex([0, 1, 2, 0, 2, 3])
   geometry.computeBoundingSphere()
   return geometry
 }
 
-const wallQuad = (x: number, z0: number, z1: number, y0: number, y1: number, inward: 1 | -1) =>
+const wallQuad = (x: number, z0: number, z1: number, y0: number, y1: number, inward: 1 | -1, uv?: [number, number, number, number]) =>
   inward === 1
-    ? createQuad([[x, y0, z0], [x, y1, z0], [x, y1, z1], [x, y0, z1]], [1, 0, 0])
-    : createQuad([[x, y0, z1], [x, y1, z1], [x, y1, z0], [x, y0, z0]], [-1, 0, 0])
+    ? createQuad([[x, y0, z0], [x, y1, z0], [x, y1, z1], [x, y0, z1]], [1, 0, 0], uv ? [uv[0], 0, uv[0], 1, uv[2], 1, uv[2], 0] : undefined)
+    : createQuad([[x, y0, z1], [x, y1, z1], [x, y1, z0], [x, y0, z0]], [-1, 0, 0], uv ? [uv[0], 0, uv[0], 1, uv[2], 1, uv[2], 0] : undefined)
 
 const horizontalQuad = (z: number, x0: number, x1: number, y0: number, y1: number, inward: 1 | -1, uv?: [number, number, number, number]) =>
   inward === 1
@@ -347,40 +352,19 @@ export function createStudyRoomShellModel(
   ceilingCrown.instanceMatrix.needsUpdate = true
   root.add(ceilingCrown)
 
-  const cornerGeometry = own(new THREE.BoxGeometry(
-    STUDY_ROOM_MODEL_SPEC.wallThickness,
-    STUDY_ROOM_MODEL_SPEC.wallTopY - STUDY_ROOM_MODEL_SPEC.floorTopY,
-    STUDY_ROOM_MODEL_SPEC.wallThickness,
-  ))
-  const cornerPosts = new THREE.Group()
-  cornerPosts.name = 'study-room-corner-seam-blockers'
-  disableRaycast(cornerPosts)
-  const cornerOffsetX = ROOM_WIDTH / 2 - STUDY_ROOM_MODEL_SPEC.wallThickness / 2
-  const cornerOffsetZ = ROOM_DEPTH / 2 - STUDY_ROOM_MODEL_SPEC.wallThickness / 2
-  for (const [x, z, name] of [
-    [-cornerOffsetX, -cornerOffsetZ, 'north-west'],
-    [cornerOffsetX, -cornerOffsetZ, 'north-east'],
-    [cornerOffsetX, cornerOffsetZ, 'south-east'],
-    [-cornerOffsetX, cornerOffsetZ, 'south-west'],
-  ] as const) {
-    const post = disableRaycast(markMesh(new THREE.Mesh(cornerGeometry, materials.wallNorth), `study-room-corner-${name}`, options))
-    post.position.set(x, (STUDY_ROOM_MODEL_SPEC.floorTopY + STUDY_ROOM_MODEL_SPEC.wallTopY) / 2, z)
-    cornerPosts.add(post)
-  }
-  root.add(cornerPosts)
-
   const walls = new THREE.Group(); walls.name = 'study-room-walls'; disableRaycast(walls)
   const window = STUDY_ROOM_MODEL_SPEC.window
   const wx0 = window.centerX - window.width / 2
   const wx1 = window.centerX + window.width / 2
-  const northWallU = (x: number) => (x - WEST_X) / ROOM_WIDTH
+  const continuousWallpaper = getWallpaperTheme(wallpaperThemeId).panoramaPath !== undefined
+  const northWallU = (x: number) => NORTH_U1 - (x - WEST_X) / ROOM_WIDTH * (NORTH_U1 - NORTH_U0)
   const northWallV = (y: number) => (y - STUDY_ROOM_MODEL_SPEC.floorTopY) / (STUDY_ROOM_MODEL_SPEC.wallTopY - STUDY_ROOM_MODEL_SPEC.floorTopY)
-  const west = createWallMesh(own(wallQuad(WEST_X, NORTH_Z, SOUTH_Z, STUDY_ROOM_MODEL_SPEC.floorTopY, STUDY_ROOM_MODEL_SPEC.wallTopY, 1)), materials.wallWest, 'study-room-west-wall', options)
-  const east = createWallMesh(own(wallQuad(EAST_X, SOUTH_Z, NORTH_Z, STUDY_ROOM_MODEL_SPEC.floorTopY, STUDY_ROOM_MODEL_SPEC.wallTopY, -1)), materials.wallEast, 'study-room-east-wall', options)
-  const south = createWallMesh(own(horizontalQuad(SOUTH_Z, EAST_X, WEST_X, STUDY_ROOM_MODEL_SPEC.floorTopY, STUDY_ROOM_MODEL_SPEC.wallTopY, -1)), materials.wallSouth, 'study-room-south-wall', options)
+  const west = createWallMesh(own(wallQuad(WEST_X, NORTH_Z, SOUTH_Z, STUDY_ROOM_MODEL_SPEC.floorTopY, STUDY_ROOM_MODEL_SPEC.wallTopY, 1, continuousWallpaper ? [WEST_U0, 0, WEST_U1, 1] : undefined)), materials.wallWest, 'study-room-west-wall', options)
+  const east = createWallMesh(own(wallQuad(EAST_X, SOUTH_Z, NORTH_Z, STUDY_ROOM_MODEL_SPEC.floorTopY, STUDY_ROOM_MODEL_SPEC.wallTopY, -1, continuousWallpaper ? [EAST_U1, 0, EAST_U0, 1] : undefined)), materials.wallEast, 'study-room-east-wall', options)
+  const south = createWallMesh(own(horizontalQuad(SOUTH_Z, WEST_X, EAST_X, STUDY_ROOM_MODEL_SPEC.floorTopY, STUDY_ROOM_MODEL_SPEC.wallTopY, -1, continuousWallpaper ? [SOUTH_U1, 0, SOUTH_U0, 1] : undefined)), materials.wallSouth, 'study-room-south-wall', options)
   const northWindowParts = [
-    horizontalQuad(NORTH_Z, WEST_X, wx0, STUDY_ROOM_MODEL_SPEC.floorTopY, STUDY_ROOM_MODEL_SPEC.wallTopY, 1, [northWallU(WEST_X), 0, northWallU(wx0), 1]),
-    horizontalQuad(NORTH_Z, wx1, EAST_X, STUDY_ROOM_MODEL_SPEC.floorTopY, STUDY_ROOM_MODEL_SPEC.wallTopY, 1, [northWallU(wx1), 0, northWallU(EAST_X), 1]),
+    horizontalQuad(NORTH_Z, WEST_X, wx0, STUDY_ROOM_MODEL_SPEC.floorTopY, STUDY_ROOM_MODEL_SPEC.wallTopY, 1, continuousWallpaper ? [northWallU(WEST_X), 0, northWallU(wx0), 1] : undefined),
+    horizontalQuad(NORTH_Z, wx1, EAST_X, STUDY_ROOM_MODEL_SPEC.floorTopY, STUDY_ROOM_MODEL_SPEC.wallTopY, 1, continuousWallpaper ? [northWallU(wx1), 0, northWallU(EAST_X), 1] : undefined),
     horizontalQuad(NORTH_Z, wx0, wx1, STUDY_ROOM_MODEL_SPEC.floorTopY, window.bottomY, 1, [northWallU(wx0), 0, northWallU(wx1), northWallV(window.bottomY)]),
     horizontalQuad(NORTH_Z, wx0, wx1, window.topY, STUDY_ROOM_MODEL_SPEC.wallTopY, 1, [northWallU(wx0), northWallV(window.topY), northWallU(wx1), 1]),
   ]
@@ -459,7 +443,7 @@ export function createStudyRoomShellModel(
   matrix.compose(new THREE.Vector3(0, capY, SOUTH_Z - base.capInset), new THREE.Quaternion(), new THREE.Vector3(ROOM_WIDTH, base.capHeight, base.depth * 0.72)); baseboards.setMatrixAt(7, matrix)
   baseboards.instanceMatrix.needsUpdate = true; root.add(baseboards)
 
-  const nodes = { root, floor, floorUnderlay, ceiling, ceilingTray, ceilingCrown, cornerPosts, walls, westWall: west, eastWall: east, northWall: northWindowWall.children[0] as THREE.Mesh, southWall: south, northWindow, windowReveal, windowBackdrop, windowGlass: glassGroup, baseboards } satisfies StudyRoomShellNodes
+  const nodes = { root, floor, floorUnderlay, ceiling, ceilingTray, ceilingCrown, walls, westWall: west, eastWall: east, northWall: northWindowWall.children[0] as THREE.Mesh, southWall: south, northWindow, windowReveal, windowBackdrop, windowGlass: glassGroup, baseboards } satisfies StudyRoomShellNodes
   setSculptRuntime(root, { colliders: { floor: { id: 'study-room-floor', type: 'box', center: [0, STUDY_ROOM_MODEL_SPEC.floorTopY, 0], size: [ROOM_WIDTH, 0.02, ROOM_DEPTH] } }, destructionGroups: { walls: [...walls.children], window: [northWindow], glass: [...glassGroup.children] }, nodes, sockets: { floor, northWindow } } satisfies SculptRuntime<StudyRoomShellNodes>)
   root.userData.resourceMetrics = measureModelResources(root)
   root.userData.resourceBudget = { targetTriangles: 250000, maxDrawCalls: 160, textures: materials.textures.length }

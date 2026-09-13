@@ -8,23 +8,10 @@ export const WALLPAPER_FACE_IDS = ['west', 'north', 'east', 'ceiling', 'south'] 
 
 export type WallpaperFace = (typeof WALLPAPER_FACE_IDS)[number]
 
-export const CANDY_CLOUD_ATLAS_LAYOUT: Readonly<Record<WallpaperFace, readonly [number, number]>> = {
-  west: [0, 0],
-  north: [1, 0],
-  east: [2, 0],
-  ceiling: [1, 1],
-  south: [2, 1],
-}
-
 export interface WallpaperThemeOption {
   id: WallpaperThemeId
   label: string
-  atlasPath?: string
-  atlasColumns?: number
-  atlasRows?: number
-  atlasLayout?: Readonly<Record<WallpaperFace, readonly [number, number]>>
-  atlasCellOrigin?: readonly [number, number]
-  atlasCellSize?: readonly [number, number]
+  panoramaPath?: string
 }
 
 export const DEFAULT_WALLPAPER_THEME_ID: WallpaperThemeId = 'plain'
@@ -34,12 +21,7 @@ export const WALLPAPER_THEME_OPTIONS: readonly WallpaperThemeOption[] = [
   {
     id: 'candy-cloud',
     label: 'Candy Cloud',
-    atlasPath: '/assets/wallpapers/candy-cloud-cube-net.png',
-    atlasColumns: 3,
-    atlasRows: 2,
-    atlasLayout: CANDY_CLOUD_ATLAS_LAYOUT,
-    atlasCellOrigin: [0.02, 0.028],
-    atlasCellSize: [1 / 3, 1 / 2],
+    panoramaPath: '/assets/wallpapers/candy-cloud-panorama.png',
   },
 ]
 

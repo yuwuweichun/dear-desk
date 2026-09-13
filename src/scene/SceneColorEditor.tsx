@@ -457,7 +457,7 @@ export function SceneColorEditor({
               active={wallpaperThemeId === 'candy-cloud'}
               label="Candy Cloud"
               onApply={() => onWallpaperChange('candy-cloud')}
-              previewSrc="/assets/wallpapers/candy-cloud-cube-net.png"
+              previewSrc="/assets/wallpapers/candy-cloud-panorama.png"
             />
           </div>
         </div>
