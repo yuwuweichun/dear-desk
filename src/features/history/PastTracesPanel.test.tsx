@@ -44,14 +44,14 @@ describe('PastTracesPanel', () => {
       </AppStoreProvider>,
     )
 
-    expect(screen.getByRole('dialog', { name: '旧痕迹' })).toBeInTheDocument()
+    expect(screen.getByRole('dialog', { name: '旧时日记' })).toBeInTheDocument()
     expect(screen.getByText('2026年8月')).toBeInTheDocument()
     expect(screen.getByText('2026年7月')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: '关闭旧痕迹' })).toHaveFocus()
+    expect(screen.getByRole('button', { name: '关闭旧时日记' })).toHaveFocus()
     expect(screen.getByText('仅有贴纸')).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', {
-      name: '打开 2026-08-02 的旧痕迹',
+      name: '打开 2026-08-02 的旧时日记',
     }))
     expect(store.getState()).toMatchObject({
       pastTracesPhase: 'closing',

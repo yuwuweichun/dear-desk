@@ -61,11 +61,11 @@ export function PastTracesPanel() {
             <Archive aria-hidden="true" size={22} strokeWidth={1.8} />
             <div>
               <p>ARCHIVE DRAWER</p>
-              <h2 id="past-traces-title">旧痕迹</h2>
+              <h2 id="past-traces-title">旧时日记</h2>
             </div>
           </div>
           <IconButton
-            label="关闭旧痕迹"
+            label="关闭旧时日记"
             onClick={requestClose}
             variant="quiet"
           >
@@ -77,13 +77,13 @@ export function PastTracesPanel() {
           {status === 'loading' || status === 'idle' ? (
             <div className="past-traces-message" role="status">
               <Archive aria-hidden="true" size={26} strokeWidth={1.6} />
-              <p>正在翻找旧痕迹...</p>
+              <p>正在翻找旧时日记...</p>
             </div>
           ) : null}
 
           {status === 'error' ? (
             <div className="past-traces-message" role="alert">
-              <p>{errorMessage ?? '旧痕迹暂时无法读取。'}</p>
+              <p>{errorMessage ?? '旧时日记暂时无法读取。'}</p>
               <Button
                 icon={<RefreshCw aria-hidden="true" size={17} />}
                 onClick={() => void loadPastTraces()}
@@ -97,7 +97,7 @@ export function PastTracesPanel() {
           {status === 'ready' && monthGroups.length === 0 ? (
             <div className="past-traces-message">
               <Archive aria-hidden="true" size={26} strokeWidth={1.6} />
-              <p>还没有可以翻找的旧痕迹。</p>
+              <p>还没有可以翻找的旧时日记。</p>
             </div>
           ) : null}
 
@@ -108,7 +108,7 @@ export function PastTracesPanel() {
                 {items.map((trace) => (
                   <li key={trace.date}>
                     <button
-                      aria-label={`打开 ${trace.date} 的旧痕迹`}
+                      aria-label={`打开 ${trace.date} 的旧时日记`}
                       className="past-trace-row"
                       onClick={() => selectPastTrace(trace.date)}
                       type="button"

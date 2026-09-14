@@ -203,6 +203,25 @@ describe('App notebook animation handoff', () => {
 })
 
 describe('App old traces entry', () => {
+  it('places the notebook action first in the desk HUD', () => {
+    const store = createAppStore(createRepository(), date)
+    render(
+      <AppStoreProvider store={store}>
+        <App />
+      </AppStoreProvider>,
+    )
+
+    const actions = document.querySelector('.desk-actions')
+    expect(actions).not.toBeNull()
+    expect([...actions!.querySelectorAll('button')].map((button) => button.textContent?.trim())).toEqual([
+      '打开本子',
+      '旧时日记',
+      '编辑铭牌',
+      '装饰工坊',
+      '正面视角',
+    ])
+  })
+
   it('opens the center-drawer workflow from the equivalent desk command', async () => {
     const store = createAppStore(createRepository(), date)
     render(
@@ -211,13 +230,13 @@ describe('App old traces entry', () => {
       </AppStoreProvider>,
     )
 
-    fireEvent.click(screen.getByRole('button', { name: '旧痕迹' }))
+    fireEvent.click(screen.getByRole('button', { name: '旧时日记' }))
     expect(store.getState().pastTracesPhase).toBe('opening')
     await vi.waitFor(() => expect(store.getState().pastTracesStatus).toBe('ready'))
 
     act(() => store.getState().settlePastTracesTransition())
-    expect(screen.getByRole('dialog', { name: '旧痕迹' })).toBeInTheDocument()
-    expect(screen.getByText('还没有可以翻找的旧痕迹。')).toBeInTheDocument()
+    expect(screen.getByRole('dialog', { name: '旧时日记' })).toBeInTheDocument()
+    expect(screen.getByText('还没有可以翻找的旧时日记。')).toBeInTheDocument()
   })
 })
 
@@ -302,7 +321,7 @@ describe('App camera controls', () => {
     expect(enabledFreeCameraButton.querySelector('.lucide-camera')).toBeInTheDocument()
     expect(enabledFreeCameraButton.querySelector('.lucide-camera-off')).not.toBeInTheDocument()
     expect(
-      screen.getByRole('button', { name: '当前正面，切换到近处' }),
+      screen.getByRole('button', { name: '当前正面视角，切换到近处视角' }),
     ).toBeDisabled()
   })
 })

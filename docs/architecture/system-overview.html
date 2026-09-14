@@ -148,7 +148,7 @@
         <ol class="checks">
           <li><strong>加载今天</strong><span><code>App</code> 调用 <code>loadToday()</code> 和 <code>loadStickers()</code>，保持桌面摘要、当天编辑和贴纸目标兼容。</span></li>
           <li><strong>打开本子</strong><span>3D 命中区或 DOM 按钮把 <code>NotebookPhase</code> 推进到 <code>editing</code>；此时统一挂载 <code>JournalPanel</code> 并以 <code>reading + idle</code> 开始，同时隐藏 3D 本子。</span></li>
-          <li><strong>从旧痕迹定位</strong><span>中央抽屉或桌面“旧痕迹”按钮打开 <code>PastTracesPanel</code>；选择日期后先收回抽屉，再把一次性的 <code>journalInitialDate</code> 交给本子。<code>loadJournalPages()</code> 以该日期建立本次游标，普通本子入口仍从今天开始；消费后立即清空，不保存阅读位置。</span></li>
+          <li><strong>从旧时日记定位</strong><span>中央抽屉或桌面“旧时日记”按钮打开 <code>PastTracesPanel</code>；选择日期后先收回抽屉，再把一次性的 <code>journalInitialDate</code> 交给本子。<code>loadJournalPages()</code> 以该日期建立本次游标，普通本子入口仍从今天开始；消费后立即清空，不保存阅读位置。</span></li>
           <li><strong>建立页序</strong><span><code>loadJournalPages()</code> 并行读取 <code>DailyEntryRepository.listDates()</code> 与 <code>StickerRepository.listJournalDates()</code>，合并今天、去重、排序并丢弃未来日期。</span></li>
           <li><strong>按需读取</strong><span>首次读取当前右页日期的正文与贴纸 Blob；页序查询本身只读取日期/instance 字段，不加载全部历史 PNG。</span></li>
           <li><strong>呈现当前日期</strong><span><code>journalCursor</code> 只代表右页日期。左页展示同一日期的贴纸并提供“前往装饰工坊”入口；右页统一投影今天或历史正文。</span></li>
@@ -238,7 +238,7 @@ AudioRuntime observes edges once
               <tr><td>命名场景颜色、新建 640 × 360 / 兼容旧 320 × 180 预览 Blob 与时间戳</td><td>IndexedDB / <code>SceneColorPresetRepository</code></td><td>跨页面重开；删除时移除记录和 Blob</td><td>当前选中预设、Three.js renderer、Texture 与 object URL</td></tr>
               <tr><td><code>selectedDate</code>、当天正文与贴纸</td><td>Zustand store</td><td>当前页面运行</td><td>未来日期、DOM Event</td></tr>
               <tr><td>页面日期、可见页缓存、游标和翻页阶段</td><td>Zustand store</td><td>打开本子期间；重开回今天</td><td>IndexedDB 阅读位置</td></tr>
-              <tr><td>旧痕迹摘要、载入状态、抽屉阶段与一次性目标日期</td><td>Zustand store / <code>past-trace.ts</code></td><td>当前页面；关闭或刷新后重新派生</td><td>IndexedDB UI 状态、Three.js 对象和贴纸 Blob</td></tr>
+              <tr><td>旧时日记摘要、载入状态、抽屉阶段与一次性目标日期</td><td>Zustand store / <code>past-trace.ts</code></td><td>当前页面；关闭或刷新后重新派生</td><td>IndexedDB UI 状态、Three.js 对象和贴纸 Blob</td></tr>
               <tr><td><code>journalMode</code>、<code>writingPhase</code>、<code>draftDate</code> 与未保存草稿</td><td><code>JournalBook</code></td><td>本次本子面板；关闭后丢弃</td><td>Zustand、IndexedDB 与自动保存</td></tr>
               <tr><td>全局内容字体偏好</td><td><code>ProductApp</code> + <code>localStorage</code> / <code>journal-font.ts</code></td><td>当前浏览器；清除站点数据后回到纸页宋体</td><td><code>DailyEntry</code>、<code>NotebookCoverSettings</code>、IndexedDB、贴纸文字与 UI 字体</td></tr>
               <tr><td>音乐/音效开关与音量</td><td><code>ProductApp</code> + <code>localStorage</code> / <code>audio-preferences.ts</code></td><td>当前浏览器；清除站点数据后回到音乐关闭/30%、音效开启/60%</td><td>Zustand、IndexedDB、正文、贴纸和音乐播放位置</td></tr>
@@ -259,7 +259,7 @@ AudioRuntime observes edges once
         <p>数据库名为 <code>dear-desk</code>。v3 保留 <code>dailyEntries</code>，新增图片 source 表，并让实例使用 <code>desk | journal</code> 判别联合；日记实例通过 <code>[surface+journalDate]</code> 索引按日期查询。v4 新增单例的 <code>notebookCoverSettings</code> 表保存本子铭牌文字。v5 完整保留 v1-v4 表并新增 <code>sceneColorPresets</code>：<code>id</code> 为主键，规范化名称使用唯一索引，<code>createdAt</code> 支持新到旧读取；记录保存九项小写 HEX、可选 WebP/PNG Blob 与 MIME 类型。v4 升级不改既有日记、贴纸或铭牌记录，也不注入默认卡片。<code>dailyEntries</code> 现在写入标题与正文；旧版本记录没有标题字段时由日记投影按今天/历史页回退。阅读/书写模式、标题/正文草稿、当前颜色和当前预设仍不持久化。</p>
         <p>内容字体选择不是日记或铭牌业务内容。<code>journal-font.ts</code> 保留兼容键 <code>dear-desk:journal-font</code>，在 <code>localStorage</code> 保存 <code>paper | xuandong | suifeng | zhimang</code>；<code>ProductApp</code> 读取后成为当前页面唯一运行时所有者，并同时下传给日记和铭牌。读取会检查值是否合法，并在存储不可用或值不受支持时回退 <code>paper</code>。因此既有正文、铭牌文字和 IndexedDB 均无需迁移，旧的 <code>jingjing</code> 偏好会安全回退。</p>
         <p>音频偏好同样不是业务内容。<code>audio-preferences.ts</code> 在 <code>dear-desk:audio-preferences</code> 保存带 <code>version: 1</code> 的音乐/音效开关与 <code>0..1</code> 音量；解析会限制越界数字、拒绝未知版本并在 JSON 或存储失败时回到安静默认值。新增声音不升级 IndexedDB，也不保存当前音轨、播放进度或浏览器媒体对象。</p>
-        <p>旧痕迹不增加 schema 或持久化表。<code>DailyEntryRepository.listEntries()</code> 读取正文记录，<code>StickerRepository.listJournalDateCounts()</code> 只读取日记 instance 的日期并聚合数量，不加载 definition、render 或 source Blob。<code>buildPastTraceSummaries()</code> 在内存中合并两路数据、过滤今天与未来日期并倒序生成标题、正文预览和贴纸数量；贴纸-only 日期也会保留。抽屉阶段、面板展开、摘要缓存和目标阅读日期都只属于当前页面。</p>
+        <p>旧时日记不增加 schema 或持久化表。<code>DailyEntryRepository.listEntries()</code> 读取正文记录，<code>StickerRepository.listJournalDateCounts()</code> 只读取日记 instance 的日期并聚合数量，不加载 definition、render 或 source Blob。<code>buildPastTraceSummaries()</code> 在内存中合并两路数据、过滤今天与未来日期并倒序生成标题、正文预览和贴纸数量；贴纸-only 日期也会保留。抽屉阶段、面板展开、摘要缓存和目标阅读日期都只属于当前页面。</p>
         <div class="code-block">
           <div class="code-head"><span>IndexedDB v5 schema</span><button class="copy-button" type="button" data-copy-target="database-schema">复制</button></div>
           <pre id="database-schema"><code>database.version(5).stores({
@@ -306,7 +306,7 @@ AudioRuntime observes edges once
             <tbody>
               <tr><td>今天读取失败</td><td><code>loadStatus: error</code>，显示本地记录不可用</td><td>数据库不被改写</td></tr>
               <tr><td>历史日期索引或可见页读取失败</td><td><code>journalLoadStatus: error</code>，双页显示可见错误</td><td>今天正文和贴纸链路仍独立</td></tr>
-              <tr><td>旧痕迹摘要读取失败</td><td><code>pastTracesStatus: error</code>，DOM 面板保留重试与关闭路径</td><td>已保存正文、贴纸和普通本子入口不被改写</td></tr>
+              <tr><td>旧时日记摘要读取失败</td><td><code>pastTracesStatus: error</code>，DOM 面板保留重试与关闭路径</td><td>已保存正文、贴纸和普通本子入口不被改写</td></tr>
               <tr><td>已选择的历史日期在打开前消失</td><td>本子回退今天并显示可见读取提示</td><td>现有页序与 IndexedDB 数据</td></tr>
               <tr><td>目标页预读失败</td><td>翻页从 loading 复位到 idle，不提交游标</td><td>原跨页保持不变</td></tr>
               <tr><td>快速重复点击</td><td>非 idle 请求返回 <code>false</code></td><td>只有一个 pending cursor</td></tr>
@@ -318,7 +318,7 @@ AudioRuntime observes edges once
               <tr><td>铭牌字体加载期间再次切换或卸载</td><td><code>NotebookObject</code> 取消过期异步结果，不把旧字体 Mesh 加回场景</td><td>当前字体状态和最后一份有效铭牌投影</td></tr>
               <tr><td>贴纸创建事务失败</td><td>不加入内存集合并显示错误</td><td>不会留下部分 source/definition/render/instance</td></tr>
               <tr><td>贴纸移动提交失败</td><td>显示错误并重新加载持久化位置</td><td>最后一次成功位置</td></tr>
-              <tr><td>WebGL 初始化失败</td><td>结束首屏 Loading 遮罩，显示“打开本子”和“旧痕迹”DOM 降级入口；旧痕迹跳过抽屉动画</td><td>双页 DOM、历史摘要与 IndexedDB 日记链路</td></tr>
+              <tr><td>WebGL 初始化失败</td><td>结束首屏 Loading 遮罩，显示“打开本子”和“旧时日记”DOM 降级入口；旧时日记跳过抽屉动画</td><td>双页 DOM、历史摘要与 IndexedDB 日记链路</td></tr>
               <tr><td>模型卸载或 StrictMode 重挂载</td><td>工厂释放自有 geometry；共享材质库释放 12 张纹理和材质；环境释放 PMREM</td><td>可序列化业务状态与 IndexedDB 数据</td></tr>
               <tr><td>模型超过预算</td><td>工厂测试失败；上限为 45 draw calls、80,000 triangles、16 textures 和一盏投影光</td><td>critical feature 不以静默删减换取通过</td></tr>
               <tr><td>reduced-motion</td><td>日期翻页的大角度旋转改为 120ms 淡出；开本 5 张临时页片显式隐藏；中央抽屉直接落到稳定端点；已批准的动作音效仍播放并可由音效开关关闭</td><td>相同游标提交、打开终态、声音偏好和边界语义</td></tr>
@@ -359,14 +359,14 @@ edit historical text:
         <p class="section-index">12 · 源码地图</p>
         <h2>先读状态协议，再沿 repository 和两种投影向下</h2>
         <div class="source-map">
-          <div><code><a href="../../src/app/App.tsx">src/app/App.tsx</a></code><span><code>ProductApp</code> 组合桌面、旧痕迹与日记工作流，拥有全局内容字体和音频偏好；idle 阶段挂载 <code>Time type="hud"</code></span></div>
+          <div><code><a href="../../src/app/App.tsx">src/app/App.tsx</a></code><span><code>ProductApp</code> 组合桌面、旧时日记与日记工作流，拥有全局内容字体和音频偏好；idle 阶段挂载 <code>Time type="hud"</code></span></div>
           <div><code><a href="../../src/app/App.test.tsx">src/app/App.test.tsx</a></code><span>验证 HUD、右上工具顺序、全局字体、音频设置持久化以及日记/场景共享内容字体</span></div>
           <div><code><a href="../../src/audio/audio-preferences.ts">src/audio/audio-preferences.ts</a></code><span>版本化音乐/音效偏好、默认值、音量归一化、JSON 与存储失败回退</span></div>
           <div><code><a href="../../src/audio/audio-controller.ts">src/audio/audio-controller.ts</a></code><span>五条本地资源映射、每语义单播放器、延迟重播、静音检查、失败降级与释放</span></div>
           <div><code><a href="../../src/audio/AudioRuntime.tsx">src/audio/AudioRuntime.tsx</a></code><span>观察本子、日期翻页和抽屉成功状态边沿，并按关本动画终点计算延迟</span></div>
           <div><code><a href="../../src/features/settings/AudioSettingsControl.tsx">AudioSettingsControl.tsx</a></code><span>右上角入口、音乐/音效独立开关、音量滑杆、百分比、点击外部与 Escape 关闭</span></div>
           <div><code><a href="../../public/audio/SOURCE.md">public/audio/SOURCE.md</a></code><span>原始输入、处理参数、输出 SHA-256 与公开再分发许可待补证边界</span></div>
-          <div><code><a href="../../src/state/app-store.ts">src/state/app-store.ts</a></code><span>旧痕迹开合/载入状态机、一次性日记目标、<code>loadJournalPages</code>、翻页、保存与贴纸工作流</span></div>
+          <div><code><a href="../../src/state/app-store.ts">src/state/app-store.ts</a></code><span>旧时日记开合/载入状态机、一次性日记目标、<code>loadJournalPages</code>、翻页、保存与贴纸工作流</span></div>
           <div><code><a href="../../src/features/history/PastTracesPanel.tsx">PastTracesPanel.tsx</a></code><span>按月份分组的 DOM 历史索引、空/错/载入状态、日期选择、Escape 与关闭语义</span></div>
           <div><code><a href="../../src/domain/past-trace.ts">src/domain/past-trace.ts</a></code><span>合并正文与日记贴纸计数，过滤今天/未来并生成轻量历史摘要</span></div>
           <div><code><a href="../../src/features/settings/ContentFontControl.tsx">ContentFontControl.tsx</a></code><span>首页右上字体按钮、向左菜单、候选字体预览和可访问选择语义</span></div>
@@ -422,7 +422,7 @@ edit historical text:
               <tr><td>当天正文与 IndexedDB 恢复</td><td><span class="status status-review">已实现</span></td><td>repository、store、DOM 自动测试</td></tr>
               <tr><td>装饰工坊与三 surface</td><td><span class="status status-review">待验收</span></td><td>DD-20260904-001 复用现有资产事务并增加墙面放置；DD-20260905-001 增加持久化等比缩放、完成动作和整张桌板命中；自动检查通过，浏览器视觉与交互未执行</td></tr>
               <tr><td>双页本子与仿真翻页</td><td><span class="status status-review">已完成</span></td><td>DD-20260821-002 已把刚性 CSS 半页替换为隔离的 <code>page-flip@2.0.7</code> 四页快照；组件/清理测试、lint、build、桌面/移动双向中间帧、reduced-motion 和连续四轮资源清理均通过，并已由用户验收</td></tr>
-              <tr><td>旧痕迹中央抽屉入口</td><td><span class="status status-review">已完成</span></td><td>中央敞口抽屉与 DOM 等价入口共享状态机；历史摘要不读取贴纸图片 Blob，支持贴纸-only 日期和指定日期打开本子。清理已取消实验后的 96 项测试、lint、build、桌面/移动、WebGL 降级、reduced-motion、刷新恢复和本地 HTML 交互均通过；浏览器空态因隔离 origin 已有历史数据，改由组件与 store 自动测试覆盖；DD-20260824-002 与 004 已由用户验收</td></tr>
+              <tr><td>旧时日记中央抽屉入口</td><td><span class="status status-review">已完成</span></td><td>中央敞口抽屉与 DOM 等价入口共享状态机；历史摘要不读取贴纸图片 Blob，支持贴纸-only 日期和指定日期打开本子。清理已取消实验后的 96 项测试、lint、build、桌面/移动、WebGL 降级、reduced-motion、刷新恢复和本地 HTML 交互均通过；浏览器空态因隔离 origin 已有历史数据，改由组件与 store 自动测试覆盖；DD-20260824-002 与 004 已由用户验收</td></tr>
               <tr><td>统一阅读与历史正文书写</td><td><span class="status status-review">待验收</span></td><td>43 个全量测试、lint、build 及桌面/移动打开与关闭恢复流程通过</td></tr>
               <tr><td>全局内容字体与铭牌凹刻</td><td><span class="status status-review">已完成</span></td><td>首页提供纸页宋体/玄冬楷书/随峰体/志莽行书，同一状态驱动日记正文与铭牌；UI 字体隔离、偏好恢复、三贴图资源释放、lint、production build 和 1440 × 900 / 390 × 844 交互检查均已通过，并已由用户验收</td></tr>
               <tr><td>日记页眉字体与状态精简</td><td><span class="status status-review">已完成</span></td><td>DD-20260823-006 已让实时页、标题输入和四张翻页快照的日期/页标题继承内容字体，并删除“尚未留下”“当前日期”“旧日记录”；90 项测试、lint、build、桌面/移动实时与翻页中间态、偏好刷新恢复均通过，并已由用户验收</td></tr>

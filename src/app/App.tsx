@@ -85,7 +85,7 @@ function SceneFallback() {
         onClick={openPastTracesWithoutScene}
         variant="secondary"
       >
-        旧痕迹
+        旧时日记
       </Button>
     </div>
   )
@@ -242,9 +242,9 @@ function ProductApp({ sceneColorPresetRepository }: ProductAppProps) {
   }
 
   const cameraPresetLabels = {
-    far: '远处',
-    front: '正面',
-    near: '近处',
+    far: '远处视角',
+    front: '正面视角',
+    near: '近处视角',
   } as const
   const nextCameraPreset = {
     far: 'front',
@@ -305,17 +305,6 @@ function ProductApp({ sceneColorPresetRepository }: ProductAppProps) {
       {showDeskActions ? (
         <div className="desk-actions">
           <Button
-            aria-label={`当前${cameraPresetLabels[deskCameraPreset]}，切换到${cameraPresetLabels[nextCameraPreset[deskCameraPreset]]}`}
-            className="camera-preset-button"
-            disabled={deskCameraTransitioning || freeCameraEnabled}
-            icon={<Camera aria-hidden="true" size={19} strokeWidth={1.8} />}
-            onClick={cycleDeskCameraPreset}
-            title={`切换到${cameraPresetLabels[nextCameraPreset[deskCameraPreset]]}`}
-            variant="secondary"
-          >
-            <span>{cameraPresetLabels[deskCameraPreset]}</span>
-          </Button>
-          <Button
             className="notebook-button"
             icon={<BookOpen aria-hidden="true" size={19} strokeWidth={1.8} />}
             onClick={() => {
@@ -336,7 +325,7 @@ function ProductApp({ sceneColorPresetRepository }: ProductAppProps) {
             }}
             variant="secondary"
           >
-            <span>旧痕迹</span>
+            <span>旧时日记</span>
           </Button>
           <Button
             aria-label="编辑铭牌"
@@ -363,6 +352,17 @@ function ProductApp({ sceneColorPresetRepository }: ProductAppProps) {
             variant="secondary"
           >
             <span>装饰工坊</span>
+          </Button>
+          <Button
+            aria-label={`当前${cameraPresetLabels[deskCameraPreset]}，切换到${cameraPresetLabels[nextCameraPreset[deskCameraPreset]]}`}
+            className="camera-preset-button"
+            disabled={deskCameraTransitioning || freeCameraEnabled}
+            icon={<Camera aria-hidden="true" size={19} strokeWidth={1.8} />}
+            onClick={cycleDeskCameraPreset}
+            title={`切换到${cameraPresetLabels[nextCameraPreset[deskCameraPreset]]}`}
+            variant="secondary"
+          >
+            <span>{cameraPresetLabels[deskCameraPreset]}</span>
           </Button>
         </div>
       ) : null}

@@ -373,7 +373,7 @@ export const createAppStore = (
           journalInitialDate: null,
           journalErrorMessage: requestedCursor >= 0
             ? null
-            : '这一天已不在旧痕迹中，已回到今天。',
+            : '这一天已不在旧时日记中，已回到今天。',
         })
       } catch (error) {
         set({
@@ -495,7 +495,7 @@ export const createAppStore = (
           pastTracesStatus: 'error',
           pastTracesErrorMessage: messageFromError(
             error,
-            '旧痕迹暂时无法读取。',
+            '旧时日记暂时无法读取。',
           ),
         })
       }
