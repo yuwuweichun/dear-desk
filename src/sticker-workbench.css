@@ -59,12 +59,10 @@
   padding: 0;
   border: 0;
   background: transparent;
-  cursor: grab;
   pointer-events: auto;
   touch-action: none;
 }
 
-.journal-sticker:active { cursor: grabbing; }
 .journal-sticker.is-readonly { pointer-events: none; }
 
 .journal-sticker.is-selected::after {

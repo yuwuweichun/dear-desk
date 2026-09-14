@@ -29,6 +29,7 @@ function JournalStickerItem({
 }: JournalStickerItemProps) {
   const [src, setSrc] = useState<string | null>(null)
   const dragRef = useRef(false)
+  const dragOffset = useRef({ x: 0, y: 0 })
 
   useEffect(() => {
     const reader = new FileReader()
@@ -64,7 +65,7 @@ function JournalStickerItem({
   return (
     <button
       type="button"
-      className={`${selected ? 'journal-sticker is-selected' : 'journal-sticker'}${interactive ? '' : ' is-readonly'}`}
+      className={`${selected ? 'journal-sticker is-selected animal-cursor animal-cursor--force' : 'journal-sticker'}${interactive ? '' : ' is-readonly'}`}
       style={{
         left: `${instance.position.x * 100}%`,
         top: `${instance.position.y * 100}%`,
@@ -84,23 +85,38 @@ function JournalStickerItem({
         if (!interactive) return
         event.stopPropagation()
         dragRef.current = true
+        const point = positionFromPointer(event)
+        dragOffset.current = {
+          x: instance.position.x - point.x,
+          y: instance.position.y - point.y,
+        }
         onSelect(instance.id)
-        event.currentTarget.setPointerCapture(event.pointerId)
+        event.currentTarget.setPointerCapture?.(event.pointerId)
       }}
       onPointerMove={(event) => {
         if (!interactive || !dragRef.current) return
         event.stopPropagation()
-        onPreview(instance.id, positionFromPointer(event))
+        const point = positionFromPointer(event)
+        onPreview(instance.id, {
+          x: point.x + dragOffset.current.x,
+          y: point.y + dragOffset.current.y,
+        })
       }}
       onPointerUp={(event) => {
         if (!interactive || !dragRef.current) return
         event.stopPropagation()
         dragRef.current = false
-        event.currentTarget.releasePointerCapture(event.pointerId)
-        onCommit(instance.id, positionFromPointer(event))
+        event.currentTarget.releasePointerCapture?.(event.pointerId)
+        const point = positionFromPointer(event)
+        onCommit(instance.id, {
+          x: point.x + dragOffset.current.x,
+          y: point.y + dragOffset.current.y,
+        })
+        dragOffset.current = { x: 0, y: 0 }
       }}
       onPointerCancel={() => {
         dragRef.current = false
+        dragOffset.current = { x: 0, y: 0 }
       }}
     >
       {src ? <img src={src} alt="" draggable={false} /> : <span className="sr-only">正在读取贴纸图片</span>}

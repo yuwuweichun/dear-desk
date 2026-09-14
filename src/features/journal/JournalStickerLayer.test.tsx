@@ -1,5 +1,5 @@
 import { StrictMode } from 'react'
-import { render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 
 import type { DailyEntryRepository, LocalDate } from '../../domain/daily-entry'
 import type { PlacedSticker } from '../../domain/sticker'
@@ -55,6 +55,39 @@ const journalSticker: PlacedSticker = {
 }
 
 describe('JournalStickerLayer', () => {
+  it('keeps the initial grab offset while dragging', async () => {
+    const store = createAppStore(repository, date)
+    store.setState({ journalStickers: [journalSticker] })
+
+    render(
+      <AppStoreProvider store={store}>
+        <JournalStickerLayer />
+      </AppStoreProvider>,
+    )
+
+    const sticker = screen.getByRole('button', { name: '选择贴纸 日记图片' })
+    const layer = sticker.parentElement!
+    vi.spyOn(layer, 'getBoundingClientRect').mockReturnValue({
+      bottom: 100,
+      height: 100,
+      left: 0,
+      right: 200,
+      top: 0,
+      width: 200,
+      x: 0,
+      y: 0,
+      toJSON: () => ({}),
+    })
+
+    fireEvent.pointerDown(sticker, { clientX: 60, clientY: 50, pointerId: 1 })
+    fireEvent.pointerMove(sticker, { clientX: 70, clientY: 50, pointerId: 1 })
+
+    expect(store.getState().journalStickers[0]!.instance.position).toEqual({
+      x: 0.55,
+      y: 0.5,
+    })
+  })
+
   it('keeps a persisted PNG visible through React Strict Mode effect replay', async () => {
     const store = createAppStore(repository, date)
     store.setState({ journalStickers: [journalSticker] })

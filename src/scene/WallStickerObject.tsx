@@ -38,12 +38,18 @@ export function WallStickerObject({
   const texture = useStickerTexture(sticker.asset.blob)
   const dragging = useRef(false)
   const dragPoint = useMemo(() => new THREE.Vector3(), [])
+  const dragOffset = useMemo(() => new THREE.Vector3(), [])
+
+  const setAnimalCursor = (active: boolean) => {
+    document.body.classList.toggle('animal-cursor', active)
+    document.body.classList.toggle('animal-cursor--force', active)
+  }
 
   useEffect(() => {
     if (!selected || !interactive) return
-    document.body.style.cursor = 'grab'
+    setAnimalCursor(true)
     return () => {
-      document.body.style.cursor = ''
+      setAnimalCursor(false)
     }
   }, [interactive, selected])
 
@@ -55,10 +61,18 @@ export function WallStickerObject({
   const height = aspect >= 1 ? maxEdge / aspect : maxEdge
   const world = wallStickerPositionToWorld(sticker.instance.position, scale)
 
-  const positionFromEvent = (event: ThreeEvent<PointerEvent>) => {
+  const worldPointFromEvent = (event: ThreeEvent<PointerEvent>) => {
     const intersection = event.ray.intersectPlane(dragPlane, dragPoint)
-    return intersection
-      ? wallStickerPositionFromWorld({ x: intersection.x, y: intersection.y }, scale)
+    return intersection ? { x: intersection.x, y: intersection.y } : null
+  }
+
+  const positionFromEvent = (event: ThreeEvent<PointerEvent>) => {
+    const point = worldPointFromEvent(event)
+    return point
+      ? wallStickerPositionFromWorld(
+          { x: point.x + dragOffset.x, y: point.y + dragOffset.y },
+          scale,
+        )
       : null
   }
 
@@ -91,10 +105,14 @@ export function WallStickerObject({
         onPointerDown={(event) => {
           if (!interactive) return
           event.stopPropagation()
+          const point = worldPointFromEvent(event)
+          if (point) {
+            dragOffset.set(world.x - point.x, world.y - point.y, 0)
+          }
           dragging.current = true
           onSelect(sticker.instance.id)
           ;(event.target as Element).setPointerCapture?.(event.pointerId)
-          document.body.style.cursor = 'grabbing'
+          setAnimalCursor(true)
         }}
         onPointerMove={(event) => {
           if (!dragging.current || !interactive) return
@@ -107,13 +125,14 @@ export function WallStickerObject({
           event.stopPropagation()
           dragging.current = false
           ;(event.target as Element).releasePointerCapture?.(event.pointerId)
-          document.body.style.cursor = 'grab'
+          setAnimalCursor(true)
           const position = positionFromEvent(event)
           if (position) onCommitPosition(sticker.instance.id, position)
         }}
         onPointerCancel={() => {
           dragging.current = false
-          document.body.style.cursor = selected ? 'grab' : ''
+          dragOffset.set(0, 0, 0)
+          setAnimalCursor(selected && interactive)
         }}
       >
         <planeGeometry args={[width, height]} />

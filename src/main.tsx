@@ -10,6 +10,7 @@ import { sceneColorPresetRepository } from './persistence/scene-color-preset-rep
 import { createAppStore } from './state/app-store'
 import { AppStoreProvider } from './state/app-store-context'
 import 'animal-island-ui/style'
+import 'animal-island-ui/es/components/Cursor/cursor.css'
 import './styles.css'
 import './sticker-workbench.css'
 import './ui/theme.css'
