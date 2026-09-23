@@ -7,6 +7,17 @@ import {
 } from './journal-font'
 
 describe('global content font preference', () => {
+  it('preloads the selected font through the browser font loader', async () => {
+    const load = vi.fn().mockResolvedValue([])
+    vi.stubGlobal('document', { fonts: { load } })
+
+    const { preloadContentFont } = await import('./journal-font')
+    await preloadContentFont('zhimang')
+
+    expect(load).toHaveBeenCalledWith('16px "Zhi Mang Xing", "Songti SC", serif')
+    vi.unstubAllGlobals()
+  })
+
   it('reads and writes a supported font', () => {
     const values = new Map<string, string>()
     const storage = {

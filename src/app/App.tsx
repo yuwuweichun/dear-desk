@@ -11,6 +11,7 @@ import {
 import { AudioRuntime } from '../audio/AudioRuntime'
 import {
   readContentFontPreference,
+  preloadContentFont,
   writeContentFontPreference,
   type ContentFontId,
 } from '../domain/journal-font'
@@ -97,6 +98,7 @@ interface ProductAppProps {
 
 function ProductApp({ sceneColorPresetRepository }: ProductAppProps) {
   const [sceneReady, setSceneReady] = useState(false)
+  const [readyContentFont, setReadyContentFont] = useState<ContentFontId | null>(null)
   const [loadingDismissed, setLoadingDismissed] = useState(false)
   const handleSceneReadyChange = useCallback((ready: boolean) => {
     setSceneReady(ready)
@@ -125,6 +127,18 @@ function ProductApp({ sceneColorPresetRepository }: ProductAppProps) {
     controller.preloadSfx()
     return controller
   })
+
+  useEffect(() => {
+    let active = true
+    void preloadContentFont(contentFont).finally(() => {
+      if (active) setReadyContentFont(contentFont)
+    })
+    return () => {
+      active = false
+    }
+  }, [contentFont])
+
+  const contentFontReady = readyContentFont === contentFont
   const cycleDeskCameraPreset = useAppStore(
     (state) => state.cycleDeskCameraPreset,
   )
@@ -163,12 +177,12 @@ function ProductApp({ sceneColorPresetRepository }: ProductAppProps) {
   }, [loadNotebookCoverSettings, loadStickers, loadToday])
 
   useEffect(() => {
-    if (!sceneReady) return
+    if (!sceneReady || !contentFontReady) return
 
     const exitDuration = (Math.ceil(Math.hypot(window.innerWidth, window.innerHeight) / 2) + 50) / 1500 * 1000
     const timer = window.setTimeout(() => setLoadingDismissed(true), exitDuration + 50)
     return () => window.clearTimeout(timer)
-  }, [sceneReady])
+  }, [contentFontReady, sceneReady])
 
   useEffect(() => {
     let active = true
@@ -284,9 +298,9 @@ function ProductApp({ sceneColorPresetRepository }: ProductAppProps) {
         </div>
       )}
 
-      {stickerWorkflow !== 'composing' && (!sceneReady || !loadingDismissed) ? (
+      {stickerWorkflow !== 'composing' && (!sceneReady || !contentFontReady || !loadingDismissed) ? (
         <div aria-label="正在加载桌面" className="scene-loading-overlay" role="status">
-          <Loading active={!sceneReady} />
+          <Loading active={!sceneReady || !contentFontReady} />
           <span className="sr-only">正在加载桌面...</span>
         </div>
       ) : null}

@@ -27,6 +27,16 @@ export const CONTENT_FONT_FAMILIES: Readonly<Record<ContentFontId, string>> = {
   zhimang: '"Zhi Mang Xing", "Songti SC", serif',
 }
 
+export const preloadContentFont = async (fontId: ContentFontId): Promise<void> => {
+  if (typeof document === 'undefined' || !document.fonts) return
+
+  try {
+    await document.fonts.load(`16px ${CONTENT_FONT_FAMILIES[fontId]}`)
+  } catch {
+    // Font loading must not block the app; CSS keeps the existing fallback stack.
+  }
+}
+
 interface ReadableStorage {
   getItem(key: string): string | null
 }

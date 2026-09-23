@@ -327,7 +327,7 @@ describe('App camera controls', () => {
 })
 
 describe('App scene loading', () => {
-  it('keeps the UI behind the loading overlay until the scene is ready', () => {
+  it('keeps the UI behind the loading overlay until the scene and font are ready', async () => {
     vi.useFakeTimers()
     const store = createAppStore(createRepository(), date)
 
@@ -340,6 +340,7 @@ describe('App scene loading', () => {
     expect(screen.getByRole('status', { name: '正在加载桌面' })).toBeInTheDocument()
     act(() => fireEvent.click(screen.getByRole('button', { name: '场景加载完成' })))
     expect(screen.getByRole('status', { name: '正在加载桌面' })).toBeInTheDocument()
+    await act(async () => {})
     act(() => vi.advanceTimersByTime(1000))
     expect(screen.queryByRole('status', { name: '正在加载桌面' })).not.toBeInTheDocument()
   })
