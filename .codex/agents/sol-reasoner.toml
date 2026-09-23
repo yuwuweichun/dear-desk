@@ -1,6 +1,6 @@
 name = "sol_reasoner"
-description = "Read-only GPT-5.6 Sol architecture and debugging reasoner. Use only after the Luna primary agent prepares a focused 1-3K-token Task Packet for a genuinely complex decision or stubborn failure."
-model = "gpt-5.6-sol"
+description = "Read-only GPT-6 Sol architecture and debugging reasoner. Use only after the Luna primary agent prepares a focused 1-3K-token Task Packet for a genuinely complex decision or stubborn failure."
+model = "gpt-6-sol"
 model_reasoning_effort = "high"
 sandbox_mode = "read-only"
 developer_instructions = """
